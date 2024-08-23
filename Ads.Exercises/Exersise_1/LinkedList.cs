@@ -162,8 +162,17 @@ namespace AlgorithmsDataStructures
             else
             {
                 var nextNode = _nodeAfter.next;
+
                 _nodeAfter.next = _nodeToInsert;
-                _nodeToInsert.next = nextNode;
+
+                if (nextNode == null)
+                {
+                    tail = _nodeToInsert;
+                }
+                else
+                {
+                    _nodeToInsert.next = nextNode;
+                }
             }
         }
 

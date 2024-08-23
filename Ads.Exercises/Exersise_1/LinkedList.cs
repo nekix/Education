@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Policy;
 
 namespace AlgorithmsDataStructures
 {
@@ -145,9 +146,25 @@ namespace AlgorithmsDataStructures
 
         public void InsertAfter(Node _nodeAfter, Node _nodeToInsert)
         {
-            var nextNode = _nodeAfter.next;
-            _nodeAfter.next = _nodeToInsert;
-            _nodeToInsert.next = nextNode;
+            if(_nodeAfter == null)
+            {
+                if(head == null)
+                {
+                    tail = _nodeToInsert;
+                }
+                else
+                {
+                    _nodeToInsert.next = head;
+                }
+
+                head = _nodeToInsert;
+            }
+            else
+            {
+                var nextNode = _nodeAfter.next;
+                _nodeAfter.next = _nodeToInsert;
+                _nodeToInsert.next = nextNode;
+            }
         }
 
         public static LinkedList Sum(LinkedList firstList, LinkedList secondList)

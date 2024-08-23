@@ -18,6 +18,39 @@ namespace Ads.Tests.Exersise_1
         private readonly int _tailNodeValue = 128;
         private readonly int _newNodeValue = 10;
 
+
+        [Fact]
+        public void Should_Insert_First_When_AfterNode_Null()
+        {
+            var list = GetTestLinkedList();
+            Node nodeAfter = null;
+            var newNode = new Node(_newNodeValue);
+
+            list.InsertAfter(nodeAfter, newNode);
+
+            list.head.value.ShouldBe(_newNodeValue);
+            list.head.next.value.ShouldBe(_headNodeValue);
+            list.head.next.next.value.ShouldBe(_middleNodeValue);
+            list.head.next.next.next.value.ShouldBe(_tailNodeValue);
+            list.head.next.next.next.next.ShouldBeNull();
+        }
+
+        [Fact]
+        public void Should_Insert_In_Empty_List_First_When_AfterNode_Null()
+        {
+            var list = new LinkedList();
+
+            Node nodeAfter = null;
+            var newNode = new Node(_newNodeValue);
+
+            list.InsertAfter(nodeAfter, newNode);
+
+            list.head.ShouldBe(newNode);
+            list.tail.ShouldBe(newNode);
+            list.head.value.ShouldBe(_newNodeValue);
+        }
+
+
         [Fact]
         public void Should_Insert_After_Head_Node()
         {

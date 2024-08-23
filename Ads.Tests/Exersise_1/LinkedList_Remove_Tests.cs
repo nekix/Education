@@ -14,6 +14,18 @@ namespace Ads.Tests.Exersise_1
         private readonly int _notExistedNodeValue = 10;
 
         [Fact]
+        public void Should_Return_False_When_Remove_In_Empty_List()
+        {
+            var list = new LinkedList();
+
+            var isDeleted = list.Remove(_notExistedNodeValue);
+
+            isDeleted.ShouldBeFalse();
+            list.head.ShouldBeNull();
+            list.tail.ShouldBeNull();
+        }
+
+        [Fact]
         public void Should_Return_False_When_Remove_By_Value_Not_Existed_Node()
         {
             var list = GetTestLinkedList();

@@ -35,6 +35,8 @@ namespace Ads.Tests.Exersise_1
                 node = node.next;
                 i += 1;
             }
+
+            i.ShouldBe(secondListNodeValues.Length);
         }
 
         [Theory]

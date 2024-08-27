@@ -73,8 +73,32 @@ namespace AlgorithmsDataStructures
 
         public bool Remove(int _value)
         {
-            // здесь будет ваш код удаления одного узла по заданному значению
-            return true; // если узел был удалён
+            var node = Find(_value);
+
+            if (node == null) return false;
+
+            var prefNode = node.prev;
+            var nextNode = node.next;
+
+            if (prefNode != null)
+            {
+                prefNode.next = nextNode;
+            }
+            else
+            {
+                head = nextNode;
+            }
+
+            if (nextNode != null)
+            {
+                nextNode.prev = prefNode;
+            }
+            else
+            {
+                tail = nextNode;
+            }
+
+            return true;
         }
 
         public void RemoveAll(int _value)
@@ -89,7 +113,16 @@ namespace AlgorithmsDataStructures
 
         public int Count()
         {
-            return 0; // здесь будет ваш код подсчёта количества элементов в списке
+            int count = 0;
+
+            Node node = head;
+            while (node != null)
+            {
+                count += 1;
+                node = node.next;
+            }
+
+            return count;
         }
 
         public void InsertAfter(Node _nodeAfter, Node _nodeToInsert)

@@ -46,7 +46,14 @@ namespace AlgorithmsDataStructures
 
         public Node Find(int _value)
         {
-            // здесь будет ваш код поиска
+            Node node = head;
+
+            while(node != null)
+            {
+                if (node.value == _value) return node;
+                node = node.next;
+            }
+
             return null;
         }
 

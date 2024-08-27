@@ -96,7 +96,8 @@ namespace AlgorithmsDataStructures
 
         public void Clear()
         {
-            // здесь будет ваш код очистки всего списка
+            head = null;
+            tail = null;
         }
 
         public int Count()

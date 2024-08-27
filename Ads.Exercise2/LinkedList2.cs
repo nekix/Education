@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace AlgorithmsDataStructures
 {
@@ -77,20 +78,21 @@ namespace AlgorithmsDataStructures
 
             if (node == null) return false;
 
-            var prefNode = node.prev;
-            var nextNode = node.next;
-
-            if (prefNode != null) prefNode.next = nextNode;
-            else head = nextNode;
-
-            if (nextNode != null) nextNode.prev = prefNode;
-            else tail = prefNode;
+            Remove(node);
 
             return true;
         }
 
         public void RemoveAll(int _value)
         {
+            Node node = head;
+
+            while (node != null)
+            {
+                if (node.value == _value) Remove(node);
+                node = node.next;
+            }
+
             // здесь будет ваш код удаления всех узлов по заданному значению
         }
 
@@ -106,7 +108,7 @@ namespace AlgorithmsDataStructures
             Node node = head;
             while (node != null)
             {
-                count += 1;
+                count++;
                 node = node.next;
             }
 
@@ -122,5 +124,16 @@ namespace AlgorithmsDataStructures
 
         }
 
+        private void Remove(Node node)
+        {
+            var prefNode = node.prev;
+            var nextNode = node.next;
+
+            if (prefNode != null) prefNode.next = nextNode;
+            else head = nextNode;
+
+            if (nextNode != null) nextNode.prev = prefNode;
+            else tail = prefNode;
+        }
     }
 }

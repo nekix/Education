@@ -92,8 +92,6 @@ namespace AlgorithmsDataStructures
                 if (node.value == _value) Remove(node);
                 node = node.next;
             }
-
-            // здесь будет ваш код удаления всех узлов по заданному значению
         }
 
         public void Clear()

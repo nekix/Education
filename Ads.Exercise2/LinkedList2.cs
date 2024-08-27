@@ -60,7 +60,14 @@ namespace AlgorithmsDataStructures
         public List<Node> FindAll(int _value)
         {
             List<Node> nodes = new List<Node>();
-            // здесь будет ваш код поиска всех узлов по заданному значению
+
+            Node node = head;
+            while (node != null)
+            {
+                if (node.value == _value) nodes.Add(node);
+                node = node.next;
+            }
+
             return nodes;
         }
 

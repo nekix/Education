@@ -31,8 +31,23 @@ namespace Ads.Tests.Exercise_2
             foreach (var item in finalValues)
             {
                 node.value.ShouldBe(item);
+
                 node.next?.prev.ShouldBe(node);
                 node = node.next;
+            }
+
+            if(newCount != 0)
+            {
+                list.head.ShouldNotBeNull();
+                list.head.prev.ShouldBe(null);
+                list.tail.ShouldNotBeNull();
+                list.tail.value.ShouldBe(finalValues[finalValues.Length - 1]);
+                list.tail.next.ShouldBe(null);
+            }
+            else
+            {
+                list.head.ShouldBe(null);
+                list.tail.ShouldBe(null);
             }
         }
 

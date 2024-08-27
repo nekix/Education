@@ -80,23 +80,11 @@ namespace AlgorithmsDataStructures
             var prefNode = node.prev;
             var nextNode = node.next;
 
-            if (prefNode != null)
-            {
-                prefNode.next = nextNode;
-            }
-            else
-            {
-                head = nextNode;
-            }
+            if (prefNode != null) prefNode.next = nextNode;
+            else head = nextNode;
 
-            if (nextNode != null)
-            {
-                nextNode.prev = prefNode;
-            }
-            else
-            {
-                tail = nextNode;
-            }
+            if (nextNode != null) nextNode.prev = prefNode;
+            else tail = prefNode;
 
             return true;
         }

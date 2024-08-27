@@ -17,7 +17,7 @@ namespace Ads.Tests.Exercise_2
     {
         [Theory]
         [MemberData(nameof(FindAllData))]
-        public void Should_Find_First(int value, int count, LinkedList2 list)
+        public void Should_Find_All(int value, int count, LinkedList2 list)
         {
             var nodes = list.FindAll(value);
 

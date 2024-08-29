@@ -1,6 +1,6 @@
 ﻿extern alias Exercise2;
 
-using Exercise2.AlgorithmsDataStructures;
+using Exercise2.Ads.Exercise2;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -9,13 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Ads.Tests.Exercise_2
+namespace Ads.Tests.Exercise_2.DummyLinkedList2Tests
 {
-    public class LinkedList2_Find_Tests : LinkedList2_BaseTests
+    public class LinkedList2_Find_Tests : DummyLinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(FindFirstData))]
-        public void Should_Find_First(int value, bool isExist, int? prevNodeValue, int? nextNodeValue, LinkedList2 list)
+        public void Should_Find_First(int value, bool isExist, int? prevNodeValue, int? nextNodeValue, DummyLinkedList2 list)
         {
             var node = list.Find(value);
 

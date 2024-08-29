@@ -13,7 +13,7 @@ using Shouldly;
 
 namespace Ads.Tests.Exercise_2
 {
-    public class LinkedList_Count_Tests : LinkedList_BaseTests
+    public class LinkedList2_Count_Tests : LinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(CountData))]

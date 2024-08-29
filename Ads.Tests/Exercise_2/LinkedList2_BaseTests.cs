@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Ads.Tests.Exercise_2
 {
-    public class LinkedList_BaseTests
+    public class LinkedList2_BaseTests
     {
         protected static LinkedList2 GetTestLinkedList(int[] nodValues)
         {

@@ -1,8 +1,6 @@
 ﻿extern alias Exercise2;
 
-using Exercise2.AlgorithmsDataStructures;
-
-using AlgorithmsDataStructures;
+using Exercise2.Ads.Exercise2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +9,13 @@ using System.Threading.Tasks;
 using Xunit;
 using Shouldly;
 
-namespace Ads.Tests.Exercise_2
+namespace Ads.Tests.Exercise_2.DummyLinkedList2Tests
 {
-    public class LinkedList_FindAll_Tests : LinkedList_BaseTests
+    public class LinkedList_FindAll_Tests : DummyLinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(FindAllData))]
-        public void Should_Find_All(int value, int count, LinkedList2 list)
+        public void Should_Find_All(int value, int count, DummyLinkedList2 list)
         {
             var nodes = list.FindAll(value);
 

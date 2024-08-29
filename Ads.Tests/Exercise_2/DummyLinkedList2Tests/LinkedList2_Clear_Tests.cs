@@ -1,6 +1,6 @@
 ﻿extern alias Exercise2;
 
-using Exercise2.AlgorithmsDataStructures;
+using Exercise2.Ads.Exercise2;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -9,18 +9,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Ads.Tests.Exercise_2
+namespace Ads.Tests.Exercise_2.DummyLinkedList2Tests
 {
-    public class LinkedList2_Clear_Tests : LinkedList2_BaseTests
+    public class LinkedList2_Clear_Tests : DummyLinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(ClearData))]
-        public void Should_Clear(LinkedList2 list)
+        public void Should_Clear(DummyLinkedList2 list)
         {
             list.Clear();
 
-            list.head.ShouldBeNull();
-            list.tail.ShouldBeNull();
+            list.head.GetType().ShouldBe(typeof(DummyNode));
+            list.tail.GetType().ShouldBe(typeof(DummyNode));
+            list.head.next.ShouldBe(list.tail);
+            list.tail.prev.ShouldBe(list.head);
 
             list.Count().ShouldBe(0);
         }

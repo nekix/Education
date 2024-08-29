@@ -1,6 +1,6 @@
 ﻿extern alias Exercise2;
 
-using Exercise2.AlgorithmsDataStructures;
+using Exercise2.Ads.Exercise2;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -9,13 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Ads.Tests.Exercise_2
+namespace Ads.Tests.Exercise_2.DummyLinkedList2Tests
 {
-    public class LinkedList2_Remove_Tests : LinkedList2_BaseTests
+    public class LinkedList2_Remove_Tests : DummyLinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(RemoveData))]
-        public void Should_Remove(int value, bool isRemoved, int newCount, LinkedList2 list, int[] finalValues)
+        public void Should_Remove(int value, bool isRemoved, int newCount, DummyLinkedList2 list, int[] finalValues)
         {
             var node = list.Find(value);
             var removed = list.Remove(value);
@@ -27,27 +27,28 @@ namespace Ads.Tests.Exercise_2
                 list.Find(value).ShouldNotBe(node);
             }
 
-            node = list.head;
+            node = list.head.next;
             foreach (var item in finalValues)
             {
                 node.value.ShouldBe(item);
-
-                node.next?.prev.ShouldBe(node);
+                node.next.prev.ShouldBe(node);
                 node = node.next;
             }
 
             if(newCount != 0)
             {
-                list.head.ShouldNotBeNull();
                 list.head.prev.ShouldBe(null);
-                list.tail.ShouldNotBeNull();
-                list.tail.value.ShouldBe(finalValues[finalValues.Length - 1]);
+                list.tail.prev.value.ShouldBe(finalValues[finalValues.Length - 1]);
                 list.tail.next.ShouldBe(null);
             }
             else
             {
-                list.head.ShouldBe(null);
-                list.tail.ShouldBe(null);
+                list.head.GetType().ShouldBe(typeof(DummyNode));
+                list.head.prev.ShouldBeNull();
+                list.head.next.ShouldBe(list.tail);
+                list.tail.GetType().ShouldBe(typeof(DummyNode));
+                list.tail.next.ShouldBeNull();
+                list.tail.prev.ShouldBe(list.head);
             }
         }
 

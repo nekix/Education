@@ -10,6 +10,11 @@ namespace AlgorithmsDataStructures
         public int count;
         public int capacity;
 
+        public const int MinCapacity = 16;
+        public const int CapacityIncreaseMultiplier = 2;
+        public const float CapacityReductionMultiplier = 1.5f;
+        public const float MinFillMultiplier = 0.5f;
+
         public DynArray()
         {
             count = 0;
@@ -18,28 +23,62 @@ namespace AlgorithmsDataStructures
 
         public void MakeArray(int new_capacity)
         {
-            // ваш код
+            new_capacity = new_capacity < MinCapacity ? MinCapacity : new_capacity;
+
+            Array.Resize(ref array, new_capacity);
+
+            capacity = new_capacity;
+
+            count = count < new_capacity ? count : new_capacity;
         }
 
         public T GetItem(int index)
         {
-            // ваш код
-            return default(T);
+            if (index < 0 || index >= count)
+                throw new IndexOutOfRangeException();
+
+            return array[index];
         }
 
         public void Append(T itm)
         {
-            // ваш код
+            if(count == capacity)
+                MakeArray(capacity * CapacityIncreaseMultiplier);
+
+            array[count] = itm;
+            count++;
         }
 
         public void Insert(T itm, int index)
         {
-            // ваш код
+            if (index < 0 || index > count)
+                throw new IndexOutOfRangeException();
+
+            if (capacity == count)
+                MakeArray(capacity * CapacityIncreaseMultiplier);
+
+            for (int i = count - 1; i >= index; --i)
+                array[i + 1] = array[i];
+
+            array[index] = itm;
+            count++;
         }
 
         public void Remove(int index)
         {
-            // ваш код
+            if (index < 0 || index >= count)
+                throw new IndexOutOfRangeException();
+
+            for (int i = index + 1; i < count; i++)
+            {
+                array[i - 1] = array[i];
+            }
+
+            array[count - 1] = default;
+            count--;
+
+            if ((float)count / capacity < MinFillMultiplier)
+                MakeArray((int)(capacity / CapacityReductionMultiplier));
         }
 
     }

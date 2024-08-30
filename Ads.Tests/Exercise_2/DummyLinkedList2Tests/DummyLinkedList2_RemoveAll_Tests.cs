@@ -12,7 +12,7 @@ using Shouldly;
 
 namespace Ads.Tests.Exercise_2.DummyLinkedList2Tests
 {
-    public class LinkedList2_RemoveAll_Tests : DummyLinkedList2_BaseTests
+    public class DummyLinkedList2_RemoveAll_Tests : DummyLinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(RemoveAllData))]

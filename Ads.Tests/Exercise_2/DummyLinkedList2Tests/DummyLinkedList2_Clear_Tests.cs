@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Ads.Tests.Exercise_2.DummyLinkedList2Tests
 {
-    public class LinkedList2_Clear_Tests : DummyLinkedList2_BaseTests
+    public class DummyLinkedList2_Clear_Tests : DummyLinkedList2_BaseTests
     {
         [Theory]
         [MemberData(nameof(ClearData))]

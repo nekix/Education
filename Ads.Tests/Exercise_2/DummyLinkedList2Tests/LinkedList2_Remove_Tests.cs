@@ -1,5 +1,4 @@
 ﻿extern alias Exercise2;
-
 using Exercise2.Ads.Exercise2;
 using Shouldly;
 using System;

@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CycleWorkResult.md" />
+    <Compile Include="BracketBalancer.cs" />
     <Compile Include="HeadStack.cs" />
     <Compile Include="Stack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -45,6 +45,7 @@
     <Compile Include="BracketBalancer.cs" />
     <Compile Include="HeadStack.cs" />
     <Compile Include="IntStack.cs" />
+    <Compile Include="StackPostfixExpressionEvaluator.cs" />
     <Compile Include="Stack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

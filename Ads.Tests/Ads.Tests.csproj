@@ -24,7 +24,12 @@
     <ProjectReference Include="..\Ads.Exercise3\Ads.Exercise3.csproj">
         <Aliases>Exercise3</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\Ads.Exercises\Ads.Exercises.csproj" />
+    <ProjectReference Include="..\Ads.Exercise4\Ads.Exercise4.csproj">
+        <Aliases>Exercise4</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Ads.Exercises\Ads.Exercises.csproj" >
+
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

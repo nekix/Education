@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 
 namespace AlgorithmsDataStructures
 {
-
     public class Stack<T>
     {
         public List<T> InnerList;
@@ -17,7 +15,7 @@ namespace AlgorithmsDataStructures
         public int Size()
             => InnerList.Count;
 
-        public T Pop()
+        public virtual T Pop()
         {
             var size = Size();
 
@@ -30,10 +28,8 @@ namespace AlgorithmsDataStructures
             return item;
         }
 
-        public void Push(T val)
-        {
-            InnerList.Add(val);
-        }
+        public virtual void Push(T val)
+            => InnerList.Add(val);
 
         public T Peek()
         {

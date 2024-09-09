@@ -4,12 +4,12 @@ namespace AlgorithmsDataStructures
 {
     public class IntStack : Stack<int>
     {
-        private List<int> MinInnerList;
+        private Stack<int> _minItemsStack;
         private double _sum;
 
         public IntStack()
         {
-            MinInnerList = new List<int>();
+            _minItemsStack = new Stack<int>();
         }
 
         public override int Pop()
@@ -20,8 +20,8 @@ namespace AlgorithmsDataStructures
 
             if(size != 0)
             {
-                if(value == MinInnerList[MinInnerList.Count - 1])
-                    MinInnerList.RemoveAt(MinInnerList.Count - 1);
+                if(value == _minItemsStack.Peek())
+                    _minItemsStack.Pop();
                 
                 _sum -= value;
             }
@@ -31,8 +31,8 @@ namespace AlgorithmsDataStructures
 
         public override void Push(int val)
         {
-            if (Size() == 0 || MinInnerList[MinInnerList.Count - 1] >= val)
-                MinInnerList.Add(val);
+            if (Size() == 0 || _minItemsStack.Peek() >= val)
+                _minItemsStack.Push(val);
 
             _sum += val;
 
@@ -44,7 +44,7 @@ namespace AlgorithmsDataStructures
             if (Size() == 0)
                 return default;
 
-            return MinInnerList[MinInnerList.Count - 1];
+            return _minItemsStack.Pop();
         }
 
         public double GetMiddle()

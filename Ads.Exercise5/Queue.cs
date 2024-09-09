@@ -36,6 +36,5 @@ namespace AlgorithmsDataStructures
 
         public int Size()
             => _items.Count;
-
     }
 }

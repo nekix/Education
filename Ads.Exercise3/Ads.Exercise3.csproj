@@ -41,8 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BankedArray.cs" />
     <Compile Include="DynArray.cs" />
+    <Compile Include="MultidimDynArray.cs" />
+    <Compile Include="MultidimDynArrayV2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MultidimDynArray.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

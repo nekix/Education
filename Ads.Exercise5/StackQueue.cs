@@ -33,5 +33,19 @@ namespace Ads.Exercise5
 
         public int Size()
             => _items.Count + _tempStack.Count;
+
+        public void Reverse()
+        {
+            while (_items.Count > 0)
+                _tempStack.Push(_items.Pop());
+
+            while (_tempStack.Count > 0)
+                _items.Push(_tempStack.Pop());
+
+            var temp = _items;
+
+            _items = _tempStack;
+            _tempStack = temp;
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace Ads.Tests.Exercise_5
     public class Queue_Rotate_Tests : Queue_BaseTests
     {
         [Theory]
-        [MemberData(nameof(MakeDequeData))]
+        [MemberData(nameof(MakeRotateData))]
         public void Should_Rotate_Queue(int rotateCount, int[] targetItems, Queue queue)
         {
             queue = queue.Rotate(rotateCount);
@@ -28,7 +28,7 @@ namespace Ads.Tests.Exercise_5
             queue.Dequeue().ShouldBe(default);
         }
 
-        public static IEnumerable<object[]> MakeDequeData =>
+        public static IEnumerable<object[]> MakeRotateData =>
             new List<object[]>
             {
                 new object[] { 1, new int[] { 1 }, GetFilledQueue<int>(new int[] { 1 }) },

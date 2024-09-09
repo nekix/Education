@@ -26,7 +26,7 @@ namespace Ads.Exercise5
                 return _tempStack.Pop();
 
             while(_items.Count > 0)
-                _tempStack.Push(_items.Pop());          
+                _tempStack.Push(_items.Pop());
 
             return _tempStack.Count > 0 ? _tempStack.Pop() : default;
         }

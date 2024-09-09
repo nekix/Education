@@ -22,7 +22,7 @@ namespace Ads.Exercise5
 
         public void Enqueue(T item)
         {
-            if (_count == Capacity)
+            if (IsFilled())
                 throw new InvalidOperationException();
 
             var index = (_startIndex + _count) % Capacity;
@@ -49,6 +49,6 @@ namespace Ads.Exercise5
             => _count;
 
         public bool IsFilled()
-            => _count == _items.Length;
+            => _count == Capacity;
     }
 }

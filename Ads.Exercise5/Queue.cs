@@ -1,31 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AlgorithmsDataStructures
 {
 
     public class Queue<T>
     {
+        private readonly List<T> _items;
+
         public Queue()
         {
-            // инициализация внутреннего хранилища очереди
+            _items = new List<T>();
         }
 
         public void Enqueue(T item)
         {
-            // вставка в хвост
+            _items.Insert(0, item);
         }
 
         public T Dequeue()
         {
-            // выдача из головы
-            return default(T); // если очередь пустая
+            var lastIndex = Size() - 1;
+
+            if(lastIndex > -1)
+            {
+                var item = _items[lastIndex];
+                _items.RemoveAt(lastIndex);
+
+                return item;
+            }
+
+            return default(T);
         }
 
         public int Size()
-        {
-            return 0; // размер очереди
-        }
+            => _items.Count;
 
     }
 }

@@ -22,8 +22,11 @@ namespace Ads.Exercise3
 
         public MultidimDynArrayV3(int dimensionsСount)
         {
+            if (dimensionsСount < 1)
+                throw new ArgumentException();
+
             // Доделать
-            _counts = Enumerable.Repeat(0, dimensionsСount).ToArray();
+            _counts = Enumerable.Repeat(0, (int)Math.Pow(MinCapacity, dimensionsСount - 1)).ToArray();
             _capacities = Enumerable.Repeat(MinCapacity, dimensionsСount).ToArray();
             _array = new T[(int)Math.Pow(MinCapacity, dimensionsСount)];
 
@@ -182,7 +185,23 @@ namespace Ads.Exercise3
 
                 Array.Resize(ref _array, globalDimensionOffset);
                 _capacities[0] = globalDimensionOffset;
-                Array.Resize(ref _counts, );
+                
+
+                int countsSize = 0;
+
+                if (_dimensionsCount == 1)
+                {
+                    countsSize = 1;
+                }
+                else
+                {
+                    for (int i = 0; i < _capacities.Length - 1; i++)
+                    {
+                        countsSize *= _capacities[i];
+                    }
+                }
+
+                Array.Resize(ref _counts, countsSize);
             }
 
             for (int i = 0; i < dimension; i++)

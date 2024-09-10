@@ -45,6 +45,7 @@
     <Compile Include="DynArray.cs" />
     <Compile Include="MultidimDynArray.cs" />
     <Compile Include="MultidimDynArrayV2.cs" />
+    <Compile Include="MultidimDynArrayV3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -53,7 +53,7 @@ namespace Ads.Tests.Exercise_3.MultidimDynArrayV3_Tests
             array.GetCapacity(2).ShouldBe(64);
             array.GetCapacity(3).ShouldBe(64);
 
-            Assert.Throws<IndexOutOfRangeException>(() => array.GetItem(0, 0, 0, count + 200));
+            Assert.Throws<IndexOutOfRangeException>(() => array.GetItem(0, 0, 0, count + 2));
         }
 
         public static IEnumerable<object[]> InsertWithoutReallocationData =>

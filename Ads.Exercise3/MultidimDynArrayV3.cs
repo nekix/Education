@@ -15,14 +15,12 @@ namespace Ads.Exercise3
     {
         private T[] _items;
         private int[] _counts;
-        private int[] _capacities;
+        private readonly int[] _capacities;
 
-        private int _dimensionsCount;
+        private readonly int _dimensionsCount;
 
         public const int MinCapacity = 16;
         public const int CapacityIncreaseMultiplier = 2;
-        public const float CapacityReductionMultiplier = 1.5f;
-        public const float MinFillMultiplier = 0.5f;
 
         public MultidimDynArrayV3(int dimensionsСount)
         {
@@ -70,8 +68,7 @@ namespace Ads.Exercise3
             for (int i = 0; i < indexes.Length; i++)
             {
                 // При превышении индексом вместимости измерения
-                // более чем на 1
-                // прервать выполнения
+                // более чем на 1 прервать выполнения
                 if (_capacities[i] < indexes[i])
                     throw new IndexOutOfRangeException();
 
@@ -92,6 +89,16 @@ namespace Ads.Exercise3
 
             _items[itemIndex] = itm;
             _counts[countIndex]++;
+        }
+
+        public void Remove(params int[] indexes)
+        {
+            if (GetCount(indexes.Take(indexes.Length - 1).ToArray()) <= indexes.Last())
+                throw new IndexOutOfRangeException();
+
+            var index = GetItemIndex(indexes);
+
+            _items[index] = default;
         }
 
         private void ExpandDimension(int dimension)
@@ -210,22 +217,5 @@ namespace Ads.Exercise3
 
             return indexOffset;
         }
-
-        //public void Remove(params int[] index)
-        //{
-        //    if (index < 0 || index >= count)
-        //        throw new IndexOutOfRangeException();
-
-        //    for (int i = index + 1; i < count; i++)
-        //    {
-        //        array[i - 1] = array[i];
-        //    }
-
-        //    array[count - 1] = default;
-        //    count--;
-
-        //    if ((float)count / capacity < MinFillMultiplier)
-        //        MakeArray((int)(capacity / CapacityReductionMultiplier));
-        //}
     }
 }

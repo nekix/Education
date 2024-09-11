@@ -7,9 +7,13 @@ using AlgorithmsDataStructures;
 
 namespace Ads.Exercise3
 {
+    /// <summary>
+    /// Расширяемый массив
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class MultidimDynArrayV3<T>
     {
-        private T[] _array;
+        private T[] _items;
         private int[] _counts;
         private int[] _capacities;
 
@@ -25,30 +29,125 @@ namespace Ads.Exercise3
             if (dimensionsСount < 1)
                 throw new ArgumentException();
 
-            // Доделать
             _counts = Enumerable.Repeat(0, (int)Math.Pow(MinCapacity, dimensionsСount - 1)).ToArray();
             _capacities = Enumerable.Repeat(MinCapacity, dimensionsСount).ToArray();
-            _array = new T[(int)Math.Pow(MinCapacity, dimensionsСount)];
+            _items = new T[(int)Math.Pow(MinCapacity, dimensionsСount)];
 
             _dimensionsCount = dimensionsСount;
         }
 
-        //public void MakeArray(int new_capacity)
-        //{
-        //    new_capacity = new_capacity < MinCapacity ? MinCapacity : new_capacity;
-
-        //    Array.Resize(ref array, new_capacity);
-
-        //    capacity = new_capacity;
-
-        //    count = count < new_capacity ? count : new_capacity;
-        //}
-
         public T GetItem(params int[] indexes)
         {
-            var index = GetItemIndex();
+            if (GetCount(indexes.Take(indexes.Length - 1).ToArray()) <= indexes.Last())
+                throw new IndexOutOfRangeException();
 
-            return _array[index];
+            var index = GetItemIndex(indexes);
+
+            return _items[index];
+        }
+
+        public int GetCount(params int[] indexes)
+        {
+            var index = GetCountIndex(indexes);
+
+            return _counts[index];
+        }
+
+        public int GetCapacity(int dimension)
+        {
+            if (dimension < 0 || dimension >= _dimensionsCount)
+                throw new IndexOutOfRangeException();
+
+            return _capacities[dimension];
+        }
+
+        public void Insert(T itm, params int[] indexes)
+        {
+            if (indexes.Length != _dimensionsCount)
+                throw new IndexOutOfRangeException();
+
+            // Проверка масштабирования размерности
+            for (int i = 0; i < indexes.Length; i++)
+            {
+                // При превышении индексом вместимости измерения
+                // более чем на 1
+                // прервать выполнения
+                if (_capacities[i] < indexes[i])
+                    throw new IndexOutOfRangeException();
+
+                // При превышении на 1
+                // расширить измерение
+                if (_capacities[i] == indexes[i])
+                    ExpandDimension(i);
+            }
+
+            var itemIndex = GetItemIndex(indexes);
+
+            var countIndex = GetCountIndex(
+                indexes.Take(indexes.Length - 1)
+                    .ToArray());
+
+            for (int i = itemIndex + _counts[countIndex] - 1; i >= itemIndex; --i)
+                _items[i + 1] = _items[i];
+
+            _items[itemIndex] = itm;
+            _counts[countIndex]++;
+        }
+
+        private void ExpandDimension(int dimension)
+        {
+            if (dimension < 0 || dimension >= _dimensionsCount)
+                throw new ArgumentException();
+
+            var newItems = new T[_items.Length * CapacityIncreaseMultiplier];
+
+            int itemsOffset = 1;
+            for (int i = _dimensionsCount - 1; i >= dimension; i--)
+                itemsOffset *= _capacities[i];
+
+            var copyOperationCount = 1;
+            for (int i = 0; i < dimension; i++)
+                copyOperationCount *= _capacities[i];
+
+            // Копируем _items пачками в новый массив
+            for (int i = 0; i < copyOperationCount; i++)
+            {
+                Array.Copy(
+                    _items,
+                    itemsOffset * i,
+                    newItems,
+                    itemsOffset * CapacityIncreaseMultiplier * i,
+                    itemsOffset);
+            }
+
+            // Не меняем массив колличеств элементов
+            // если у нас расширяется последнее измерение
+            // и если измерение всего одно
+            if (_dimensionsCount != 1 && dimension != _dimensionsCount - 1)
+            {
+                var newCounts = new int[_counts.Length * CapacityIncreaseMultiplier];
+
+                var countsOffset = 1;
+                for (int i = _dimensionsCount - 2; i >= dimension; i--)
+                    countsOffset *= _capacities[i];
+
+                // Кол-во операций копирования _counts элементов
+                // совпадает с количеством операций копирования _items элементов
+                for (int i = 0; i < copyOperationCount; i++)
+                {
+                    Array.Copy(
+                        _counts,
+                        countsOffset * i,
+                        newCounts,
+                        countsOffset * CapacityIncreaseMultiplier * i,
+                        countsOffset);
+                }
+
+                _counts = newCounts;
+            }
+
+            _items = newItems;
+            _capacities[dimension] *= CapacityIncreaseMultiplier;
         }
 
         private int GetItemIndex(params int[] indexes)
@@ -56,12 +155,7 @@ namespace Ads.Exercise3
             if (indexes.Length != _dimensionsCount)
                 throw new IndexOutOfRangeException();
 
-            // Проверить корректность индексов
-            // и выход за пределы последним индексом
-            if (indexes.Last() >= GetCount(indexes.Take(indexes.Length - 1).ToArray()))
-                throw new IndexOutOfRangeException();
-
-            // Смещение в массиве _array
+            // Смещение в массиве _items
             // для текущей позиции
             int indexOffset = 0;
             int indexOffsetMultiplier = 1;
@@ -79,20 +173,10 @@ namespace Ads.Exercise3
                 indexOffset += indexOffsetMultiplier * indexes[i - 1];
             }
 
-            if (indexes.Last() < 0 || indexes.Last() >= _capacities[_capacities.Length - 2])
-                throw new IndexOutOfRangeException();
-
             // Последний индекс смещает без множителя
             indexOffset += indexes.Last();
 
             return indexOffset;
-        }
-
-        public int GetCount(params int[] indexes)
-        {
-            var index = GetCountIndex(indexes);
-
-            return _counts[index];
         }
 
         private int GetCountIndex(params int[] indexes)
@@ -121,93 +205,10 @@ namespace Ads.Exercise3
                 indexOffset += indexOffsetMultiplier * indexes[i - 1];
             }
 
-            if (indexes.Last() < 0 || indexes.Last() >= _capacities[_capacities.Length - 2])
-                throw new IndexOutOfRangeException();
-
             // Последний индекс смещает без множителя
             indexOffset += indexes.Last();
 
             return indexOffset;
-        }
-
-        public int GetCapacity(int dimension)
-        {
-            if (dimension > _dimensionsCount)
-                throw new IndexOutOfRangeException();
-
-            return _capacities[dimension];
-        }
-
-        public void Insert(T itm, params int[] indexes)
-        {
-            if (indexes.Length != _dimensionsCount)
-                throw new IndexOutOfRangeException();
-
-            var countIndex = GetCountIndex(
-                indexes.Take(indexes.Length - 1)
-                    .ToArray());
-
-            // Проверка масштабирования размерности
-            for (int i = 0; i < indexes.Length; i++)
-            {
-                // При превышении индексом вместимости измерения
-                // более чем на 1
-                // прервать выполнения
-                if (_capacities[i] < indexes[i])
-                    throw new IndexOutOfRangeException();
-
-                // При превышении на 1
-                // расширить измерение
-                if (_capacities[i] == indexes[i])
-                    ExpandDimension(i);
-            }
-
-            var itemIndex = GetItemIndex(indexes);
-
-            for (int i = itemIndex + _counts[countIndex] - 1; i >= itemIndex; --i)
-                _array[i + 1] = _array[i];
-
-            _array[itemIndex] = itm;
-            _counts[countIndex]++;
-        }
-
-        private void ExpandDimension(int dimension)
-        {
-            _counts = Enumerable.Repeat(0, dimensionsСount).ToArray();
-            _capacities = Enumerable.Repeat(MinCapacity, dimensionsСount).ToArray();
-            _array = new T[(int)Math.Pow(MinCapacity, dimensionsСount)];
-
-            int globalDimensionOffset = 0;
-
-            if (dimension == 0)
-            {
-                globalDimensionOffset = _capacities[0] * CapacityIncreaseMultiplier;
-
-                Array.Resize(ref _array, globalDimensionOffset);
-                _capacities[0] = globalDimensionOffset;
-                
-
-                int countsSize = 0;
-
-                if (_dimensionsCount == 1)
-                {
-                    countsSize = 1;
-                }
-                else
-                {
-                    for (int i = 0; i < _capacities.Length - 1; i++)
-                    {
-                        countsSize *= _capacities[i];
-                    }
-                }
-
-                Array.Resize(ref _counts, countsSize);
-            }
-
-            for (int i = 0; i < dimension; i++)
-            {
-
-            }
         }
 
         //public void Remove(params int[] index)

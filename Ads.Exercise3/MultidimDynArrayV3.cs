@@ -64,27 +64,50 @@ namespace Ads.Exercise3
             if (indexes.Length != _dimensionsCount)
                 throw new IndexOutOfRangeException();
 
-            // Проверка масштабирования размерности
-            for (int i = 0; i < indexes.Length; i++)
+            // Проверка до возможного масштабирования намеренная,
+            // т.к. иначе выход за пределелы может произойти
+            // после нескольких расширений
+            for(int i = 0; i < indexes.Length; i++)
             {
+                if (indexes[i] < 0)
+                    throw new IndexOutOfRangeException();
+
                 // При превышении индексом вместимости измерения
                 // более чем на 1 прервать выполнения
                 if (_capacities[i] < indexes[i])
                     throw new IndexOutOfRangeException();
+            }
 
+            // Проверка масштабирования размерностей
+            for (int i = 0; i < indexes.Length; i++)
+            {
                 // При превышении на 1
                 // расширить измерение
                 if (_capacities[i] == indexes[i])
-                    ExpandDimension(i);
+                {
+                    ResizeDimension(i, CapacityIncreaseMultiplier);
+                }
+                 
+                // Проверка на выход за пределы count в последнем измерении
+                if (i == indexes.Length - 1)
+                {
+                    var tempCountIndex = GetCountIndex(
+                    indexes.Take(indexes.Length - 1)
+                        .ToArray());
+
+                    if (_counts[tempCountIndex] < indexes[i])
+                        throw new IndexOutOfRangeException();
+                }
             }
 
+            // Смещение элементов и вставка нового.
             var itemIndex = GetItemIndex(indexes);
 
             var countIndex = GetCountIndex(
                 indexes.Take(indexes.Length - 1)
                     .ToArray());
 
-            for (int i = itemIndex + _counts[countIndex] - 1; i >= itemIndex; --i)
+            for (int i = itemIndex + _counts[countIndex] - 1 - indexes.Last(); i >= itemIndex; --i)
                 _items[i + 1] = _items[i];
 
             _items[itemIndex] = itm;
@@ -93,68 +116,89 @@ namespace Ads.Exercise3
 
         public void Remove(params int[] indexes)
         {
-            if (GetCount(indexes.Take(indexes.Length - 1).ToArray()) <= indexes.Last())
+            if (indexes.Length != _dimensionsCount)
                 throw new IndexOutOfRangeException();
 
-            var index = GetItemIndex(indexes);
+            var countIndex = GetCountIndex(
+                indexes.Take(indexes.Length - 1)
+                    .ToArray());
 
-            _items[index] = default;
+            // Проверка на выход за кол-во элементов
+            if (_counts[countIndex] <= indexes.Last())
+                throw new IndexOutOfRangeException();
+
+            // Смещение элементов и вставка нового
+            var itemIndex = GetItemIndex(indexes);
+
+            for (int i = itemIndex + 1; i < itemIndex + _counts[countIndex] - indexes.Last(); i++)
+                _items[i - 1] = _items[i];
+
+            _items[itemIndex + _counts[countIndex] - indexes.Last() - 1] = default;
+            _counts[countIndex]--;
+
+            // Здесь можно было бы проверить массив на
+            // "избыточность"
+
+            // Это потребует несколько раз перебрать массив count
+            // в поисках максимального числа элементов по каждому
+            // измерению и сравнения его dimension для измерения
+
+            // Заием можно будет вызывать метод ResizeDimension,
+            // с коээффицентом уменьшения массива
         }
 
-        private void ExpandDimension(int dimension)
+        private void ResizeDimension(int dimension, double resizeMultiplier)
         {
-            if (dimension < 0 || dimension >= _dimensionsCount)
+            _items = ResizeArray(_items, _capacities, dimension, _dimensionsCount, resizeMultiplier);
+
+            // Расширение _counts если измерение не одно (в таком случае всего один _counts элемент)
+            // и в случае если расширение не последнего элементе (не влияет на _counts)
+            if (_dimensionsCount != 1 && dimension != _dimensionsCount - 1)
+                _counts = ResizeArray(_counts, _capacities, dimension, _dimensionsCount - 1, resizeMultiplier);
+
+            _capacities[dimension] = (int)(_capacities[dimension] * resizeMultiplier);
+        }
+
+        private static TArray[] ResizeArray<TArray>(TArray[] sourceArray, int[] capacities, int dimension, int dimensionsCount, double resizeMultiplier)
+        {
+            if (dimension < 0 || dimension >= dimensionsCount)
                 throw new ArgumentException();
 
-            var newItems = new T[_items.Length * CapacityIncreaseMultiplier];
+            // 1. Создаем массив нового размера
+            var destArray = new TArray[(int)(sourceArray.Length * resizeMultiplier)];
 
-            int itemsOffset = 1;
-            for (int i = _dimensionsCount - 1; i >= dimension; i--)
-                itemsOffset *= _capacities[i];
+            // 2. Считаем смещение элементов оригинального массива
+            var itemsOffset = 1;
+            for (int i = dimensionsCount - 1; i >= dimension; i--)
+                itemsOffset *= capacities[i];
 
+            // 3. Считаем смещение элементов в новом массиве
+            var newItemsOffset = (int)(itemsOffset * resizeMultiplier);
+
+            // 4 Считаем кол-во копируемых элементов за раз,
+            // вариативность для поддержки расширения/сужения
+            var copyItemsCount = itemsOffset > newItemsOffset
+                ? newItemsOffset
+                : itemsOffset;
+
+            // 5. Считаем число операций копирования
+            // пачек элементов
             var copyOperationCount = 1;
             for (int i = 0; i < dimension; i++)
-                copyOperationCount *= _capacities[i];
+                copyOperationCount *= capacities[i];
 
-            // Копируем _items пачками в новый массив
+            // 6 Копируем _items пачками в новый массив
             for (int i = 0; i < copyOperationCount; i++)
             {
                 Array.Copy(
-                    _items,
+                    sourceArray,
                     itemsOffset * i,
-                    newItems,
-                    itemsOffset * CapacityIncreaseMultiplier * i,
-                    itemsOffset);
+                    destArray,
+                    newItemsOffset * i,
+                    copyItemsCount);
             }
 
-            // Не меняем массив колличеств элементов
-            // если у нас расширяется последнее измерение
-            // и если измерение всего одно
-            if (_dimensionsCount != 1 && dimension != _dimensionsCount - 1)
-            {
-                var newCounts = new int[_counts.Length * CapacityIncreaseMultiplier];
-
-                var countsOffset = 1;
-                for (int i = _dimensionsCount - 2; i >= dimension; i--)
-                    countsOffset *= _capacities[i];
-
-                // Кол-во операций копирования _counts элементов
-                // совпадает с количеством операций копирования _items элементов
-                for (int i = 0; i < copyOperationCount; i++)
-                {
-                    Array.Copy(
-                        _counts,
-                        countsOffset * i,
-                        newCounts,
-                        countsOffset * CapacityIncreaseMultiplier * i,
-                        countsOffset);
-                }
-
-                _counts = newCounts;
-            }
-
-            _items = newItems;
-            _capacities[dimension] *= CapacityIncreaseMultiplier;
+            return destArray;
         }
 
         private int GetItemIndex(params int[] indexes)

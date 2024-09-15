@@ -24,12 +24,21 @@ namespace Ads.Tests.Exercise_3.MultidimDynArrayV3_Tests
             array.GetCount(indexes.Take(indexes.Length - 1).ToArray()).ShouldBe(1);
         }
 
+        [Theory]
+        [MemberData(nameof(ThrowIndexOutOfRangeExceptionData))]
+        public void Should_Throw_IndexOutOfRangeException(MultidimDynArrayV3<int> array, int value, params int[] indexes)
+        {
+            Assert.Throws<IndexOutOfRangeException>(() => array.Insert(value, indexes));
+        }
+
         [Fact]
         public void Should_Insert_With_Reallocation()
         {
             var array = GetEmptyMultidimDynArrayV3<int>(4);
 
             int count = 35;
+
+            Should.Throw<IndexOutOfRangeException>(() => array.Insert(-1, 0, 0, 0, 2));
 
             for (int i = 0; i < count; i++)
             for (int j = 0; j < count; j++)
@@ -55,6 +64,16 @@ namespace Ads.Tests.Exercise_3.MultidimDynArrayV3_Tests
 
             Assert.Throws<IndexOutOfRangeException>(() => array.GetItem(0, 0, 0, count + 2));
         }
+
+        public static IEnumerable<object[]> ThrowIndexOutOfRangeExceptionData =>
+            new List<object[]>
+            {
+                // int index, int value, int[] sourceArray, DynArray<int> array
+                new object[] { GetEmptyMultidimDynArrayV3<int>(5), -1, 0, 0, 0, 0, 1 },
+                new object[] { GetEmptyMultidimDynArrayV3<int>(5), -1, 0, 0, 1, 1, 1 },
+                new object[] { GetEmptyMultidimDynArrayV3<int>(5), -1, 0, 0, 0, 0, -1 },
+                new object[] { GetEmptyMultidimDynArrayV3<int>(5), -1, 0, 0, 0, 1, -1 },
+            };
 
         public static IEnumerable<object[]> InsertWithoutReallocationData =>
             new List<object[]>

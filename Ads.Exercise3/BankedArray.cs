@@ -12,42 +12,35 @@ namespace Ads.Exercise3
         public T[] array;
         public int count;
         public int capacity;
-        public const int MinCapacity = 16;
+
+        public const int MinCapacity = 1;
+        public const int CapacityIncreaseMultiplier = 2;
+        public const float CapacityReductionMultiplier = 1.5f;
+        public const float MinFillMultiplier = 0.5f;
 
         private int _bank;
 
-        private const int AppendCost = 3;
-        private const int InsertCost = 3;
-        private const int CopyCost = 3;
-        private const int RemoveCost = -1;
-
-        public const float MinFillMultiplier = 0.5f;
+        private const int AppendCost = 2;
+        private const int InsertCost = 2;
+        private const int RemoveCost = 1;
+        private const int ReallocationCostMultiplier = 1;
 
         public BankedArray()
         {
             count = 0;
-            array = new T[MinCapacity];
-            capacity = MinCapacity;
-            count = 0;
+            _bank = 0;
+            MakeArray(MinCapacity);
         }
 
-        public void ReallocateArray()
+        private void MakeArray(int new_capacity)
         {
-            // уменьшать ли кол-во элементов если отрицательный банк
-            // для реаллокации при удалении элементов
-            // и как это балансировать
-
-            // capacity from full bank
-            var new_capacity = (int)Math.Pow(_bank, 2);
+            new_capacity = new_capacity < MinCapacity ? MinCapacity : new_capacity;
 
             Array.Resize(ref array, new_capacity);
 
             capacity = new_capacity;
 
             count = count < new_capacity ? count : new_capacity;
-
-            // pay from bank
-            _bank -= (int)Math.Log(new_capacity, 2);
         }
 
         public T GetItem(int index)
@@ -60,15 +53,13 @@ namespace Ads.Exercise3
 
         public void Append(T itm)
         {
-            // pay for append
-            _bank += AppendCost;
-
             if (count == capacity)
-                ReallocateArray();
+                ExpandArray();
 
             array[count] = itm;
-
             count++;
+
+            _bank += AppendCost;
         }
 
         public void Insert(T itm, int index)
@@ -76,22 +67,16 @@ namespace Ads.Exercise3
             if (index < 0 || index > count)
                 throw new IndexOutOfRangeException();
 
-            // pay for insert. (count - index - 1) pay for copy?
-            _bank += InsertCost + (count - index - 1);
-
             if (capacity == count)
-                ReallocateArray();
+                ExpandArray();
 
             for (int i = count - 1; i >= index; --i)
-            {
                 array[i + 1] = array[i];
-
-                // Pay for copy?
-                _bank -= CopyCost;
-            }
 
             array[index] = itm;
             count++;
+
+            _bank += InsertCost;
         }
 
         public void Remove(int index)
@@ -99,23 +84,48 @@ namespace Ads.Exercise3
             if (index < 0 || index >= count)
                 throw new IndexOutOfRangeException();
 
-            // Pay for remove?
-            _bank -= RemoveCost;
-
             for (int i = index + 1; i < count; i++)
-            {
                 array[i - 1] = array[i];
-
-                // Pay for copy?
-                _bank -= CopyCost;
-            }
 
             array[count - 1] = default;
             count--;
 
+            _bank += RemoveCost;
+
             if ((float)count / capacity < MinFillMultiplier)
-                ReallocateArray();
+                ShrinkArray();
         }
 
+        private void ExpandArray()
+        {
+            var newCapacity = capacity * CapacityIncreaseMultiplier;
+            var cost = (newCapacity - capacity) * ReallocationCostMultiplier;
+
+            if (cost > _bank)
+            {
+                newCapacity = cost / ReallocationCostMultiplier + capacity;
+                cost = (newCapacity - capacity) * ReallocationCostMultiplier;
+            }
+
+            MakeArray(newCapacity);
+
+            _bank -= cost;
+        }
+
+        private void ShrinkArray()
+        {
+            var newCapacity = (int)(capacity * CapacityReductionMultiplier);
+            var cost = (capacity - newCapacity) * ReallocationCostMultiplier;
+
+            if (cost > _bank)
+            {
+                newCapacity = capacity - cost / ReallocationCostMultiplier;
+                cost = (newCapacity - capacity) * ReallocationCostMultiplier;
+            }
+
+            MakeArray(newCapacity);
+
+            _bank -= cost;
+        }
     }
 }

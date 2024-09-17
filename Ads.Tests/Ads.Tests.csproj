@@ -33,6 +33,9 @@
     <ProjectReference Include="..\Ads.Exercise6\Ads.Exercise6.csproj">
       <Aliases>Exercise6</Aliases>
     </ProjectReference>
+    <ProjectReference Include="..\Ads.Exercise7\Ads.Exercise7.csproj">
+      <Aliases>Exercise7</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\Ads.Exercises\Ads.Exercises.csproj">
 
     </ProjectReference>

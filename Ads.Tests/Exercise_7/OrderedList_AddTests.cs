@@ -15,7 +15,7 @@ namespace Ads.Tests.Exercise_7
     {
         [Theory]
         [MemberData(nameof(MakeIComparableData))]
-        public void Should_Add_Integers(OrderedList<int> list, int[] input, int[] result)
+        public void Should_Add_Integers_With_Order(OrderedList<int> list, int[] input, int[] result)
         {
             foreach (var item in input)
                 list.Add(item);

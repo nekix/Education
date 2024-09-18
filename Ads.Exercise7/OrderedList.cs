@@ -44,62 +44,44 @@ namespace AlgorithmsDataStructures
 
         public void Add(T value)
         {
+            var newNode = new Node<T>(value);
+
             if (head == null)
             {
-                head = new Node<T>(value);
+                head = newNode;
                 tail = head;
             }
             else
             {
-                if (_ascending)
+                var multiplier = _ascending ? 1 : -1;
+
+                var node = head;
+                while (node != null)
                 {
-                    var node = head;
-                    while (node != null)
-                    {
-                        if (Compare(node.value, value) > 0)
-                            break;
+                    if (Compare(node.value, value) * multiplier > 0)
+                        break;
 
-                        node = node.next;
-                    }
+                    node = node.next;
+                }
 
-                    if (node == null)
-                    {
-                        tail.next = new Node<T>(value);
-                        tail.next.prev = tail;
-                        tail = tail.next;
-                    }
-                    else
-                    {
-                        var next = node.next;
-                        node.next = new Node<T>(value);
-                        node.next.prev = node;
-                        node.next.next = next;
-                    }
+                if (node == head)
+                {
+                    head.prev = newNode;
+                    newNode.next = head;
+                    head = newNode;
+                }
+                else if (node == null)
+                {
+                    tail.next = newNode;
+                    newNode.prev = tail;
+                    tail = newNode;
                 }
                 else
                 {
-                    var node = head;
-                    while (node != null)
-                    {
-                        if (Compare(node.value, value) < 0)
-                            break;
-
-                        node = node.next;
-                    }
-
-                    if (node == null)
-                    {
-                        tail.next = new Node<T>(value);
-                        tail.next.prev = tail;
-                        tail = tail.next;
-                    }
-                    else
-                    {
-                        var prev = node.prev;
-                        node.prev = new Node<T>(value);
-                        node.prev.next = node;
-                        node.prev.prev = prev;
-                    }
+                    node.prev.next = newNode;
+                    newNode.prev = node.prev;
+                    newNode.next = node;
+                    node.prev = newNode;
                 }
             }
 
@@ -109,7 +91,17 @@ namespace AlgorithmsDataStructures
 
         public Node<T> Find(T val)
         {
-            return null; // здесь будет ваш код
+            var node = head;
+
+            while (node != null)
+            {
+                if (Compare(node.value, val) == 0) 
+                    return node;
+
+                node = node.next;
+            }
+
+            return null;
         }
 
         public void Delete(T val)

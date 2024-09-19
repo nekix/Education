@@ -84,19 +84,29 @@ namespace AlgorithmsDataStructures
                     node.prev = newNode;
                 }
             }
-
-            // автоматическая вставка value 
-            // в нужную позицию
         }
 
         public Node<T> Find(T val)
         {
+            var multiplier = _ascending ? 1 : -1;
+
+            if (Compare(head.value, val) * multiplier > 0)
+                return null;
+
+            if (Compare(tail.value, val) * multiplier < 0)
+                return null;
+
             var node = head;
 
             while (node != null)
             {
-                if (Compare(node.value, val) == 0) 
+                var comparation = Compare(node.value, val);
+
+                if (comparation == 0)
                     return node;
+
+                if (comparation * multiplier > 0)
+                    return null;
 
                 node = node.next;
             }
@@ -106,7 +116,11 @@ namespace AlgorithmsDataStructures
 
         public void Delete(T val)
         {
-            // здесь будет ваш код
+            var node = Find(val);
+
+            if (node == null) return;
+
+            Delete(node);
         }
 
         public void Clear(bool asc)
@@ -131,6 +145,18 @@ namespace AlgorithmsDataStructures
                 node = node.next;
             }
             return r;
+        }
+
+        private void Delete(Node<T> node)
+        {
+            var prefNode = node.prev;
+            var nextNode = node.next;
+
+            if (prefNode != null) prefNode.next = nextNode;
+            else head = nextNode;
+
+            if (nextNode != null) nextNode.prev = prefNode;
+            else tail = prefNode;
         }
     }
 

@@ -13,5 +13,15 @@ namespace Ads.Tests.Exercise_7
     {
         protected static OrderedList<T> GetEmptyOrderedList<T>(bool asc)
             => new OrderedList<T>(asc);
+
+        protected static OrderedList<T> GetFulledOrderedList<T>(bool asc, params T[] items)
+        {
+            var list = GetEmptyOrderedList<T>(asc);
+
+            foreach (var item in items)
+                list.Add(item);
+
+            return list;
+        }
     }
 }

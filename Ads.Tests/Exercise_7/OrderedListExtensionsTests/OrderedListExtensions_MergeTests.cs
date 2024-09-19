@@ -1,0 +1,101 @@
+﻿extern alias Exercise7;
+
+using Exercise7.AlgorithmsDataStructures;
+using Exercise7.Ads.Exercise7;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Shouldly;
+using Xunit;
+
+namespace Ads.Tests.Exercise_7.OrderedListExtensionsTests
+{
+    public class OrderedListExtensions_MergeTests : OrderedList_BaseTests
+    {
+        [Theory]
+        [MemberData(nameof(UnionData))]
+        public void Should_Merge(OrderedList<int> first, OrderedList<int> second, int count, bool asc, params int[] finalValues)
+        {
+            var list = first.Merge(second,asc);
+
+            list.Count().ShouldBe(count);
+
+            var node = list.head;
+            foreach (var value in finalValues)
+            {
+                node.ShouldNotBeNull();
+                node.value.ShouldBe(value);
+                node = node.next;
+            }
+
+            node.ShouldBeNull();
+        }
+
+        public static IEnumerable<object[]> UnionData =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[0]),
+                    GetFulledOrderedList(false, new int[0]),
+                    0,
+                    true,
+                    new int[0]
+                },
+
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 1, 2, 3}),
+                    GetFulledOrderedList(false, new int[0]),
+                    4,
+                    true,
+                    new [] { 1, 1, 2, 3 },
+                },
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 1, 2, 3}),
+                    GetFulledOrderedList(false, new int[0]),
+                    4,
+                    false,
+                    new [] { 3, 2, 1, 1 },
+                },
+
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[0]),
+                    GetFulledOrderedList(false, new int[] {1 ,2, 2, 3}),
+                    4,
+                    true,
+                    new [] { 1, 2, 2, 3 },
+                },
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[0]),
+                    GetFulledOrderedList(false, new int[] {1, 2, 2, 3}),
+                    4,
+                    false,
+                    new [] { 3, 2, 2, 1 },
+                },
+
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 5, 6, 2, 3}),
+                    GetFulledOrderedList(false, new int[] {1, 2, 3}),
+                    8,
+                    true,
+                    new [] { 1, 1, 2, 2, 3, 3, 5, 6 },
+                },
+
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 5, 6, 2, 3}),
+                    GetFulledOrderedList(false, new int[] {1, 2, 3}),
+                    8,
+                    false,
+                    new [] { 6, 5, 3, 3, 2, 2, 1, 1 },
+                }
+            };
+    }
+}

@@ -47,11 +47,10 @@ namespace Ads.Tests.Exercise_7
             {
                 new object[] { GetFulledOrderedList(true, 5, 1, 9, 6, 5), 1, true, null, 5},
                 new object[] { GetFulledOrderedList(true, 5, 1, 9, 6, 5), 9, true, 6, null},
+                new object[] { GetFulledOrderedList(true, 5, 1, 9, 6, 5), 5, true, 1, 5},
 
                 new object[] { GetFulledOrderedList(false, 5, 1, 9, 6, 5), 1, true, 5, null},
                 new object[] { GetFulledOrderedList(false, 5, 1, 9, 6, 5), 9, true, null, 6},
-
-                new object[] { GetFulledOrderedList(true, 5, 1, 9, 6, 5), 5, true, 1, 5},
                 new object[] { GetFulledOrderedList(false, 5, 1, 9, 6, 5), 5, true, 6, 5},
 
                 new object[] { GetFulledOrderedList(true, 5, 1, 9, 6, 5), 0, false, null, null},

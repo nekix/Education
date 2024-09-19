@@ -125,7 +125,8 @@ namespace AlgorithmsDataStructures
         public void Clear(bool asc)
         {
             _ascending = asc;
-            // здесь будет ваш код
+            head = null;
+            tail = null;
         }
 
         public int Count()

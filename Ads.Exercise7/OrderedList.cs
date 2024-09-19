@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace AlgorithmsDataStructures
 {
@@ -120,6 +121,39 @@ namespace AlgorithmsDataStructures
             if (node == null) return;
 
             Delete(node);
+        }
+
+        public void RemoveDuplicates()
+        {
+            if (head == null)
+                return;
+
+            var node = head;
+            Node<T> firstEqualNode = null;
+
+            while (node != null)
+            {
+                if (firstEqualNode == null)
+                {
+                    if (node.next != null && Compare(node.value, node.next.value) == 0)
+                        firstEqualNode = node;
+                }
+                else if (node.next == null || Compare(firstEqualNode.value, node.next.value) != 0)
+                {
+                    var prefNode = firstEqualNode.prev;
+                    var nextNode = node.next;
+
+                    if (prefNode != null) prefNode.next = nextNode;
+                    else head = nextNode;
+
+                    if (nextNode != null) nextNode.prev = prefNode;
+                    else tail = prefNode;
+
+                    firstEqualNode = null;
+                }
+
+                node = node.next;
+            }
         }
 
         public void Clear(bool asc)

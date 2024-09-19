@@ -32,10 +32,9 @@ namespace AlgorithmsDataStructures
         public int Compare(T v1, T v2)
         {
             int result = 0;
-            if (typeof(T) == typeof(String))
-            {
-                // версия для лексикографического сравнения строк
-            }
+
+            if (v1 is string strV1 && v2 is string strV2)
+                result = string.Compare(strV1, strV2);
             else if (v1 is IComparable<T> compV1)
                 result = compV1.CompareTo(v2);
 

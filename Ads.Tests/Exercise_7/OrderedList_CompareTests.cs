@@ -22,6 +22,23 @@ namespace Ads.Tests.Exercise_7
             res.ShouldBe(result);
         }
 
+        [Theory]
+        [MemberData(nameof(MakeStringData))]
+        public void Should_Compare_String(OrderedList<string> list, string v1, string v2, int result)
+        {
+            var res = list.Compare(v1, v2);
+
+            res.ShouldBe(result);
+        }
+
+        public static IEnumerable<object[]> MakeStringData =>
+            new List<object[]>
+            {
+                new object[] { GetEmptyOrderedList<string>(true), "123aBc-.", "123aBc-.", 0},
+                new object[] { GetEmptyOrderedList<string>(true), "Ab@45", "AD24#", -1},
+                new object[] { GetEmptyOrderedList<string>(true), "@4f3", "@4a4", 1},
+            };
+
         public static IEnumerable<object[]> MakeIComparableData =>
             new List<object[]>
             {

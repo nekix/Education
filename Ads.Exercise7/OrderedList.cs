@@ -90,10 +90,10 @@ namespace AlgorithmsDataStructures
         {
             var multiplier = _ascending ? 1 : -1;
 
-            if (Compare(head.value, val) * multiplier > 0)
+            if (head != null && Compare(head.value, val) * multiplier > 0)
                 return null;
 
-            if (Compare(tail.value, val) * multiplier < 0)
+            if (tail != null && Compare(tail.value, val) * multiplier < 0)
                 return null;
 
             var node = head;
@@ -131,7 +131,16 @@ namespace AlgorithmsDataStructures
 
         public int Count()
         {
-            return 0; // здесь будет ваш код подсчёта количества элементов в списке
+            int count = 0;
+
+            var node = head;
+            while (node != null)
+            {
+                count++;
+                node = node.next;
+            }
+
+            return count;
         }
 
         List<Node<T>> GetAll() // выдать все элементы упорядоченного 

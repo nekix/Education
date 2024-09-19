@@ -44,38 +44,6 @@ namespace Ads.Exercise7
                             : secondNode.prev;
                     }
                 }
-
-                //if (firstNode != null && secondNode != null)
-                //{
-                //    if(list.Compare(firstNode.value, secondNode.value) * multiplier <= 0)
-                //    {
-                //        list.Add(firstNode.value);
-                //        firstNode = firstAsc
-                //            ? firstNode.next
-                //            : firstNode.prev;
-                //    }
-                //    else
-                //    {
-                //        list.Add(secondNode.value);
-                //        secondNode = secondAsc
-                //            ? secondNode.next
-                //            : secondNode.prev;
-                //    }
-                //}
-                //else if(firstNode != null)
-                //{
-                //    list.Add(firstNode.value);
-                //    firstNode = firstAsc
-                //        ? firstNode.next
-                //        : firstNode.prev;
-                //}
-                //else
-                //{
-                //    list.Add(secondNode.value);
-                //    secondNode = secondAsc
-                //        ? secondNode.next
-                //        : secondNode.prev;
-                //}
             }
 
             return list;

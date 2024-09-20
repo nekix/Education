@@ -49,6 +49,70 @@ namespace Ads.Exercise7
             return list;
         }
 
+        public static bool Contains<T>(this OrderedList<T> firstList, OrderedList<T> secondList)
+        {
+            if (secondList.head == null || firstList.head == null)
+                return false;
+
+            var secondCurrentNode = secondList.head;
+            var firstStartNode = firstList.Find(secondCurrentNode.value);
+
+            if (firstStartNode == null) return false;
+
+            secondCurrentNode = secondCurrentNode.next;
+            var firstCurrentNode = firstStartNode.next;
+
+            while (secondCurrentNode != null)
+            {
+                if(firstCurrentNode == null)
+                    return false;
+
+                if(firstList.Compare(firstCurrentNode.value, secondCurrentNode.value) != 0)
+                {
+                    // Take next node in first list and compare with second list
+                    firstStartNode = firstStartNode.next;
+
+                    firstCurrentNode = firstStartNode;
+                    secondCurrentNode = secondList.head;
+                    
+                    if(firstCurrentNode.next == null
+                        || firstList.Compare(firstCurrentNode.value, secondCurrentNode.value) != 0)
+                        return false;
+                }
+
+                firstCurrentNode = firstCurrentNode.next;
+                secondCurrentNode = secondCurrentNode.next;
+            }
+
+            return true;
+        }
+
+        public static T MaxCommon<T>(OrderedList<T> list)
+        {
+            if(list.head == null)
+                return default;
+
+            var value = list.head.value;
+            var count = 1;
+
+            var currentItem = list.head.next;
+            var currentValue = currentItem.value;
+            var currentCount = 1;
+
+            while(currentItem != null)
+            {
+                if(list.Compare(currentItem.value, value) == 0)
+                    count++;
+                else if(list.Compare(currentItem.value, currentValue) == 0)
+                {
+                    currentCount++;
+
+                }
+            }
+
+            return item;
+        }
+
         private static bool GetAsceding<T>(OrderedList<T> list)
         {
             if (list.head == null)

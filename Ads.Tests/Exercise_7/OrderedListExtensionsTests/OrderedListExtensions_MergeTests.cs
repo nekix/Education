@@ -33,6 +33,55 @@ namespace Ads.Tests.Exercise_7.OrderedListExtensionsTests
             node.ShouldBeNull();
         }
 
+        [Theory]
+        [MemberData(nameof(ContainsData))]
+        public void Should_Contains(OrderedList<int> first, OrderedList<int> second, bool isContains)
+        {
+            first.Contains(second).ShouldBe(isContains);
+        }
+
+        public static IEnumerable<object[]> ContainsData =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[0]),
+                    GetFulledOrderedList(false, new int[0]),
+                    false
+                },
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 5, 6, 2, 3}),
+                    GetFulledOrderedList(false, new int[0]),
+                    false
+                },
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[0]),
+                    GetFulledOrderedList(true, new int[] {1, 5, 6, 2, 3}),
+                    false
+                },
+
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 1, 2, 3, 5, 6, 3}),
+                    GetFulledOrderedList(true, new int[] {1, 2, 3}),
+                    true
+                },
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 1, 2, 3, 5, 6, 2, 3}),
+                    GetFulledOrderedList(true, new int[] {1, 2, 3, 4}),
+                    false
+                },
+                new object[]
+                {
+                    GetFulledOrderedList(true, new int[] {1, 1, 2, 3, 5, 6, 2, 3}),
+                    GetFulledOrderedList(true, new int[] {3, 3, 5, 6}),
+                    true
+                },
+            };
+
         public static IEnumerable<object[]> UnionData =>
             new List<object[]>
             {

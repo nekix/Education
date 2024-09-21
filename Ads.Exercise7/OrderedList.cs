@@ -117,6 +117,46 @@ namespace AlgorithmsDataStructures
             return null;
         }
 
+        public int FindIndex(Node<T> node)
+        {
+            if(_count == 0) return -1;
+
+            //var middle = _count / 2;
+
+            int leftIndex = 0;
+            int rightIndex = _count - 1;
+
+            var multiplier = _ascending ? 1 : -1;
+            int offset = 0;
+
+            var currentNode = head;
+
+            while (leftIndex <= rightIndex)
+            {
+                var middle = leftIndex + (rightIndex - leftIndex >> 1);
+                offset = middle - offset;
+
+                for (int i = 0; i < offset; i++)
+                    currentNode = offset > 0 
+                        ? currentNode.next 
+                        : currentNode.prev;
+
+                if(currentNode == node)
+                    return middle;
+
+                var compareResult = Compare(currentNode.value, node.value);
+
+                if (compareResult == 0 && currentNode == node)
+                    return middle;
+                if (Compare(currentNode.value, node.value) * multiplier < 0)
+                    leftIndex = middle + 1;
+                else
+                    rightIndex = middle - 1;
+            }
+
+            return -1;
+        }
+
         public void Delete(T val)
         {
             var node = Find(val);

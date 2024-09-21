@@ -36,7 +36,7 @@ namespace AlgorithmsDataStructures
             int result = 0;
 
             if (v1 is string strV1 && v2 is string strV2)
-                result = String.CompareOrdinal(strV1, strV2);
+                result = string.Compare(strV1, strV2);
             else if (v1 is IComparable<T> compV1)
                 result = compV1.CompareTo(v2);
 
@@ -121,34 +121,59 @@ namespace AlgorithmsDataStructures
         {
             if(_count == 0) return -1;
 
-            //var middle = _count / 2;
-
             int leftIndex = 0;
             int rightIndex = _count - 1;
 
             var multiplier = _ascending ? 1 : -1;
-            int offset = 0;
+            int currentIndex = 0;
 
             var currentNode = head;
 
             while (leftIndex <= rightIndex)
             {
                 var middle = leftIndex + (rightIndex - leftIndex >> 1);
-                offset = middle - offset;
 
-                for (int i = 0; i < offset; i++)
+                // Get currentNode by index faster
+                // than comparing elements
+                // so the O(1)
+                var offset = middle - currentIndex;
+                for (int i = 0; i < Math.Abs(offset); i++)
                     currentNode = offset > 0 
                         ? currentNode.next 
                         : currentNode.prev;
 
-                if(currentNode == node)
-                    return middle;
+                currentIndex = middle;
 
                 var compareResult = Compare(currentNode.value, node.value);
 
-                if (compareResult == 0 && currentNode == node)
-                    return middle;
-                if (Compare(currentNode.value, node.value) * multiplier < 0)
+                if (compareResult == 0)
+                {
+                    if (currentNode == node)
+                        return middle;
+
+                    // Check nodes up to current
+                    currentIndex--;
+                    for (var finalNode = currentNode.prev;
+                         Compare(finalNode.value, node.value) == 0;
+                         finalNode = finalNode.prev, currentIndex--)
+                    {
+                        if(finalNode == node)
+                            return currentIndex;
+                    }
+
+                    // Check nodes after current
+                    currentIndex = middle + 1;
+                    for (var finalNode = currentNode.next;
+                         Compare(finalNode.value, node.value) == 0;
+                         finalNode = finalNode.next, currentIndex++)
+                    {
+                        if (finalNode == node)
+                            return currentIndex;
+                    }
+
+                    return -1;
+                }
+                if (compareResult * multiplier < 0)
                     leftIndex = middle + 1;
                 else
                     rightIndex = middle - 1;
@@ -197,6 +222,8 @@ namespace AlgorithmsDataStructures
 
                 node = node.next;
             }
+
+            ReCountAll();
         }
 
         public void Clear(bool asc)
@@ -233,6 +260,20 @@ namespace AlgorithmsDataStructures
             else tail = prefNode;
 
             _count--;
+        }
+
+        private int ReCountAll()
+        {
+            int count = 0;
+
+            var node = head;
+            while (node != null)
+            {
+                count++;
+                node = node.next;
+            }
+
+            return _count = count;
         }
     }
 

@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 
 namespace AlgorithmsDataStructures
 {
-
     public class Node<T>
     {
         public T value;
@@ -22,12 +21,14 @@ namespace AlgorithmsDataStructures
     {
         public Node<T> head, tail;
         private bool _ascending;
+        private int _count;
 
         public OrderedList(bool asc)
         {
             head = null;
             tail = null;
             _ascending = asc;
+            _count = 0;
         }
 
         public int Compare(T v1, T v2)
@@ -35,7 +36,7 @@ namespace AlgorithmsDataStructures
             int result = 0;
 
             if (v1 is string strV1 && v2 is string strV2)
-                result = string.Compare(strV1, strV2);
+                result = String.CompareOrdinal(strV1, strV2);
             else if (v1 is IComparable<T> compV1)
                 result = compV1.CompareTo(v2);
 
@@ -84,6 +85,8 @@ namespace AlgorithmsDataStructures
                     node.prev = newNode;
                 }
             }
+
+            _count++;
         }
 
         public Node<T> Find(T val)
@@ -164,18 +167,7 @@ namespace AlgorithmsDataStructures
         }
 
         public int Count()
-        {
-            int count = 0;
-
-            var node = head;
-            while (node != null)
-            {
-                count++;
-                node = node.next;
-            }
-
-            return count;
-        }
+            => _count;
 
         List<Node<T>> GetAll()
         {
@@ -199,6 +191,8 @@ namespace AlgorithmsDataStructures
 
             if (nextNode != null) nextNode.prev = prefNode;
             else tail = prefNode;
+
+            _count--;
         }
     }
 

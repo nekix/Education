@@ -36,7 +36,7 @@ namespace Ads.Exercise7
                             ? firstNode.next
                             : firstNode.prev;
                     }
-                    else if(secondNode != null)
+                    else
                     {
                         list.Add(secondNode.value);
                         secondNode = secondAsc

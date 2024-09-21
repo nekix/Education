@@ -40,6 +40,22 @@ namespace Ads.Tests.Exercise_7.OrderedListExtensionsTests
             first.Contains(second).ShouldBe(isContains);
         }
 
+        [Theory]
+        [MemberData(nameof(GetMaxCommonValueData))]
+        public void Should_GetMaxCommonValue(OrderedList<int> list, int maxCommonValue)
+        {
+            list.GetMaxCommonValue().ShouldBe(maxCommonValue);
+        }
+
+        public static IEnumerable<object[]> GetMaxCommonValueData() =>
+            new List<object[]>
+            {
+                new object[] { GetFulledOrderedList(true, Array.Empty<int>()), default(int) },
+                new object[] { GetFulledOrderedList(true, new int[] { 1, 5, 6, 2, 3 }), 1 },
+                new object[] { GetFulledOrderedList(true, new int[] { 1, 5, 6, 2, 3, 6, 6, 6 }), 6 },
+                new object[] { GetFulledOrderedList(true, new int[] { 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 6, 6, 7 }), 5 },
+            };
+
         public static IEnumerable<object[]> ContainsData =>
             new List<object[]>
             {

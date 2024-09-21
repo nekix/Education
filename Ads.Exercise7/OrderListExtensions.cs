@@ -87,30 +87,43 @@ namespace Ads.Exercise7
             return true;
         }
 
-        public static T MaxCommon<T>(OrderedList<T> list)
+        public static T GetMaxCommonValue<T>(this OrderedList<T> list)
         {
-            if(list.head == null)
+            if (list.head == null)
                 return default;
 
-            var value = list.head.value;
-            var count = 1;
-
-            var currentItem = list.head.next;
-            var currentValue = currentItem.value;
+            T maxCommonValue = default;
+            var maxCommonCount = 0;
+            
+            var currentValue = list.head.value;
             var currentCount = 1;
 
-            while(currentItem != null)
+            for (var currentNode = list.head.next; currentNode != null; currentNode = currentNode.next)
             {
-                if(list.Compare(currentItem.value, value) == 0)
-                    count++;
-                else if(list.Compare(currentItem.value, currentValue) == 0)
+                if (list.Compare(currentValue, currentNode.value) != 0)
+                {
+                    if (currentCount > maxCommonCount)
+                    {
+                        maxCommonValue = currentValue;
+                        maxCommonCount = currentCount;
+                    }
+
+                    currentValue = currentNode.value;
+                    currentCount = 0;
+                }
+                else
                 {
                     currentCount++;
-
                 }
             }
 
-            return item;
+            if (currentCount > maxCommonCount)
+            {
+                maxCommonValue = currentValue;
+                maxCommonCount = currentCount;
+            }
+
+            return maxCommonValue;
         }
 
         private static bool GetAsceding<T>(OrderedList<T> list)

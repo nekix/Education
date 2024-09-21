@@ -146,6 +146,14 @@ namespace AlgorithmsDataStructures
             }
         }
 
+        public void Reverse()
+        {
+            for (var node = head; node != null; node = node.prev)
+                (node.prev, node.next) = (node.next, node.prev);
+
+            (head, tail) = (tail, head);
+        }
+
         private void Remove(Node node)
         {
             var prefNode = node.prev;

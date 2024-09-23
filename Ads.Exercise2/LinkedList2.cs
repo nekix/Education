@@ -184,6 +184,52 @@ namespace AlgorithmsDataStructures
             return false;
         }
 
+        public void Sort()
+        {
+            if (head == null)
+                return;
+
+            var newHeadNode = head;
+            var newTailNode = head;
+
+            Remove(head);
+            newHeadNode.next = null;
+
+            for (var currentNode = head; currentNode != null; currentNode = head)
+            {
+                if(currentNode.value <= newHeadNode.value)
+                {
+                    Remove(currentNode);
+
+                    newHeadNode.prev = currentNode;
+                    currentNode.next = newHeadNode;
+                    currentNode.prev = null;
+                    newHeadNode = currentNode;
+                }
+                else
+                {
+                    var currentNewNode = newHeadNode;
+                    while (currentNewNode.next != null && currentNewNode.next.value < currentNode.value)
+                        currentNewNode = currentNewNode.next;
+
+                    Remove(currentNode);
+
+                    currentNode.prev = currentNewNode;
+                    currentNode.next = currentNewNode.next;
+
+                    if (currentNewNode.next != null)
+                        currentNewNode.next.prev = currentNode;
+                    else
+                        newTailNode = currentNode;
+
+                    currentNewNode.next = currentNode;
+                }
+            }
+
+            head = newHeadNode;
+            tail = newTailNode;
+        }
+
         private void Remove(Node node)
         {
             var prefNode = node.prev;

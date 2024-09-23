@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Security.AccessControl;
+using System.Threading;
 using System.Xml.Linq;
 
 namespace AlgorithmsDataStructures
@@ -152,6 +155,33 @@ namespace AlgorithmsDataStructures
                 (node.prev, node.next) = (node.next, node.prev);
 
             (head, tail) = (tail, head);
+        }
+
+        public bool IsHacLoop()
+        {
+            if(head == null)
+                return false;
+
+            // From head to tail
+            Node current, next;
+            for(current = head.next, next = head.next.next;
+                current != null && next?.next != null;
+                current = current.next, next = next.next.next)
+            {
+                if(current == next)
+                    return true;
+            }
+
+            // From tail to head
+            for (current = tail.prev, next = tail.prev.prev;
+                current != null && next?.prev != null;
+                current = current.prev, next = next.prev.prev)
+            {
+                if (current == next)
+                    return true;
+            }
+
+            return false;
         }
 
         private void Remove(Node node)

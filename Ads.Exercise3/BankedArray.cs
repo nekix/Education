@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ads.Exercise3
 {
-    internal class BankedArray<T>
+    public class BankedArray<T>
     {
         public T[] array;
         public int count;

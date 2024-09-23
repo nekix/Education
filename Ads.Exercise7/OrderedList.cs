@@ -208,22 +208,13 @@ namespace AlgorithmsDataStructures
                 }
                 else if (node.next == null || Compare(firstEqualNode.value, node.next.value) != 0)
                 {
-                    var prefNode = firstEqualNode.prev;
-                    var nextNode = node.next;
-
-                    if (prefNode != null) prefNode.next = nextNode;
-                    else head = nextNode;
-
-                    if (nextNode != null) nextNode.prev = prefNode;
-                    else tail = prefNode;
+                    Delete(firstEqualNode, node);
 
                     firstEqualNode = null;
                 }
 
                 node = node.next;
             }
-
-            ReCountAll();
         }
 
         public void Clear(bool asc)
@@ -246,6 +237,14 @@ namespace AlgorithmsDataStructures
                 node = node.next;
             }
             return r;
+        }
+
+        private void Delete(Node<T> firstNode, Node<T> lastNode)
+        {
+            for(var currentNode = firstNode;
+                currentNode != lastNode;
+                currentNode = currentNode.next)
+                Delete(currentNode);
         }
 
         private void Delete(Node<T> node)

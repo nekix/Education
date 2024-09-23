@@ -230,6 +230,37 @@ namespace AlgorithmsDataStructures
             tail = newTailNode;
         }
 
+        public LinkedList2 SortMerge(LinkedList2 secondList)
+        {
+            Sort();
+            secondList.Sort();
+
+            var list = new LinkedList2();
+
+            if (head == null && secondList.head == null)
+                return list;
+
+            var firstNode =  head;
+
+            var secondNode = secondList.head;
+
+            while (firstNode != null || secondNode != null)
+            {
+                if (firstNode != null && (secondNode == null || (firstNode.value <= secondNode.value)))
+                {
+                    list.AddInTail(new Node (firstNode.value));
+                    firstNode = firstNode.next;
+                }
+                else
+                {
+                    list.AddInTail(new Node(secondNode.value));
+                    secondNode = secondNode.next;
+                }
+            }
+
+            return list;
+        }
+
         private void Remove(Node node)
         {
             var prefNode = node.prev;

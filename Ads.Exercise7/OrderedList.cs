@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace AlgorithmsDataStructures
@@ -121,12 +122,26 @@ namespace AlgorithmsDataStructures
         {
             if(_count == 0) return -1;
 
-            int leftIndex = 0;
-            int rightIndex = _count - 1;
-
             var multiplier = _ascending ? 1 : -1;
-            int currentIndex = 0;
 
+            // Check head
+            var extremeCompareResult = Compare(head.value, node.value);
+            if (extremeCompareResult == 0 && head == node)
+                return 0;
+            else if (extremeCompareResult * multiplier > 0)
+                return -1;
+
+            // Check tail
+            extremeCompareResult = Compare(tail.value, node.value);
+            if (extremeCompareResult == 0 && tail == node)
+                return _count - 1;
+            else if (extremeCompareResult * multiplier < 0)
+                return -1;
+
+            int leftIndex = 1;
+            int rightIndex = _count - 2;
+
+            int currentIndex = 0;
             var currentNode = head;
 
             while (leftIndex <= rightIndex)

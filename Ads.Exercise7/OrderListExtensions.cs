@@ -17,7 +17,6 @@ namespace Ads.Exercise7
                 return list;
 
             int multiplier = asc ? 1 : -1;
-
             
             var firstAsc = GetAsceding(first);
             var firstNode = firstAsc ? first.head : first.tail;
@@ -27,22 +26,19 @@ namespace Ads.Exercise7
 
             while (firstNode != null || secondNode != null)
             {
-                if(firstNode != null)
+                if(firstNode != null && (secondNode == null || list.Compare(firstNode.value, secondNode.value) * multiplier <= 0))
                 {
-                    if(secondNode == null || list.Compare(firstNode.value, secondNode.value) * multiplier <= 0)
-                    {
-                        list.Add(firstNode.value);
-                        firstNode = firstAsc
-                            ? firstNode.next
-                            : firstNode.prev;
-                    }
-                    else
-                    {
-                        list.Add(secondNode.value);
-                        secondNode = secondAsc
-                            ? secondNode.next
-                            : secondNode.prev;
-                    }
+                    list.Add(firstNode.value);
+                    firstNode = firstAsc
+                        ? firstNode.next
+                        : firstNode.prev;
+                }
+                else
+                {
+                    list.Add(secondNode.value);
+                    secondNode = secondAsc
+                        ? secondNode.next
+                        : secondNode.prev;
                 }
             }
 

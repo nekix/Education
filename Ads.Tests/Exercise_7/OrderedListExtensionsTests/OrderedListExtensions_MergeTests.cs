@@ -15,10 +15,10 @@ namespace Ads.Tests.Exercise_7.OrderedListExtensionsTests
     public class OrderedListExtensions_MergeTests : OrderedList_BaseTests
     {
         [Theory]
-        [MemberData(nameof(UnionData))]
+        [MemberData(nameof(MergeData))]
         public void Should_Merge(OrderedList<int> first, OrderedList<int> second, int count, bool asc, params int[] finalValues)
         {
-            var list = first.Merge(second,asc);
+            var list = first.Merge(second, asc);
 
             list.Count().ShouldBe(count);
 
@@ -41,13 +41,13 @@ namespace Ads.Tests.Exercise_7.OrderedListExtensionsTests
         }
 
         [Theory]
-        [MemberData(nameof(GetMaxCommonValueData))]
+        [MemberData(nameof(MaxCommonValueData))]
         public void Should_GetMaxCommonValue(OrderedList<int> list, int maxCommonValue)
         {
             list.GetMaxCommonValue().ShouldBe(maxCommonValue);
         }
 
-        public static IEnumerable<object[]> GetMaxCommonValueData() =>
+        public static IEnumerable<object[]> MaxCommonValueData =>
             new List<object[]>
             {
                 new object[] { GetFulledOrderedList(true, Array.Empty<int>()), default(int) },
@@ -98,7 +98,7 @@ namespace Ads.Tests.Exercise_7.OrderedListExtensionsTests
                 },
             };
 
-        public static IEnumerable<object[]> UnionData =>
+        public static IEnumerable<object[]> MergeData =>
             new List<object[]>
             {
                 new object[]

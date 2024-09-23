@@ -20,8 +20,8 @@ namespace Ads.Exercise6
             foreach (var ch in str)
                 deque.AddFront(ch);
 
-            foreach (var ch in str)
-                if (deque.RemoveFront() != ch)
+            while (deque.Size() > 1)
+                if (deque.RemoveTail() != deque.RemoveFront())
                     return false;
 
             return true;

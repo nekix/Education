@@ -23,8 +23,7 @@ namespace AlgorithmsDataStructures
         {
             int sum = 0;
 
-            var bytes = Encoding.Unicode.GetBytes(value);
-            foreach (var bt in bytes)
+            foreach (var bt in Encoding.Unicode.GetBytes(value))
                 sum += bt;
 
             return sum % size;
@@ -32,22 +31,35 @@ namespace AlgorithmsDataStructures
 
         public int SeekSlot(string value)
         {
-            // находит индекс пустого слота для значения, или -1
+            var hash = HashFun(value);
+
+            if (slots[hash] == null) return hash;
+
+            for (int i = (hash + step) % size; i != hash; i = (i + step) % size)
+                if (slots[i] == null) return i;
+
             return -1;
         }
 
         public int Put(string value)
         {
-            // записываем значение по хэш-функции
+            var slot = SeekSlot(value);
 
-            // возвращается индекс слота или -1
-            // если из-за коллизий элемент не удаётся разместить 
-            return -1;
+            if (slot != -1)
+                slots[slot] = value;
+
+            return slot;
         }
 
         public int Find(string value)
         {
-            // находит индекс слота со значением, или -1
+            var hash = HashFun(value);
+
+            if (slots[hash] == value) return hash;
+
+            for (int i = (hash + step) % size; i != hash; i = (i + step) % size)
+                if (slots[i] == value) return i;
+
             return -1;
         }
     }

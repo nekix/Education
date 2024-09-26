@@ -24,7 +24,9 @@ namespace Ads.Tests.Exercise_8
         public static IEnumerable<object[]> HashFunData =>
             new List<object[]>
             {
-                new object[] { "\u0011", "0"},
+                new object[] { "\u0011", 0 },
+                new object[] { "AbcD1.", 0 },
+                new object[] { "Lorem ipsum odor amet, consectetuer adipiscing elit.", 10 }
             };
     }
 }

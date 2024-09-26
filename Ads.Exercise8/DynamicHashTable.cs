@@ -19,11 +19,14 @@ namespace Ads.Exercise8
         private const int SizeIncreaseMultiplier = 2;
         private const float MaxFillMultiplier = 0.75f;
 
-        // HashFunc parameters
-        private int _p = 81293;
-        private int _a = 0;
-        private int _b = 0;
+        // Universal HashFunc parameters
+        private int _u_p = 81293;
+        private int _u_a = 0;
+        private int _u_b = 0;
         private Random _random = new Random((int)(DateTime.Now.Millisecond % DateTime.Now.Ticks));
+
+        // Polynomial HashFunc parameters
+        private int _p_p = 35515;
 
         public DynamicHashTable(int sz, int stp)
         {
@@ -32,8 +35,8 @@ namespace Ads.Exercise8
             _slots = new string[Size];
             for (int i = 0; i < Size; i++) _slots[i] = null;
 
-            _a = _random.Next(1, Size - 1);
-            _p = _random.Next(1, Size - 1);
+            _u_a = _random.Next(1, Size - 1);
+            _u_p = _random.Next(1, Size - 1);
         }
 
         public int HashFun(string value)
@@ -43,7 +46,7 @@ namespace Ads.Exercise8
             foreach (var bt in Encoding.Unicode.GetBytes(value))
                 sum += bt;
 
-            return (_a * sum + _b) % _p % Size;
+            return (_u_a * sum + _u_b) % _u_p % Size;
         }
 
         public int SeekSlot(string value)
@@ -96,11 +99,21 @@ namespace Ads.Exercise8
             Size = newSize;
             Count = 0;
 
-            _a = _random.Next(1, Size - 1);
-            _p = _random.Next(1, Size - 1);
+            _u_a = _random.Next(1, Size - 1);
+            _u_p = _random.Next(1, Size - 1);
 
             foreach (var value in oldSlots.Where(s => s != null))
                 Put(value);
+        }
+
+        private int PolynomialHashFunc(string value)
+        {
+            int hash = 0;
+
+            for(int i = 0; i < Size; i++)
+                hash = (hash * _p_p + value[i]) % Size;
+
+            return hash;
         }
     }
 }

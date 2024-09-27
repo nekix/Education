@@ -73,7 +73,7 @@ namespace AlgorithmsDataStructures
 
         public int Find(string value)
         {
-            var hash = HashFun(value);
+            var hash = HashFun(GetSalt(value) + value);
 
             if (slots[hash] == value) return hash;
 

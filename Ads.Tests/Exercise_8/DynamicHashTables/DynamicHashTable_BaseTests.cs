@@ -6,7 +6,7 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
 {
     public class DynamicHashTable_BaseTests
     {
-        protected static DynamicHashTable GetEmptyHashTable(int sz, int stp)
-            => new DynamicHashTable(sz, stp);
+        protected static DynamicHashTable GetEmptyHashTable()
+            => new DynamicHashTable();
     }
 }

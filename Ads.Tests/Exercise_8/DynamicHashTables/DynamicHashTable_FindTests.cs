@@ -25,7 +25,7 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
         [Fact]
         public void Should_Not_Find()
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
             for (int i = 0; i < hashTable.Size; i++)
                 hashTable.Put("aaa");
 
@@ -34,18 +34,18 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
 
         public static IEnumerable<object[]> FindData()
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
             hashTable.Put("a");
             var data = new object[] { hashTable, "a" };
             yield return data;
 
-            hashTable = GetEmptyHashTable(17, 3);
+            hashTable = GetEmptyHashTable();
             hashTable.Put("AbcD1.");
             hashTable.Put("AbcfD1.w");
             data = new object[] { hashTable, "AbcfD1.w" };
             yield return data;
 
-            hashTable = GetEmptyHashTable(17, 3);
+            hashTable = GetEmptyHashTable();
             hashTable.Put("AbcD1.");
             hashTable.Put("AbcfD1.");
             hashTable.Put("AbcfD1.w");

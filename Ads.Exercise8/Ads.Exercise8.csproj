@@ -43,8 +43,10 @@
   <ItemGroup>
     <Compile Include="DynamicHashTable.cs" />
     <Compile Include="HashTable.cs" />
-    <Compile Include="MultiFuncHashTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DynamicHashTable.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

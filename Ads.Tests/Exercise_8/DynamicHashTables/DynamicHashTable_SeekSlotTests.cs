@@ -24,7 +24,7 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
         [Fact]
         public void Should_Not_SeekSlot()
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
             for (int i = 0; i < hashTable.Size; i++)
                 hashTable.Put("aaa");
 
@@ -33,16 +33,16 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
 
         public static IEnumerable<object[]> SeekSlotData()
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
             var data = new object[] { hashTable, "a" };
             yield return data;
 
-            hashTable = GetEmptyHashTable(17, 3);
+            hashTable = GetEmptyHashTable();
             hashTable.Put("AbcD1.");
             data = new object[] { hashTable, "AbcfD1.w" };
             yield return data;
 
-            hashTable = GetEmptyHashTable(17, 3);
+            hashTable = GetEmptyHashTable();
             hashTable.Put("AbcD1.");
             hashTable.Put("AbcfD1.");
             data = new object[] { hashTable, "AbcfD1.w" };

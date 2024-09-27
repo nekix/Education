@@ -25,7 +25,7 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
         [Fact]
         public void Should_Put_With_Resize()
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
             for (int i = 0; i < 17; i++)
                 hashTable.Put(((char)(34 + i)).ToString());
 
@@ -33,21 +33,21 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
 
             slot.ShouldNotBe(-1);
             hashTable.Find(((char)(60)).ToString()).ShouldNotBe(-1);
-            hashTable.Size.ShouldBe(34);
+            hashTable.Size.ShouldBe(32);
         }
 
         public static IEnumerable<object[]> PutData()
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
             var data = new object[] { hashTable, "a" };
             yield return data;
 
-            hashTable = GetEmptyHashTable(17, 3);
+            hashTable = GetEmptyHashTable();
             hashTable.Put("AbcD1.");
             data = new object[] { hashTable, "AbcfD1.w" };
             yield return data;
 
-            hashTable = GetEmptyHashTable(17, 3);
+            hashTable = GetEmptyHashTable();
             hashTable.Put("AbcD1.");
             hashTable.Put("AbcfD1.");
             data = new object[] { hashTable, "AbcfD1.w" };

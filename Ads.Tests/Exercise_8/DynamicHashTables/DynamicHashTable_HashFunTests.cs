@@ -16,7 +16,7 @@ namespace Ads.Tests.Exercise_8.DynamicHashTables
         [MemberData(nameof(HashFunData))]
         public void Should_GetHash(string data)
         {
-            var hashTable = GetEmptyHashTable(17, 3);
+            var hashTable = GetEmptyHashTable();
 
             var hash = hashTable.HashFun(data);
             hash.ShouldBeLessThan(17);

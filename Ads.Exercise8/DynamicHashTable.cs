@@ -120,16 +120,6 @@ namespace Ads.Exercise8
         private int FirstDoubleHashingFunc(string value)
             => (PolynomialHashFunc(value) ^ UniversalHashFunc(value)) % Size;
 
-        private int GetUnicodeBytesSum(string value)
-        {
-            int sum = 0;
-
-            foreach (var bt in Encoding.Unicode.GetBytes(value))
-                sum += bt;
-
-            return sum;
-        }
-
         /// <summary>
         /// Use for iterate through the slots.
         /// Works with a HashTable size that is a power of two.

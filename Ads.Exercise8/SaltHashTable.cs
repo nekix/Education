@@ -5,34 +5,44 @@ using System.Text;
 namespace AlgorithmsDataStructures
 {
 
-    public class HashTable
+    public class SaltHashTable
     {
         public int size;
         public int step;
         public string[] slots;
+
         public int MaxCollisionDeep = 0;
 
-        public HashTable(int sz, int stp)
+        // Polynomial HashFunc parameters
+        private int _p_p = 35515;
+
+        private int _saltInit;
+
+        private Random _random = new Random((int)(DateTime.Now.Millisecond % DateTime.Now.Ticks));
+
+        public SaltHashTable(int sz, int stp)
         {
             size = sz;
             step = stp;
             slots = new string[size];
             for (int i = 0; i < size; i++) slots[i] = null;
+
+            _saltInit = _random.Next();
         }
 
         public int HashFun(string value)
         {
-            int sum = 0;
+            int hash = 0;
 
-            foreach (var bt in Encoding.Unicode.GetBytes(value))
-                sum += bt;
+            for (int i = 0; i < value.Length; i++)
+                hash = ((hash * _p_p) + value[i]) % size;
 
-            return sum % size;
+            return hash;
         }
 
         public int SeekSlot(string value)
         {
-            var hash = HashFun(value);
+            var hash = HashFun(GetSalt(value) + value);
 
             if (slots[hash] == null) return hash;
 
@@ -71,6 +81,18 @@ namespace AlgorithmsDataStructures
                 if (slots[i] == value) return i;
 
             return -1;
+        }
+
+        private string GetSalt(string value)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var bytes = Encoding.Unicode.GetBytes(value);
+
+            for(int i = 0; i < bytes.Length; i++)
+                sb.Append((char)((bytes[i] ^ _saltInit) % 57) + 65);
+
+            return sb.ToString();
         }
     }
 

@@ -1,11 +1,6 @@
 ﻿extern alias Exercise9;
 
-using AlgorithmsDataStructures;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
 
@@ -17,9 +12,9 @@ namespace Ads.Tests.Exercise_9
         [MemberData(nameof(HashFunData))]
         public void Should_GetHash(string data, int hash)
         {
-            var hashTable = GetEmptyNativeDictionary<int>(100);
+            var dictionary = GetEmptyNativeDictionary<int>(100);
 
-            hashTable.HashFun(data).ShouldBe(hash);
+            dictionary.HashFun(data).ShouldBe(hash);
         }
 
         public static IEnumerable<object[]> HashFunData =>

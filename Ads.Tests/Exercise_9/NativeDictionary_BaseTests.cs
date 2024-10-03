@@ -1,6 +1,5 @@
 ﻿extern alias Exercise9;
 
-using AlgorithmsDataStructures;
 using Exercise9.AlgorithmsDataStructures;
 using System;
 using System.Collections.Generic;

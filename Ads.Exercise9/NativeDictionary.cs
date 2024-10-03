@@ -17,7 +17,7 @@ namespace AlgorithmsDataStructures
         public NativeDictionary(int sz)
         {
             size = sz;
-            step = size - 1;
+            step = 1;
             slots = new string[size];
             values = new T[size];
         }
@@ -34,52 +34,48 @@ namespace AlgorithmsDataStructures
 
         public bool IsKey(string key)
         {
-            var hash = HashFun(key);
+            var slot = FindSlot(key, false);
 
-            if (slots[hash] == key) return true;
-
-            for (int i = (hash + step) % size; i != hash; i = (i + step) % size)
-                if (slots[i] == key) return true;
-
-            return false;
+            return slot >= 0;
         }
 
         public void Put(string key, T value)
         {
-            var slot = SeekSlot(value);
+            var slot = FindSlot(key, true);
 
-            if (slot != -1)
-                slots[slot] = value;
+            if (slot < 0) return;
 
-            return slot;
-
-
-            // гарантированно записываем 
-            // значение value по ключу key
+            slots[slot] = key;
+            values[slot] = value;
         }
 
         public T Get(string key)
         {
-            // возвращает value для key, 
-            // или null если ключ не найден
-            return default(T);
+            var slot = FindSlot(key, false);
+
+            return slot >= 0 ? values[slot] : default;
         }
 
         /// <summary>
         /// Return index of slots[] with current key.
         /// Return -1 if key not exist.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">The key.</param>
+        /// <param name="withEmpty">if set to <c>true</c> [with empty].</param>
         /// <returns></returns>
-        private int FindSlotByKey(string key)
+        private int FindSlot(string key, bool withEmpty)
         {
             var hash = HashFun(key);
 
-            if (slots[hash] == key) return hash;
+            if (slots[hash] == key || (withEmpty && slots[hash] == null))
+                return hash;
 
-            for (int i = (hash + step) % size; i != hash; i = (i + step) % size)
-                if (slots[i] == key) return i;
-
+            for (int i = (hash + step) % size; i != hash && (withEmpty || slots[i] != null); i = (i + step) % size)
+            {
+                if (slots[i] == key || (withEmpty && slots[i] == null))
+                    return i;
+            }
+                
             return -1;
         }
     }

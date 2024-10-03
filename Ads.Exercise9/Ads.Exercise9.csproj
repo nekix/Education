@@ -42,6 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="NativeDictionary.cs" />
+    <Compile Include="OrderedListBasedDictionary.cs" />
+    <None Include="C# DictionaryAnalysis.md" />
+    <None Include="OrderedListBasedDictionaryComplexityAnalysis.md" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

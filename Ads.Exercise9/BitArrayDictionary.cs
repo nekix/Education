@@ -86,6 +86,16 @@ namespace Ads.Exercise9
             return slot >= 0 ? _values[slot] : default;
         }
 
+        public void Delete(byte[] key)
+        {
+            var slot = FindSlot(key, false);
+
+            if (slot < 0) return;
+
+            _slots[slot] = null;
+            _values[slot] = default;
+        }
+
         /// <summary>
         /// Return index of slots[] with current key.
         /// Return -1 if key not exist.

@@ -44,7 +44,7 @@
     <Compile Include="BitArrayDictionary.cs" />
     <Compile Include="NativeDictionary.cs" />
     <Compile Include="OrderedListBasedDictionary.cs" />
-    <None Include="C# DictionaryAnalysis.md" />
+    <None Include="C#_DictionaryAnalysis.md" />
     <None Include="OrderedListBasedDictionaryComplexityAnalysis.md" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

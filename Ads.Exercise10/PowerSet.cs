@@ -19,10 +19,15 @@ namespace AlgorithmsDataStructures
 
         }
 
-        public PowerSet(int capacity)
+        public PowerSet(IEqualityComparer<T> comparer) : this(_defaultCapacity, comparer)
+        {
+
+        }
+
+        public PowerSet(int capacity, IEqualityComparer<T> comparer = null)
         {
             _slots = new List<T>[capacity];
-            _comparer = EqualityComparer<T>.Default;
+            _comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
         public int Size()
@@ -108,19 +113,19 @@ namespace AlgorithmsDataStructures
         {
             PowerSet<T> resultSet = new PowerSet<T>(_count + set2._count);
 
-            foreach (var slot in _slots)
+            foreach (List<T> slot in _slots)
             {
                 if (slot == null) continue;
 
-                foreach (var item in slot)
+                foreach (T item in slot)
                     resultSet.Put(item);
             }
 
-            foreach (var slot in set2._slots)
+            foreach (List<T> slot in set2._slots)
             {
                 if (slot == null) continue;
 
-                foreach (var item in slot)
+                foreach (T item in slot)
                     resultSet.Put(item);
             }
 
@@ -135,7 +140,7 @@ namespace AlgorithmsDataStructures
             {
                 if (_slots[slot] == null) continue;
 
-                foreach (var item in _slots[slot])
+                foreach (T item in _slots[slot])
                 {
                     if (!set2.Get(item)) resultSet.Put(item);
                 }
@@ -152,7 +157,7 @@ namespace AlgorithmsDataStructures
             {
                 if (set2._slots[slot] == null) continue;
 
-                foreach (var item in set2._slots[slot])
+                foreach (T item in set2._slots[slot])
                 {
                     if (!Get(item)) return false;
                 }
@@ -177,6 +182,27 @@ namespace AlgorithmsDataStructures
             }
 
             return true;
+        }
+
+        public PowerSet<(T, T)> CartesianProduct(PowerSet<T> set2)
+        {
+            PowerSet<(T, T)> resultSet = new PowerSet<(T, T)>(_count * set2._count, GetOrderedPairComparer());
+
+            foreach (List<T> firstSlot in _slots)
+            {
+                if(firstSlot == null) continue;
+
+                foreach (List<T> secondSlot in set2._slots)
+                {
+                    if (secondSlot == null) continue;
+
+                    foreach (T firstItem in firstSlot)
+                        foreach (T secondItem in secondSlot)
+                            resultSet.Put((firstItem, secondItem));
+                }
+            }
+
+            return resultSet;
         }
 
         private int HashFun(T value)
@@ -208,6 +234,35 @@ namespace AlgorithmsDataStructures
             }
 
             return -1;
+        }
+
+        public static IEqualityComparer<(T, T)> GetOrderedPairComparer(IEqualityComparer<T> comparer = null)
+            => new OrderedPairComparer(comparer);
+
+        private class OrderedPairComparer : IEqualityComparer<(T, T)>
+        {
+            private readonly IEqualityComparer<T> _comparer;
+            private readonly int _factor = 124;
+
+            internal OrderedPairComparer(IEqualityComparer<T> comparer = null)
+            {
+                _comparer = comparer ?? EqualityComparer<T>.Default;
+            }
+
+            public bool Equals((T, T) x, (T, T) y)
+            {
+                return _comparer.Equals(x.Item1, y.Item1) && _comparer.Equals(x.Item2, y.Item2);
+            }
+
+            public int GetHashCode((T, T) obj)
+            {
+                int hash = 17;
+
+                hash = hash * 31 + _comparer.GetHashCode(obj.Item1);
+                hash = hash * 31 + _comparer.GetHashCode(obj.Item2);
+
+                return hash;
+            }
         }
     }
 }

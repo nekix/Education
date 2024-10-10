@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bag.cs" />
     <Compile Include="PowerSet.cs" />
     <Compile Include="PowerSetExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

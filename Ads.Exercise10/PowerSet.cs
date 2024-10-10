@@ -43,10 +43,9 @@ namespace AlgorithmsDataStructures
             {
                 _slots[slot] = new List<T>(1);
             }
-            else
+            else if (FindValueEntryIndex(value, slot) != -1)
             {
-                if (FindValueEntryIndex(value, slot) != -1)
-                    return;
+                return;
             }
 
             _slots[slot].Add(value);

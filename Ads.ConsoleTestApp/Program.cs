@@ -10,11 +10,7 @@ namespace Ads.ConsoleTestApp
     {
         static void Main(string[] args)
         {
-            var t = new Dictionary<string, int>();
-            t.Clear();
 
-
-            t.Add("test", 1);
         }
     }
 }

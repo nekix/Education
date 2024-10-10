@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AlgorithmsDataStructures
 {
@@ -34,13 +33,14 @@ namespace AlgorithmsDataStructures
             if (_count == _slots.Length) return;
 
             int slot = FindSlot(value);
+
             if (_slots[slot] == null)
             {
                 _slots[slot] = new List<T>(1);
             }
             else
             {
-                if (_slots[slot].Contains(value, _comparer))
+                if (FindValueEntryIndex(value, slot) != -1)
                     return;
             }
 
@@ -53,7 +53,7 @@ namespace AlgorithmsDataStructures
             int slot = FindSlot(value);
             int entryIndex = FindValueEntryIndex(value, slot);
 
-            return slot != -1;
+            return entryIndex != -1;
         }
 
         public bool Remove(T value)
@@ -63,12 +63,13 @@ namespace AlgorithmsDataStructures
             int slot = FindSlot(value);
             int entryIndex = FindValueEntryIndex(value, slot);
 
-            if (entryIndex == -1)
-                return false;
-
-            _slots[slot].Remove(value);
-
-            return true;
+            if (entryIndex != -1 && _slots[slot].Remove(value))
+            {
+                _count--;
+                return true;
+            }
+            
+            return false;
         }
 
         public PowerSet<T> Intersection(PowerSet<T> set2)
@@ -87,14 +88,17 @@ namespace AlgorithmsDataStructures
                 maxSet = set2;
             }
 
-            PowerSet<T> resultSet = new PowerSet<T>(minSet._count, minSet._step);
+            PowerSet<T> resultSet = new PowerSet<T>(minSet._count);
 
-            foreach (T item in minSet._slots)
+            for(int slot = 0; slot < minSet._slots.Length; slot++)
             {
-                int hash = HashFun(item);
+                if (minSet._slots[slot] == null) continue;
 
-                if (maxSet.FindValueSlot(hash, item) != -1)
-                    resultSet.Put(item);
+                foreach (T item in minSet._slots[slot])
+                {
+                    if (maxSet.Get(item))
+                        resultSet.Put(item);
+                }
             }
 
             return resultSet;
@@ -102,36 +106,74 @@ namespace AlgorithmsDataStructures
 
         public PowerSet<T> Union(PowerSet<T> set2)
         {
-            // объединение текущего множества и set2
-            return null;
+            PowerSet<T> resultSet = new PowerSet<T>(_count + set2._count);
+
+            foreach (var slot in _slots)
+            {
+                if (slot == null) continue;
+
+                foreach (var item in slot)
+                    resultSet.Put(item);
+            }
+
+            foreach (var slot in set2._slots)
+            {
+                if (slot == null) continue;
+
+                foreach (var item in slot)
+                    resultSet.Put(item);
+            }
+
+            return resultSet;
         }
 
         public PowerSet<T> Difference(PowerSet<T> set2)
         {
-            // разница текущего множества и set2
-            return null;
+            PowerSet<T> resultSet = new PowerSet<T>(_count);
+
+            for (int slot = 0; slot < _slots.Length; slot++)
+            {
+                if (_slots[slot] == null) continue;
+
+                foreach (var item in _slots[slot])
+                {
+                    if (!set2.Get(item)) resultSet.Put(item);
+                }
+            }
+
+           return resultSet;
         }
 
         public bool IsSubset(PowerSet<T> set2)
         {
-            // возвращает true, если set2 есть
-            // подмножество текущего множества,
-            // иначе false
-            return false;
+            if (set2._count > _count) return false;
+
+            for(int slot = 0; slot < set2._slots.Length; slot++)
+            {
+                if (set2._slots[slot] == null) continue;
+
+                foreach (var item in set2._slots[slot])
+                {
+                    if (!Get(item)) return false;
+                }
+            }
+
+            return true;
         }
 
         public bool Equals(PowerSet<T> set2)
         {
             if(_count != set2._count) return false;
 
-            foreach (T item in _slots)
+            for(int slot = 0; slot < _slots.Length; slot++)
             {
-                if (_comparer.Equals(item, default))
-                    continue;
+                if (_slots[slot] == null) continue;
 
-                int hash = HashFun(item);
-                if (set2.FindValueSlot(hash, item) == -1)
-                    return false;
+                foreach (T item in _slots[slot])
+                {
+                    if (set2.FindValueEntryIndex(item, slot) == -1)
+                        return false;
+                }
             }
 
             return true;
@@ -159,7 +201,13 @@ namespace AlgorithmsDataStructures
         {
             if (_slots[slotIndex] == null) return -1;
 
-            return _slots[slotIndex].IndexOf(value);
+            for (int i = 0; i < _slots[slotIndex].Count; i++)
+            {
+                if (_comparer.Equals(_slots[slotIndex][i], value))
+                    return i;
+            }
+
+            return -1;
         }
     }
 }

@@ -14,11 +14,9 @@ namespace Ads.Tests.Exercise_10
     public class PowerSet_IntersectionTests : PowerSet_BaseTests
     {
         [Theory]
-        [MemberData(nameof(EqualsData))]
+        [MemberData(nameof(IntersectionData))]
         public void Should_Intersection(PowerSet<string> set1, PowerSet<string> set2, string[] resultData)
         {
-            Dictionary<>
-
             var resultSet = set1.Intersection(set2);
 
             resultSet.Size().ShouldBe(resultData.Length);
@@ -27,13 +25,13 @@ namespace Ads.Tests.Exercise_10
         }
 
         [Theory(Timeout = 1500)]
-        [MemberData(nameof(EqualsData))]
+        [MemberData(nameof(IntersectionData))]
         public async Task Should_IntersectionFast(PowerSet<string> set1, PowerSet<string> set2, string[] resultData)
         {
              await Task.Run(() => set1.Intersection(set2).Size().ShouldBe(resultData.Length));
         }
 
-        public static IEnumerable<object[]> EqualsData =>
+        public static IEnumerable<object[]> IntersectionData =>
             new List<object[]>
             {
                 new object[] { GetEmptyPowerSet<string>(), GetEmptyPowerSet<string>(), Array.Empty<string>() },
@@ -50,9 +48,15 @@ namespace Ads.Tests.Exercise_10
                 },
                 new object[]
                 {
-                    GetPowerSet(Enumerable.Range(0, 20000).Select(i => i.GetHashCode().ToString() + i).ToArray()),
-                    GetPowerSet(Enumerable.Range(10000, 20000).Select(i => i.GetHashCode().ToString() + i).ToArray()),
-                    Enumerable.Range(10000, 10000).Select(i => i.GetHashCode().ToString() + i).ToArray()
+                    GetPowerSet(Enumerable.Range(0, 20000).Select(i => i.ToString()).ToArray()),
+                    GetPowerSet(Enumerable.Range(10000, 20000).Select(i => i.ToString()).ToArray()),
+                    Enumerable.Range(10000, 10000).Select(i => i.ToString()).ToArray()
+                },
+                new object[]
+                {
+                    GetPowerSet(Enumerable.Range(0, 10000).Select(i => i.ToString()).ToArray()),
+                    GetPowerSet(Enumerable.Range(10000, 20000).Select(i => i.ToString()).ToArray()),
+                    Enumerable.Empty<string>().ToArray()
                 },
             };
     }

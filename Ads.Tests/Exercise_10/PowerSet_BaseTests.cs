@@ -14,8 +14,8 @@ namespace Ads.Tests.Exercise_10
         protected static PowerSet<T> GetEmptyPowerSet<T>()
             => new PowerSet<T>();
 
-        protected static PowerSet<T> GetEmptyPowerSet<T>(int capacity, int step)
-            => new PowerSet<T>(capacity, step);
+        protected static PowerSet<T> GetEmptyPowerSet<T>(int capacity)
+            => new PowerSet<T>(capacity);
 
         protected static PowerSet<T> GetPowerSet<T>(T[] data)
         {

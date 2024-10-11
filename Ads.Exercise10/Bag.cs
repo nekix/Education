@@ -36,20 +36,20 @@ namespace Ads.Exercise10
         {
             if (_count == _slots.Length) return;
 
-            int slotIndex = FindSlot(value);
+            int slotIndex = FindSlotIndex(value);
             if (_slots[slotIndex] == null)
             {
                 _slots[slotIndex] = new List<List<T>>(1);
             }
 
-            int colIndex = FindCollisionIndex(value, slotIndex);
-            if(colIndex == -1)
+            int equalItemsIndex = FindEqualItemsIndex(value, slotIndex);
+            if(equalItemsIndex == -1)
             {
                 _slots[slotIndex].Add(new List<T>(1));
-                colIndex = _slots[slotIndex].Count() - 1;
+                equalItemsIndex = _slots[slotIndex].Count() - 1;
             }
 
-            _slots[slotIndex][colIndex].Add(value);
+            _slots[slotIndex][equalItemsIndex].Add(value);
             _count++;
         }
 
@@ -57,32 +57,32 @@ namespace Ads.Exercise10
         {
             if (_count == 0) return false;
 
-            int slot = FindSlot(value);
+            int slot = FindSlotIndex(value);
             if (_slots[slot] == null) return false;
 
-            int entryIndex = FindCollisionIndex(value, slot);
+            int equalItemsIndex = FindEqualItemsIndex(value, slot);
 
-            return entryIndex != -1;
+            return equalItemsIndex != -1;
         }
 
         public bool Remove(T value)
         {
             if (_count == 0) return false;
 
-            int slot = FindSlot(value);
+            int slot = FindSlotIndex(value);
             if (_slots[slot] == null) return false;
 
-            int entryIndex = FindCollisionIndex(value, slot);
-            if (entryIndex == -1)
+            int equalItemsIndex = FindEqualItemsIndex(value, slot);
+            if (equalItemsIndex == -1)
                 return false;
 
             // Удаление value
-            if (!_slots[slot][entryIndex].Remove(value))
+            if (!_slots[slot][equalItemsIndex].Remove(value))
                 return false;
 
             // Удаление списка дубликатов value если он пуст
-            if (_slots[slot][entryIndex].Count == 0)
-                _slots[slot].RemoveAt(entryIndex);
+            if (_slots[slot][equalItemsIndex].Count == 0)
+                _slots[slot].RemoveAt(equalItemsIndex);
 
             _count--;
             return true;
@@ -96,18 +96,18 @@ namespace Ads.Exercise10
             {
                 if (slot == null) continue;
 
-                foreach (List<T> collisionGroup in slot)
-                    items.Add((collisionGroup[0], collisionGroup.Count));
+                foreach (List<T> equalItems in slot)
+                    items.Add((equalItems[0], equalItems.Count));
             }
 
             return items;
         }
 
 
-        private int FindSlot(T value)
+        private int FindSlotIndex(T value)
             => HashFun(value) % _slots.Length;
 
-        private int FindCollisionIndex(T value, int slotIndex)
+        private int FindEqualItemsIndex(T value, int slotIndex)
         {
             List<List<T>> slot = _slots[slotIndex];
 

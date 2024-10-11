@@ -9,9 +9,7 @@ namespace Ads.Exercise10
             PowerSet<T> resultSet = firstSet;
 
             foreach (PowerSet<T> item in sets)
-            {
                 resultSet = resultSet.Intersection(item);
-            }
 
             return resultSet;
         }

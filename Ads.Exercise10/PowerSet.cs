@@ -94,15 +94,13 @@ namespace AlgorithmsDataStructures
 
             PowerSet<T> resultSet = new PowerSet<T>(minSet._count);
 
-            for(int slot = 0; slot < minSet._slots.Length; slot++)
+            foreach (var slot in minSet._slots)
             {
-                if (minSet._slots[slot] == null) continue;
+                if (slot == null) continue;
 
-                foreach (T item in minSet._slots[slot])
-                {
+                foreach (T item in slot)
                     if (maxSet.Get(item))
                         resultSet.Put(item);
-                }
             }
 
             return resultSet;
@@ -135,14 +133,13 @@ namespace AlgorithmsDataStructures
         {
             PowerSet<T> resultSet = new PowerSet<T>(_count);
 
-            for (int slot = 0; slot < _slots.Length; slot++)
+            foreach (var slot in _slots)
             {
-                if (_slots[slot] == null) continue;
+                if (slot == null) continue;
 
-                foreach (T item in _slots[slot])
-                {
-                    if (!set2.Get(item)) resultSet.Put(item);
-                }
+                foreach (T item in slot)
+                    if (!set2.Get(item))
+                        resultSet.Put(item);
             }
 
            return resultSet;
@@ -152,14 +149,13 @@ namespace AlgorithmsDataStructures
         {
             if (set2._count > _count) return false;
 
-            for(int slot = 0; slot < set2._slots.Length; slot++)
+            foreach (var slot in set2._slots)
             {
-                if (set2._slots[slot] == null) continue;
+                if(slot == null) continue;
 
-                foreach (T item in set2._slots[slot])
-                {
-                    if (!Get(item)) return false;
-                }
+                foreach (T item in slot)
+                    if (!Get(item))
+                        return false;
             }
 
             return true;
@@ -241,7 +237,6 @@ namespace AlgorithmsDataStructures
         private class OrderedPairComparer : IEqualityComparer<(T, T)>
         {
             private readonly IEqualityComparer<T> _comparer;
-            private readonly int _factor = 124;
 
             internal OrderedPairComparer(IEqualityComparer<T> comparer = null)
             {

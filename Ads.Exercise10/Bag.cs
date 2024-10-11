@@ -8,7 +8,7 @@ namespace Ads.Exercise10
     {
         private const int _defaultCapacity = 20000;
 
-        private List<List<T>>[] _slots;
+        private List<LinkedList<T>>[] _slots;
         private int _count;
 
         private IEqualityComparer<T> _comparer;
@@ -25,7 +25,7 @@ namespace Ads.Exercise10
 
         public Bag(int capacity, IEqualityComparer<T> comparer = null)
         {
-            _slots = new List<List<T>>[capacity];
+            _slots = new List<LinkedList<T>>[capacity];
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
@@ -39,17 +39,17 @@ namespace Ads.Exercise10
             int slotIndex = FindSlotIndex(value);
             if (_slots[slotIndex] == null)
             {
-                _slots[slotIndex] = new List<List<T>>(1);
+                _slots[slotIndex] = new List<LinkedList<T>>(1);
             }
 
             int equalItemsIndex = FindEqualItemsIndex(value, slotIndex);
             if(equalItemsIndex == -1)
             {
-                _slots[slotIndex].Add(new List<T>(1));
-                equalItemsIndex = _slots[slotIndex].Count() - 1;
+                _slots[slotIndex].Add(new LinkedList<T>());
+                equalItemsIndex = _slots[slotIndex].Count - 1;
             }
 
-            _slots[slotIndex][equalItemsIndex].Add(value);
+            _slots[slotIndex][equalItemsIndex].AddLast(value);
             _count++;
         }
 
@@ -92,12 +92,12 @@ namespace Ads.Exercise10
         {
             List<(T item, int frequency)> items = new List<(T item, int frequency)>(_count);
 
-            foreach (List<List<T>> slot in _slots)
+            foreach (List<LinkedList<T>> slot in _slots)
             {
                 if (slot == null) continue;
 
-                foreach (List<T> equalItems in slot)
-                    items.Add((equalItems[0], equalItems.Count));
+                foreach (LinkedList<T> equalItems in slot)
+                    items.Add((equalItems.First(), equalItems.Count));
             }
 
             return items;
@@ -109,7 +109,7 @@ namespace Ads.Exercise10
 
         private int FindEqualItemsIndex(T value, int slotIndex)
         {
-            List<List<T>> slot = _slots[slotIndex];
+            List<LinkedList<T>> slot = _slots[slotIndex];
 
             if (slot == null) return -1;
 
@@ -119,7 +119,7 @@ namespace Ads.Exercise10
             for (int i = 0; i < slot.Count; i++)
             {
                 // Поиск списка который содержит дубликаты value.
-                if (_comparer.Equals(slot[i][0], value))
+                if (_comparer.Equals(slot[i].First(), value))
                     return i;
             }
 

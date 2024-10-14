@@ -7,7 +7,7 @@ namespace AlgorithmsDataStructures
     public class BloomFilter
     {
         public int filter_len;
-        private int[] _byteData;
+        private int[] _bitsData;
 
         private const int BitsPerInt32 = 32;
 
@@ -17,7 +17,7 @@ namespace AlgorithmsDataStructures
         public BloomFilter(int f_len)
         {
             filter_len = f_len;
-            _byteData = new int[GetArrayLength(filter_len)];
+            _bitsData = new int[GetArrayLength(filter_len)];
         }
 
         public int Hash1(string str1)
@@ -43,18 +43,34 @@ namespace AlgorithmsDataStructures
             return IsValue(hash1) && IsValue(hash2);
         }
 
+        public BloomFilter Union(IEnumerable<BloomFilter> filters)
+        {
+            BloomFilter resFilter = new BloomFilter(filter_len);
+
+            // Copy current filter
+            for (int i = 0; i < _bitsData.Length; i++)
+                resFilter._bitsData[i] |= _bitsData[i];
+
+            // "And" with others filters
+            foreach (BloomFilter filter in filters)
+                for (int i = 0; i < resFilter._bitsData.Length; i++)
+                    resFilter._bitsData[i] |= filter._bitsData[i];
+
+            return resFilter;
+        }
+
         private bool IsValue(int hash)
         {
             int index = GetIndexAndMask(hash, out int mask);
 
-            return (_byteData[index] & mask) != 0;
+            return (_bitsData[index] & mask) != 0;
         }
 
         private void Add(int hash)
         {
             int index = GetIndexAndMask(hash, out int mask);
 
-            _byteData[index] |= mask;
+            _bitsData[index] |= mask;
         }
 
         private int SimpleStringHash(string str, int multiplier)

@@ -18,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ads.Exercise12\Ads.Exercise12.csproj">
+        <Aliases>Exercise12</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\Ads.Exercise10\Ads.Exercise10.csproj">
         <Aliases>Exercise10</Aliases>
     </ProjectReference>

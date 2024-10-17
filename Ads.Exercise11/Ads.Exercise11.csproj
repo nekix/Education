@@ -47,6 +47,7 @@
     <Compile Include="RemovableBloomFilter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BloomFilterReverser.md" />
     <None Include="UnionMethodAnalysis.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

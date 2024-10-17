@@ -6,7 +6,7 @@ namespace Ads.Exercise11
 {
     public static class BloomFilterReverser
     {
-        public class RecoverStringResult
+        public class RecoverStringsResult
         {
             public HashSet<string> CleanResult { get; set; }
 
@@ -20,8 +20,9 @@ namespace Ads.Exercise11
         /// что известно все множество возможных элементов.
         /// </summary>
         /// <param name="filter">The filter.</param>
+        /// <param name="candidates">The candidates to filter set.</param>
         /// <returns></returns>
-        public static RecoverStringResult RecoverStrings(this BloomFilter filter, IEnumerable<string> candidates)
+        public static RecoverStringsResult RecoverStrings(this BloomFilter filter, IEnumerable<string> candidates)
         {
             // Множество позволяет не беспокоится о повторяемости элементов, 
             // а также упрощает операции объеденения и исключения.
@@ -54,19 +55,19 @@ namespace Ads.Exercise11
             HashSet<string> collisionResults = GetCollisions(array);
             HashSet<string> falsePositiveResults = GetFalsePositive(array);
 
-            // Выделение определяемых однозначно элементов
-            HashSet<string> results = new HashSet<string>();
+            // Выделение определяемых однозначно элементов (эталонных)
+            HashSet<string> cleanResult = new HashSet<string>();
             foreach (HashSet<string> set in array)
                 if(set != null)
-                    results.UnionWith(set);
+                    cleanResult.UnionWith(set);
             
-            results.ExceptWith(falsePositiveResults);
-            results.ExceptWith(collisionResults);
+            cleanResult.ExceptWith(falsePositiveResults);
+            cleanResult.ExceptWith(collisionResults);
 
             // Формирование итого результата
-            return new RecoverStringResult()
+            return new RecoverStringsResult()
             {
-                CleanResult = results,
+                CleanResult = cleanResult,
                 FalsePositiveResults = falsePositiveResults,
                 CollisionResults = collisionResults,
             };
@@ -125,6 +126,7 @@ namespace Ads.Exercise11
 
             if (array[iIndex, jIndex] == null) return;
 
+            // Элемент с совпадающими хешами, только в обратном порядке
             if (array[jIndex, iIndex] != null)
             {
                 falsePositive.UnionWith(array[iIndex, jIndex]);
@@ -161,8 +163,7 @@ namespace Ads.Exercise11
             if ((leftFirst && leftSecond) || (leftFirst && rightSecond) || (rightFirst && rightSecond))
             {
                 falsePositive.UnionWith(array[iIndex, jIndex]);
-            }
-               
+            }        
         }
     }
 }

@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace Ads.Tests.Exercise12
 {
-    public class NativeCache_BaseTests
+    public abstract class NativeCache_BaseTests
     {
-
+        protected static NativeCache<T> GetEmptyNativeCache<T>(int sz, int stp = 1)
+            => new NativeCache<T>(sz, stp);
     }
 }

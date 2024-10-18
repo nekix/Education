@@ -1,20 +1,21 @@
-﻿extern alias Exercise9;
+﻿extern alias Exercise12;
 
-using System.Collections.Generic;
+using Exercise12.AlgorithmsDataStructures;
 using Shouldly;
+using System.Collections.Generic;
 using Xunit;
 
-namespace Ads.Tests.Exercise_9
+namespace Ads.Tests.Exercise12
 {
-    public class NativeDictionary_HashFunTests : NativeDictionary_BaseTests
+    public class NativeCache_HashFunTests : NativeCache_BaseTests
     {
         [Theory]
         [MemberData(nameof(HashFunData))]
         public void Should_GetHash(string data, int hash)
         {
-            var dictionary = GetEmptyNativeDictionary<int>(100);
+            var cache = GetEmptyNativeCache<int>(100);
 
-            dictionary.HashFun(data).ShouldBe(hash);
+            cache.HashFun(data).ShouldBe(hash);
         }
 
         public static IEnumerable<object[]> HashFunData =>

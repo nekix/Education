@@ -18,6 +18,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ads.Exercise12\Ads.Exercise12.csproj">
+        <Aliases>Exercise12</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Ads.Exercise10\Ads.Exercise10.csproj">
+        <Aliases>Exercise10</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Ads.Exercise11\Ads.Exercise11.csproj">
+        <Aliases>Exercise11</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\Ads.Exercise2\Ads.Exercise2.csproj">
         <Aliases>Exercise2</Aliases>
     </ProjectReference>

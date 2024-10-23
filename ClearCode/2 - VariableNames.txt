@@ -1,0 +1,70 @@
+6.1
+el - captchaFrame
+// Фрейм (HTML) капчи
+
+attr - solvedCaptchaMarker
+// Атрибут элемента (HTML), появляющийся на фрейме капчи, если она успешно решена 
+
+block - comparableSubarea
+// Подобласть изображения, которая сравнивается с другим изображением
+
+coordinate - bestMatchPoint
+// Точка на изображении, которая является центром подобласти, наиболее совпадающей с другим изображением
+
+text - rawData
+// "Сырые" данные, поступающий в очищающий их метод
+
+6.2
+annotationBuilder
+documentRepository
+updateRequest
+jwt
+
+6.3
+public sealed class PersonalInformation
+{
+    public string FirstName { get; private set; }
+
+    public string LastName { get; private set; }
+
+    public string? Patronymic { get; private set; }
+
+    public DateOnly BirthDate { get; private set; }
+}
+
+internal class Proxy
+{
+        public enum Type
+        {
+            HTTP,
+            HTTPS_SSL,
+            SOCKS5,
+            SOCKS4,
+            PAC_URL,
+            WPAD
+        }
+}
+
+public class VersionInfo
+{
+        public int Major { get; set; }
+
+        public int Minor { get; set; }
+
+        public int Build { get; set; }
+
+        public int Revision { get; set; }
+}
+
+6.4
+md5 - md5Hasher
+// это переменная объекта, который хеширует методами md5
+
+plot - heatMapPlot
+
+pazzleImageBitmap - pazzleBitmap
+
+image - renderedImage
+// Отрендеринное изображение страницы из pdf файла
+
+proc - guardProcess

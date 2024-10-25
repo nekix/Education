@@ -1,0 +1,126 @@
+7.1
+status - isParsingRun
+
+IsReger - IsRegistrationEnabled
+
+isSetSecureSocketOptions - secureEnabled
+// В контексте настройки SSL, TLS.
+
+Headless - IsHeadlessEnabled
+
+_isNotCommandExecuted = _isCommandExecuted
+
+7.2
+IsGood - Success
+// Как раз результат операции (с достаточно короткой областью видимости)
+
+result - found;
+// Поиск определенного элемента в HTML разметке
+// bool found = HtmlHelpers.IsTag(node, Tags.Frame)
+//    && HtmlHelpers.HasAttr(node, _activeCapthcaTag);
+
+result - success
+// bool success = ValidateStructure(xmlBody, _template);
+
+7.3
+i - row, j - col
+// for (int row = 0; i < originalImage.Height; i++)
+// {
+//    many operations
+//    for (int col = 0; j < originalImage.Width; j++)
+//    {
+//       many operations
+//    }
+//    many operations
+// }
+
+7.4
+public static IEnumerable<ValidationResult> Validate(IClock clock, DateObly minDate, DateTime maxDate)
+
+public static string? Substring(this string value, char begin, char end)
+
+public class ResultTemplates
+{
+    public ControlTemplate Positive { get; private set; }
+    public ControlTemplate Negative { get; private set; }
+}
+
+7.5
+// Пример 1
+outputResult - можно полностью убрать (before/after)
+public async Task<TOutputData> GetResult<TOutputData>(BaseAnalyzer analyzer, LastInvokedFunc func, InputData? result, IAsyncEnumerable<InputData>? enumResult)
+    where TOutputData : OutputData
+{
+    // TOutputData? outputResult = null;
+
+    if(result == null && enumResult == null)
+        throw new InvalidOperationException();
+
+    if (result != null)
+    {
+		// some processing
+
+		// before
+        // outputResult = (TOutputData)await processDelegate.Invoke(result, analyzer)
+        //    .ConfigureAwait(false);
+		
+		// after
+		return (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
+		    .ConfigureAwait(false);
+    }
+    else
+    {
+        // some processing
+
+		// before
+        // outputResult = (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
+        //    .ConfigureAwait(false);
+		
+		// after
+		return (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
+		    .ConfigureAwait(false);
+    }
+
+    // return outputResult;
+}
+
+// Пример 2
+result - rawPageText
+
+public async Task<RecognizerOutputData<string>> RecognizeAsync(ParserImageInputData data)
+{
+	// some processing
+	
+    using var recognizedPage = _tesseractDictionary[(AutoResetEvent)waitHandlers[resIndex]]
+        .Process(pix, PageSegMode.AutoOsd);
+
+	// before
+    // string result = recognizedPage.GetText();
+	
+	// after
+	rawPageText = recognizedPage.GetText();
+	
+	// some processing with 'result/rawPageText';
+}
+
+// Пример 3
+isFirst - можно убрать и пропустить первый элемент встроенными средствами LINQ
+
+// before
+bool isFirst = true;
+foreach (var row in rows)
+{
+	if (isFirst)
+    {
+        isFirst = false;
+        continue;
+    }
+	
+	// some processing
+}
+
+// after
+foreach (var row in rows.Skip(1))
+{	
+	// some processing
+}

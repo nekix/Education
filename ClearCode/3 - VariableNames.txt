@@ -47,38 +47,38 @@ public class ResultTemplates
 
 7.5
 // Пример 1
-outputResult - можно полностью убрать (before/after)
+outputResult - можно полностью убрать(before/after)
 public async Task<TOutputData> GetResult<TOutputData>(BaseAnalyzer analyzer, LastInvokedFunc func, InputData? result, IAsyncEnumerable<InputData>? enumResult)
     where TOutputData : OutputData
 {
     // TOutputData? outputResult = null;
 
-    if(result == null && enumResult == null)
+    if (result == null && enumResult == null)
         throw new InvalidOperationException();
 
     if (result != null)
     {
-		// some processing
+        // some processing
 
-		// before
+        // before
         // outputResult = (TOutputData)await processDelegate.Invoke(result, analyzer)
         //    .ConfigureAwait(false);
-		
-		// after
-		return (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
-		    .ConfigureAwait(false);
+
+        // after
+        return (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
+            .ConfigureAwait(false);
     }
     else
     {
         // some processing
 
-		// before
+        // before
         // outputResult = (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
         //    .ConfigureAwait(false);
-		
-		// after
-		return (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
-		    .ConfigureAwait(false);
+
+        // after
+        return (TOutputData)await processDelegate.Invoke(enumResult, analyzer)
+            .ConfigureAwait(false);
     }
 
     // return outputResult;
@@ -89,18 +89,18 @@ result - rawPageText
 
 public async Task<RecognizerOutputData<string>> RecognizeAsync(ParserImageInputData data)
 {
-	// some processing
-	
+    // some processing
+
     using var recognizedPage = _tesseractDictionary[(AutoResetEvent)waitHandlers[resIndex]]
         .Process(pix, PageSegMode.AutoOsd);
 
-	// before
+    // before
     // string result = recognizedPage.GetText();
-	
-	// after
-	rawPageText = recognizedPage.GetText();
-	
-	// some processing with 'result/rawPageText';
+
+    // after
+    rawPageText = recognizedPage.GetText();
+
+    // some processing with 'result/rawPageText';
 }
 
 // Пример 3
@@ -110,17 +110,17 @@ isFirst - можно убрать и пропустить первый элем�
 bool isFirst = true;
 foreach (var row in rows)
 {
-	if (isFirst)
+    if (isFirst)
     {
         isFirst = false;
         continue;
     }
-	
-	// some processing
+
+    // some processing
 }
 
 // after
 foreach (var row in rows.Skip(1))
-{	
-	// some processing
+{
+    // some processing
 }

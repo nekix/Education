@@ -1,0 +1,148 @@
+8.1.
+Example 1.
+_regex - _settingsRegex.
+// Регулярное выражение для получения настроек класса
+
+// Before
+private Regex _regex = new Regex("(?:([^,\n]+)|(.+),(.+),(.+)):(.+)");
+// ...
+public List<ImapConnectionSettings> Open(string filename)
+{
+    // ...
+    settingsGroup = _regex.Match(settingsLine).Groups;
+    // ...
+}
+
+// After
+Regex _settingsRegex = new Regex("(?:([^,\n]+)|(.+),(.+),(.+)):(.+)");
+// ...
+public List<ImapConnectionSettings> Open(string filename)
+{
+    // ...
+    settingsGroup = _settingsRegex.Match(settingsLine).Groups;
+    // ...
+}
+
+
+Example 2.
+LoginV1 - BaseLogin, LoginV2 - EmailConfirmationLogin
+
+// Before
+public enum StartPageInfo
+{
+    Default,
+    Error,
+    LoginV1,
+    LoginV2
+}
+
+// After
+public enum StartPageInfo
+{
+    Default,
+    Error,
+    BaseLogin,
+    EmailConfirmationLogin
+}
+
+
+Example 3.
+array1 - sourceImageBitmap
+
+// Before
+byte[] array1 = new byte[height * width];
+
+// After
+byte[] sourceImageBitmap = new byte[height * width];
+
+
+Example 4.
+array2 - gray8ImageBitmap
+
+// Before
+byte[] array2 = new byte[height * width];
+
+// After
+byte[] gray8ImageBitmap = new byte[height * width];
+
+
+Example 5.
+DisksNum - NumDisks
+// число дисков
+
+
+Example 6.
+resultList - parsedItems
+
+// Before
+private static List<string> ParseManyByField(string data, string fieldName)
+{
+    List<string> resultList = new List<string>();
+    // ...
+}
+
+// After
+private static List<string> ParseManyByField(string data, string fieldName)
+{
+    List<string> parsedItems = new List<string>();
+    // ...
+}
+
+
+Example 7.
+list - parsedHardwareData
+
+// Before
+List<PcHardwareData> list = new List<PcHardwareData>();
+
+// After
+List<PcHardwareData> parsedHardwareData = new List<PcHardwareData>();
+
+
+Example 8.
+colorList - closestColors
+
+// Before
+List<IMagickColor<QuantumType>> colorList = new List<IMagickColor<QuantumType>>(colors);
+
+// After
+List<IMagickColor<QuantumType>> closestColors = new List<IMagickColor<QuantumType>>(colors);
+
+
+Example 9.
+TagsList - Tags
+
+// Before
+public class SearchOptions
+{
+    public IReadOnlyList<string> TagsList { get; private set; }
+}
+
+// After
+public class SearchOptions
+{
+    public IReadOnlyList<string> Tags { get; private set; }
+}
+
+
+Example 10.
+frameIndex - renderFrameIndex, framesNumber - framesCount
+
+// Before
+int frameIndex = page;
+int framesNumber = document.Pages.Count();
+
+// After
+int renderFrameIndex = page;
+int framesCount = document.Pages.Count();
+
+
+Example 11.
+totalSymbols - symbolsTotal
+// Число символов в обработанном тексте
+
+
+Example 12.
+maxCorrelation - correlationMax
+// Вычисленное значение наибольшей корреляции
+

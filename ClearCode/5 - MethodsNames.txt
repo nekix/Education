@@ -1,0 +1,181 @@
+1-2. CheckData - CanParse, ConvertToScanResult - ParseSystemInfo
+
+// Before
+public class Aida64ReportParser
+{
+    public bool CheckData(string data)
+    {
+        // ...
+    }
+
+
+    public SystemScanSnapshot ConvertToScanResult(string data)
+    {
+        // ...
+    }
+}
+
+// After
+public class Aida64ReportParser
+{
+    public bool CanParse(string data)
+    {
+        // ...
+    }
+
+    public SystemScanSnapshot ParseSystemInfo(string data)
+    {
+        // ...
+    }
+}
+
+3-4. IsValidData - CanReadAsync, ParseAsync - ReadAsync
+
+// Before
+public class OpenXmlDocxReader : AbstractReader
+{
+    public abstract Task<bool> IsValidData(Stream stream)
+    {
+        // ...
+    }
+
+    public abstract Task<DocText> ParseAsync(Stream stream)
+    {
+        // ...
+    }
+}
+
+// After
+public class OpenXmlDocxReader : AbstractReader
+{
+    public abstract Task<bool> CanReadAsync(Stream stream)
+    {
+        // ...
+    }
+
+    public abstract Task<DocText> ReadAsync(Stream stream)
+    {
+        // ...
+    }
+}
+
+5. IsCanChange - CheckIsCanChange
+
+// Before
+public class TestingAct
+{
+    private bool IsCanChange(out List<OperationValidationError>? errors)
+    {
+        // ...
+    }
+}
+
+// After
+public class TestingAct
+{
+    private bool CheckCanChange(out List<OperationValidationError>? errors)
+    {
+        // ...
+    }
+}
+
+6-7. ConvertBitmapToGrey8Bitmap - ToGray8Bitmap, ConvertBitmapToGrey8Array - ToGray8Matrix
+
+// Before
+public class BitmapConverter
+{
+    public static BitmapSource ConvertBitmapToGrey8Bitmap(BitmapSource image)
+    {
+        // ...
+    }
+
+    public static byte[,] ConvertBitmapToGrey8Array(BitmapSource image)
+    {
+        // ...
+
+        var gray8Bitmap = ConvertBitmapToGrey8Bitmap(image);
+
+        // ...
+    }
+}
+
+// After
+public static class BitmapConverter
+{
+    public static BitmapSource ToGray8Bitmap(BitmapSource image)
+    {
+        // ...
+    }
+
+    public static byte[,] ToGray8Matrix(BitmapSource image)
+    {
+        // ...
+
+        var gray8Bitmap = ToGray8Bitmap(image));
+
+        // ...
+    }
+}
+
+8-12. CC - CalculateCC, ZCC- CalculateZCC, NCC - CalculateNCC, ZNCC - CalculateZNCC.
+
+// Данные математические функции детально
+// описаны в документации и помечены private,
+// поэтому в данном случае допустимо применить
+// невыразительные с начальной точки зрения
+// сокращения в названиях методов (напр. CC - cross-corellation)
+// и названия аргументов, являющиеся прямыми
+// эквивалентами из математических формул,
+// приведенных в документации.
+
+// Before
+internal class CorrelationCalculator
+{
+    private double CC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    private double ZCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    private double NCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    private double ZNCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    // ...
+}
+
+// After
+internal class CorrelationCalculator
+{
+    private double CalculateCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    private double CalculateZCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    private double CalculateNCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    private double CalculateZNCC(int[,] f, int[,] g, int x, int y, int u, int v, int n, int m)
+    {
+        // ...
+    }
+
+    // ...
+}

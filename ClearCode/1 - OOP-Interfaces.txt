@@ -1,0 +1,82 @@
+3.1
+
+3.1.1
+public class DocxData
+{
+    public static DocxData FromFile(string filePath)
+    {
+        // ...
+    }
+
+    public static DocxData FromStream(Stream fileStream)
+    {
+        // ...
+    }
+
+    public static DocxData FromBytesData(byte[] bytes)
+    {
+        // ...
+    }
+}
+
+3.1.2
+internal class ProxyRepository
+{
+    internal static ProxyRepository FromFile(string filePath)
+    {
+        // ...
+    }
+
+    internal static ProxyRepository FromDatabase(string connectionString, DbProvider dbProvider)
+    {
+        // ...
+    }
+}
+
+3.1.3
+public class DocumentInfo
+{
+    public static DocumentInfo FromFile(string filePath)
+    {
+        // ...
+    }
+}
+
+
+3.2
+
+3.2.1 IDocumentReader - DocumentReader
+public interface DocumentReader<TDocType>
+{
+    public abstract Task<bool> CanRead(Stream stream);
+
+    public abstract Task<TDocType> Read(Stream stream);
+}
+
+public class OpenXmlDocxReader : DocumentReader<Docx>
+public class OpenXmlPptxReader : DocumentReader<Pptx>
+public class RtfReader : DocumentReader<Rtf>
+
+3.2.2 IReadOnlyRepository - ReadOnlyRepository
+public interface ReadOnlyRepository<TEntity, TKey>
+{
+    Task<TEntity> GetAsync(TKey id);
+
+    Task<List<TEntity>> GetListAsync();
+
+    Task<List<TEntity>> GetPagedListAsync(int skipCount, int maxResultCount, string sorting);
+
+    Task<long> GetCountAsync();
+
+    Task<TEntity?> FindAsync(TKey id)
+}
+public class EfCoreProxyRepository : ReadOnlyRepository<Proxy, Guid>
+public class EfCoreAccountRepository : ReadOnlyRepository<Account, Guid>
+
+3.2.3 IDataSeedContributor - DataSeedContributor
+public interface DataSeedContributor
+{
+    Task SeedAsync(DataSeedContext context);
+}
+public class OpenIddictDataSeedContributor : DataSeedContributor
+public class MaterialsDataSeedContributor : DataSeedContributor

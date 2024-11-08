@@ -1,0 +1,79 @@
+1-4. Исправил стиль наименования констант.
+AdministratorKey - ADMINISTRATOR_KEY
+SecurityAdministratorKey - SECURITY_ADMINISTRATOR_KEY
+ContentAdministratorKey - CONTENT_ADMINISTRATOR_KEY
+UserKey - USER_KEY
+
+public static class UserRoles
+{
+    public const string ADMINISTRATOR_KEY = "admin";
+
+    public const string SECURITY_ADMINISTRATOR_KEY = "security admin";
+
+    public const string CONTENT_ADMINISTRATOR_KEY = "content admin";
+	
+    public const string USER_KEY = "user";
+}
+
+
+5. Исправил стиль наименования констант
+и исправил название на более конкретное.
+MaxRequestSize - MAX_REQUEST_BYTES_SIZE
+
+public static class ApiHelper
+{
+    public const long MAX_REQUEST_BYTES_SIZE = 10L * 1024L * 1024L * 1024L;
+}
+
+
+6. Исправил стиль наименования констант.
+wordmlNamespace - WORD_ML_NAMESPACE
+
+public class OpenXmlDocxReader
+{
+    private const string WORD_ML_NAMESPACE = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+}
+
+7-14.
+Исправил стиль наименования констант
+и исправил название на более корректное.
+SummarySectionNameConst - SUMMARY_SECTION_KEY
+OsSectionNameConst - OS_SECTION_KEY
+ProgramsSectionNameConst - PROGRAMS_SECTION_KEY
+
+Вынес в констаны строки-ключи.
+"Компьютер" - COMPUTER_PATH_KEY
+"Имя компьютера" - COMPUTER_NAME_PROPERTY_KEY
+"Свойства операционной системы" - OS_PROPERTIES_PATH_KEY
+"Название ОС" - OS_NAME_PROPERTY_KEY
+"Версия ОС" - OS_VERSION_PROPERTY_KEY
+
+public class KmBatScriptDataParser
+{
+    private const string SUMMARY_SECTION_KEY = "Суммарная информация";
+    private const string OS_SECTION_KEY = "Операционная система";
+    private const string PROGRAMS_SECTION_KEY = "Установленные программы";
+
+    private const string COMPUTER_PATH_KEY = "Компьютер";
+    private const string COMPUTER_NAME_PROPERTY_KEY = "Имя компьютера";
+
+    private const string OS_PROPERTIES_PATH_KEY = "Свойства операционной системы";
+    private const string OS_NAME_PROPERTY_KEY = "Название ОС";
+    private const string OS_VERSION_PROPERTY_KEY = "Версия ОС";
+
+    public SystemScanSnapshot ParseData(string data)
+    {
+	    // ...
+	
+        string computerName = sections
+            .First(s => s.Key == SUMMARY_SECTION_KEY)
+            .GetValueByKeysPath(COMPUTER_PATH_KEY, COMPUTER_NAME_PROPERTY_KEY);
+
+        Section osSection = sections.First(s => s.Key == OS_SECTION_KEY);
+
+        var osName = osSection.GetValueByKeysPath(OS_PROPERTIES_PATH_KEY, OS_NAME_PROPERTY_KEY);
+        var osVersion = osSection.GetValueByKeysPath(OS_PROPERTIES_PATH_KEY, OS_VERSION_PROPERTY_KEY);
+	
+	    // ...
+    }
+}

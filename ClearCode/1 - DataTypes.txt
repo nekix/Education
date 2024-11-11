@@ -1,0 +1,213 @@
+1-2.
+// Вынес формирование текстовой строки XPath в отдельный метод.
+// Параметризовал формирование строки XPath с помощью получаемого в конструктуре scriptDomainName.
+
+public class NaiveScriptAvailabilityService : IScriptAvailabilityService
+{
+	// After
+	private readonly string _scriptDomainName;
+
+	// After
+	public NaiveScriptAvailabilityService(string scriptDomainName)
+	{
+        // Валидация доменного имени.
+        // ...
+		
+		_scriptDomainName = scriptDomainName;		
+	}
+
+    public Task<bool> CheckScriptAvailabilityAsync(Stream htmlData, CancellationToken token = default)
+    {
+        var htmlDoc = new HtmlDocument();
+
+        htmlDoc.Load(htmlData);
+
+		// Before
+        // var node = htmlDoc.DocumentNode
+        //    .SelectSingleNode("//script[contains(@src, 'my-domain.com')]");
+
+		// After
+        var node = htmlDoc.DocumentNode
+            .SelectSingleNode(GetXpathScriptRequest());
+
+        return Task.FromResult(node != null);
+    }
+	
+	// After
+	private string GetXpathScriptRequest()
+	{
+        return $"//script[contains(@src, '{_scriptDomainName}')]";
+	}
+}
+
+// 3-5.
+// Вынес результат вычисления originalAreaXLength / 2 в originalAreaXCenter.
+// Вынес результат вычисления originalAreaYLength / 2 в originalAreaYenter.
+// Изменил тип массива correlations с float[,] на double[,].
+
+// Before
+public static class Correlator
+{
+    public static double[,] GetAreaCorrelation(byte[,] originalArea, byte[,] searchArea)
+    {
+        // ...
+		
+		float[,] correlations = new float[searchAreaYLength - originalAreaYLength + 1, searchAreaXLength - originalAreayXLength + 1];
+
+        for (int i = originalAreaYLength / 2; i < searchAreaYLength - originalAreaYLength / 2; i++)
+        {
+            for (int j = originalAreayXLength / 2; j < searchAreaXLength - originalAreayXLength / 2; j++)
+            {
+				//...
+				
+                correlations[i - originalAreaYLength / 2, j - originalAreaXLength / 2] = (float)correlator.GetCorrelation(originalArea, searchCompareArea);
+				
+				//...
+            }
+        }
+
+		// ...
+    }
+}
+
+// After
+public static class Correlator
+{
+    public static double[,] GetAreaCorrelation(byte[,] originalArea, byte[,] searchArea)
+    {
+        // ...
+		
+		double[,] correlations = new double[searchAreaYLength - originalAreaYLength + 1, searchAreaXLength - originalAreayXLength + 1];
+		
+        var originalAreaXCenter = originalAreaXLength / 2;
+        var originalAreaYCenter = originalAreaYLength / 2;
+
+        for (int i = originalAreaYCenter; i < searchAreaYLength - originalAreaYCenter; i++)
+        {
+            for (int j = originalAreaXCenter; j < searchAreaXLength - originalAreaXCenter; j++)
+            {
+				//...
+				
+                correlations[i - originalAreaYCenter, j - originalAreaXCenter] = correlator.GetCorrelation(originalArea, searchCompareArea);
+				
+				//...
+            }
+        }
+
+		// ...
+    }
+}
+
+6-9.
+// Ввел логические переменные для повышения читаемости.
+
+public class AnnotationChecker
+{
+	// Before
+    //public bool CheckParsedAnnotation(Annotation annotation)
+    //{
+    //    bool res = !annotation.Tags.GroupBy(x => x).Any(g => g.Count() > 1);
+    //    res = res && !annotation.OriginalLanguages.GroupBy(x => x).Any(g => g.Count() > 1);
+    //    res = res && !annotation.DiskNumber.GroupBy(x => x).Any(g => g.Count() > 1);
+    //    res = res && !annotation.AddendumTo.GroupBy(x => x).Any(g => g.Count() > 1);
+
+    //    return res;
+    //}
+	
+	// After
+	public bool CheckParsedAnnotation(Annotation annotation)
+    {
+        bool hasDulpicatedTags = annotation.Tags.GroupBy(x => x).Any(g => g.Count() > 1);
+        bool hasDuplicatedOriginalLanguages = annotation.OriginalLanguages.GroupBy(x => x).Any(g => g.Count() > 1);
+        bool hasDuplicatedDiskNumbers = annotation.DiskNumber.GroupBy(x => x).Any(g => g.Count() > 1);
+        bool hasDuplicatedAddendums = annotation.AddendumTo.GroupBy(x => x).Any(g => g.Count() > 1);
+
+        return !(hasDulpicatedTags || hasDuplicatedOriginalLanguages || hasDuplicatedDiskNumbers || hasDuplicatedAddendums);
+    }
+}
+
+10.
+// Избежал постоянного приведения типов добавив Generic для типа настроек в базовый класс.
+
+// Before
+// public class TesseractParser : BaseParser<ParserImageInputData, ParserStringOutputData>
+
+// After
+public class TesseractParser : BaseParser<ParserImageInputData, ParserStringOutputData, TesseractParserSettings>
+{
+	// ...
+	
+    public TesseractParser(TesseractParserSettings settings) : base(settings)
+    {
+        // ...
+    }
+
+    private void InitializeEngines()
+    {
+		// Before
+		// var settings = (TesseractParserSettings)Settings;
+		// if (_engines.Count < settings.NumOfThreads)
+		
+		// After
+		if (_engines.Count < Settings.NumOfThreads)
+		{
+			// ...
+		}
+    }
+}
+
+// 11.
+// Вынес приведение типов в отдельный метод.
+
+public abstract class BaseAnalyzerManager
+{
+    private async IAsyncEnumerable<TOutputData> GetEnumerableResult<TOutputData>(BaseAnalyzer analyzer, LastInvokedFunc lastFunc, InputData inputData)
+        where TOutputData : OutputData
+    {
+		// ...
+		
+		// Before
+		// await foreach (var item in lastFunc.AsyncEnumerableDelegate.Invoke(inputData, analyzer))
+        // {
+        //     yield return (TOutputData)item;
+        // }	
+		
+		// After
+		var asyncEnumerable = lastFunc.AsyncEnumerableDelegate.Invoke(inputData, analyzer);
+		
+		return CastHelper.CastAsyncEnumerableType<TOutputData>(asyncEnumerable);
+    }
+}
+
+// After
+internal static class CastHelper
+{
+    public static async IAsyncEnumerable<TOutputData> CastAsyncEnumerableType<TInputData, TOutputData>(
+        IAsyncEnumerable<TInputData> enumerable) where TOutputData : OutputData
+    {
+		// Проверки корректности приведения.
+		// ...
+	
+        await foreach (var item in enumerable)
+        {
+            yield return (TOutputData)item;
+        }
+    }
+}
+
+12.
+// Изменил тип данных с float на double,
+// это также позволит избежать лищних приведений типов
+// из float в double в ходе дальнейших вычислений.
+
+internal class InterpolationSettings
+{
+	// ...
+	
+	// Before
+    // public float KX { get; private set; }
+    // public float KY { get; private set; }
+	
+    public double KX { get; private set; }
+    public double KY { get; private set; }
+}

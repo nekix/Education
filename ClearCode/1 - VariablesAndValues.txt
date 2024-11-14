@@ -115,7 +115,7 @@ MonitoredFileInfo monitoredFile = _files
 	.First(f => f.FullName.Equals(obj.FileName));
 	
 	
-12.
+12. Явно объявил переменную.
 
 // Before
 var message = MemoryMapperHelper.Write(reestrPath, reestrMessage);

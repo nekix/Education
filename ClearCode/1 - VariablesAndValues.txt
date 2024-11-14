@@ -1,0 +1,167 @@
+1. Явно объявил переменную.
+
+// Before
+var documents = await _documentAnalyzerRepository.GetSharedDocuments();
+
+// After
+ICollection<DocumentInfo> documents = await _documentAnalyzerRepository.GetSharedDocuments();
+
+
+2. Перенес определение переменной ближе к моменту использования.
+
+// Before
+public async Task<ActionResult<Annotation>> PostAnnotation([Required] Guid annotationId, [Required]IFormFile annotationDocxFile)
+{
+	// ...
+
+	string annotationText = docxParser.Parse(stream);
+
+	// ...
+
+	annotation.Text = annotationText;
+	
+	// ...
+}
+
+// After
+public async Task<ActionResult<Annotation>> PostAnnotation([Required] Guid annotationId, [Required]IFormFile annotationDocxFile)
+{
+	// ...
+
+	string annotationText = docxParser.Parse(stream);
+
+	annotation.Text = annotationText;
+	
+	// ...
+}
+
+
+3 - 9. Явно объявил переменные.
+
+private void HandleFileIOMapFileEvent(MapFileTraceData obj)
+{
+	// Before
+	// var eventName = obj.EventName;
+    // var processID = obj.ProcessID;
+    // var fileName = obj.FileName;
+    // var fileKey = obj.FileKey;
+    // var message = obj.FormattedMessage;
+    // var timeStamp = obj.TimeStamp;
+    // var processName = obj.ProcessName;
+	
+	// After
+    string eventName = obj.EventName;
+    int processID = obj.ProcessID;
+    string fileName = obj.FileName;
+    ulong fileKey = obj.FileKey;
+    string message = obj.FormattedMessage;
+    DateTime timeStamp = obj.TimeStamp;
+    string processName = obj.ProcessName;
+	
+	// ...
+}
+
+
+10. Перенес объявление переменной "int eventIndex" ближе к циклу.
+
+// Before
+protected override async Task<Engine> GetEngine(ParserImageInputData data, CancellationToken token = default)
+{
+	// ...
+	
+	int eventIndex;
+	
+	// ...
+	
+	do
+    {
+		// ...
+	
+        eventIndex = WaitHandle.WaitAny(_engineAutoResetEvents, TimeSpan.FromSeconds(1));
+
+        // ...
+    }
+    while (eventIndex == WaitHandle.WaitTimeout);
+}
+
+// After
+protected override async Task<Engine> GetEngine(ParserImageInputData data, CancellationToken token = default)
+{
+	// ...
+
+	int eventIndex;
+	do
+    {
+		// ...
+	
+        eventIndex = WaitHandle.WaitAny(_engineAutoResetEvents, TimeSpan.FromSeconds(1));
+
+        // ...
+    }
+    while (eventIndex == WaitHandle.WaitTimeout);
+}
+
+
+11. Явно объявил переменную.
+
+// Before
+var monitoredFile = _files
+	.Select(f => f.FileInfo)
+	.First(f => f.FullName.Equals(obj.FileName));
+
+// After
+MonitoredFileInfo monitoredFile = _files
+	.Select(f => f.FileInfo)
+	.First(f => f.FullName.Equals(obj.FileName));
+	
+	
+12.
+
+// Before
+var message = MemoryMapperHelper.Write(reestrPath, reestrMessage);
+
+// After
+DisposableMessage message = MemoryMapperHelper.Write(reestrPath, reestrMessage);
+
+
+13, 14, 15
+Переместил объявление переменных absoluteX и absoluteY к моменту инициализации.
+Изменил порядок объявление переменных translateTransform, absoluteX, absoluteY, переместив их ближе к моменту использования.
+Добавил явное объявление типа переменной translateTransform.
+
+// Before
+private void MouseWheelHandler(object sender, MouseWheelEventArgs e)
+{
+	// ...
+
+	var translateTransform = GetTranslateTransform(child);
+
+	// ...
+
+	double absoluteX;
+	double absoluteY;
+
+	// ...
+
+	absoluteX = relative.X * scaleTransform.ScaleX + translateTransform.X;
+	absoluteY = relative.Y * scaleTransform.ScaleY + translateTransform.Y;
+
+	// ...
+
+	translateTransform.X = absoluteX - relative.X * st.ScaleX;
+	translateTransform.Y = absoluteY - relative.Y * st.ScaleY;
+}
+
+// After
+private void MouseWheelHandler(object sender, MouseWheelEventArgs e)
+{
+	// ...
+	
+	TranslateTransform translateTransform = GetTranslateTransform(child);
+
+	double absoluteX = relative.X * scaleTransform.ScaleX + translateTransform.X;
+	double absoluteY = relative.Y * scaleTransform.ScaleY + translateTransform.Y;
+
+	translateTransform.X = absoluteX - relative.X * st.ScaleX;
+	translateTransform.Y = absoluteY - relative.Y * st.ScaleY;
+}

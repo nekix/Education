@@ -1,0 +1,274 @@
+1-4. 
+
+- Сгруппировал операции с переменной scanArguments в методе ConvertSettingsToArguments;
+- Перенес переменную argumentsBuilder и её область видимости в метод ConvertSettingsToArguments;
+- Избавился от переменных scanTypesArguments, outputArguments, portsArgument, hostTargetArgument
+с помощью передачи их значений напрямую в функцию, в которой они используются;
+- Сгруппировал операции настройки объекта переменной process в методе CreateNmapScanPortsProcess.
+
+// Before
+public async Task<NMapResult> ScanPorts(
+    HostTarget hostTarget,
+    PortScanTypesSettings portScanTypesSettings,
+    OutputSettings outputSettings,
+    PortsTargetSettings portsSettings)
+{
+    List<string> scanArguments = new List<string>();
+
+	List<string> scanTypesArguments = portScanTypesSettings.GetArguments();
+    scanArguments.AddRange(scanTypesArguments);
+	
+	List<string> outputArguments = outputSettings.GetArguments();
+    scanArguments.AddRange(outputArguments);
+	
+	string portsArgument = portsSettings.GetArgument();
+    scanArguments.Add(portsArgument);
+	
+	string hostTargetArgument = hostTarget.GetArgument();
+    scanArguments.Add(hostTargetArgument);
+
+    StringBuilder argumentsBuilder = new StringBuilder();
+
+    argumentsBuilder.AppendJoin(' ', scanArguments);
+
+    string arguments = argumentsBuilder.ToString();
+
+    using var process = new Process();
+
+    process.StartInfo.FileName = _settings.ExecutableNmapPath;
+    process.StartInfo.Arguments = arguments;
+    process.StartInfo.UseShellExecute = false;
+    process.StartInfo.RedirectStandardOutput = true;
+
+    process.Start();
+
+    using var outputStream = process.StandardOutput;
+
+    await process.WaitForExitAsync();
+
+    return ParseOutput(outputStream);
+}
+
+
+// After
+public async Task<NMapResult> ScanPorts(
+    HostTarget hostTarget,
+    PortScanTypesSettings portScanTypesSettings,
+    OutputSettings outputSettings,
+    PortsTargetSettings portsSettings)
+{
+    string arguments = ConvertSettingsToArguments(hostTarget, portScanTypesSettings, outputSettings, portsSettings);
+
+    using Process process = CreateNmapScanPortsProcess(arguments);
+
+    process.Start();
+
+    using var outputStream = process.StandardOutput;
+
+    await process.WaitForExitAsync();
+
+    return ParseOutput(outputStream);
+}
+
+private static string ConvertSettingsToArguments(HostTarget hostTarget,
+    PortScanTypesSettings portScanTypesSettings,
+    OutputSettings outputSettings,
+    PortsTargetSettings portsSettings)
+{
+    List<string> scanArguments = new List<string>();
+
+    scanArguments.AddRange(portScanTypesSettings.GetArguments());
+    scanArguments.AddRange(outputSettings.GetArguments());
+    scanArguments.Add(portsSettings.GetArgument());
+    scanArguments.Add(hostTarget.GetArgument());
+
+    StringBuilder argumentsBuilder = new StringBuilder();
+
+    argumentsBuilder.AppendJoin(' ', scanArguments);
+
+    return argumentsBuilder.ToString();
+}
+
+private Process CreateNmapScanPortsProcess(string arguments)
+{
+    var process = new Process();
+
+    process.StartInfo.FileName = _settings.ExecutableNmapPath;
+    process.StartInfo.Arguments = arguments;
+    process.StartInfo.UseShellExecute = false;
+    process.StartInfo.RedirectStandardOutput = true;
+
+    return process;
+}
+
+5 - 8.
+- Перенес переменную optimalCorrelationLocalVectors ближе к моменту использования (перед циклом);
+- Перенес переменную correlationDisplacement ближе к моменту использования (перед циклом);
+- Перенес переменную correlation в метод GetOptimalCorrelationVector;
+- Перенес переменную optimalCorrelationLocalVectors в метод GetOptimalCorrelationVector;
+
+// Before
+public static double[,] Analys(byte[,] f, byte[,] g, int nAreaSearch, int mAreaSearch, int nSep, int mSep)
+{
+    // ...
+
+    Vector2[,] optimalCorrelationLocalVectors = new Vector2[centres.GetLength(0), centres.GetLength(1)];
+	
+	// ...
+	
+    double[,] correlationDisplacement = new double[centres.GetLength(0), centres.GetLength(1)];
+	
+	// ...
+
+    for (int i = 0; i < centres.GetLength(0); i++)
+    {
+        for (int j = 0; j < centres.GetLength(1); j++)
+        {
+			// ...
+
+			var correlation = Correlator.GetCorrelation(interpFArea, interpLocalGArea, Correlator.CorrelationFunctionType.ZNSSD);
+
+			// ...
+
+            var optimalCorrelationLocalVectors = Correlator.GetOptimalCorrelationValue(correlation, Correlator.CorrelationFunctionType.ZNSSD);
+            optimalCorrelationLocalVectors.X *= Kx;
+            optimalCorrelationLocalVector.Y = *= Ky;		
+			optimalCorrelationLocalVectors[i, j] = optimalCorrelationLocalVector;
+			
+            correlationDisplacement[i, j] = Vector2.Distance(optimalCorrelationLocalVectors[i, j], searchFAreaCentre);
+        }
+    }
+
+    return correlationDisplacement;
+}
+
+// After
+public static double[,] Analys(byte[,] f, byte[,] g, int nAreaSearch, int mAreaSearch, int nSep, int mSep)
+{
+    // ...
+
+    Vector2[,] optimalCorrelationLocalVectors = new Vector2[centres.GetLength(0), centres.GetLength(1)];
+    double[,] correlationDisplacement = new double[centres.GetLength(0), centres.GetLength(1)];
+
+    for (int i = 0; i < centres.GetLength(0); i++)
+    {
+        for (int j = 0; j < centres.GetLength(1); j++)
+        {
+			// ...
+			
+			optimalCorrelationLocalVectors[i, j] = GetOptimalCorrelationVector(interpFArea, interpLocalGArea, Kx, Ky);
+			
+            correlationDisplacement[i, j] = Vector2.Distance(optimalCorrelationLocalVectors[i, j], searchFAreaCentre);
+        }
+    }
+
+    return correlationDisplacement;
+}
+
+private Vector2 GetOptimalCorrelationVector(byte[,] fArea, byte[,] gArea, double kx, double ky)
+{
+	var correlation = Correlator.GetCorrelation(fArea, gArea, Correlator.CorrelationFunctionType.ZNSSD);
+
+	var optimalCorrelationVector = Correlator.GetOptimalCorrelationValue(correlation, Correlator.CorrelationFunctionType.ZNSSD);
+	optimalCorrelationVector.X *= kx;
+    optimalCorrelationVector.Y = *= ky;		
+	
+	return optimalCorrelationVector;
+}
+
+9 - 15
+Вынес переменную captchaMat в метод GetEdgesMat;
+Сгруппировал переменную captchaEdgesMat с переменной coordinate;
+Вынес переменную captchaEdgesMat в метод GetBestMatchCoordinate;
+Вынес переменную tempPazzleImageBitmap в метод GetConvertedMat;
+Вынес переменную convertedTempPazzleBitmap в метод GetConvertedMat;
+Вынес переменную gr в метод GetConvertedMat;
+Вынес переменную pazzleCounters в метод GetCounteredMat.
+
+// Before
+public (int x, int y) GetPazzleCoordinate(byte[] captchaImage, Stream pazzleImage)
+{
+    using var captchaMat = Mat.FromImageData(captchaImage, ImreadModes.Color);
+    using var captchaEdgesMat = OpenCvHelper.GetEdges(captchaMat);
+
+    using Bitmap tempPazzleImageBitmap = new(pazzleImage);
+	
+	using Bitmap convertedTempPazzleBitmap = new(tempPazzleImageBitmap.Width, tempPazzleImageBitmap.Height, PixelFormat.Format24bppRgb);
+    using Graphics gr = Graphics.FromImage(convertedTempPazzleBitmap);
+	gr.DrawImage(tempPazzleImageBitmap, new Rectangle(0, 0, convertedTempPazzleBitmap.Width, convertedTempPazzleBitmap.Height));
+	
+	usign Mat pazzleMat = BitmapConverter.ToMat(convertedTempPazzleBitmap);
+
+    using var cropedPazzleMat = pazzleMat[new Rect(140, 490, 120, 120)];
+
+    var pazzleCounters = OpenCvHelper.GetContours(cropedPazzleMat);
+
+    using var counteredPazzleMat = Mat.Zeros(cropedPazzleMat.Size(), MatType.CV_8SC1).ToMat();
+
+    for (int i = 0; i < pazzleCounters.Length; i++)
+    {
+        Scalar color = new Scalar(255);
+        counteredPazzleMat.DrawContours(pazzleCounters, i++, color, 1, LineTypes.AntiAlias);
+    }
+
+    var coordinate = MatchHelper.GetBestMatch(captchaEdgesMat, counteredPazzleMat);
+
+    foreach (var pa in pazzleCounters)
+    {
+        pa.Dispose();
+    }
+
+    return (coordinate.X, coordinate.Y);
+}
+
+// After
+public (int x, int y) GetPazzleCoordinate(byte[] captchaImage, Stream pazzleImage)
+{
+	usign Mat pazzleMat = GetConvertedMat(pazzleImage, PixelFormat.Format24bppRgb);
+
+    using var cropedPazzleMat = pazzleMat[new Rect(140, 490, 120, 120)];
+
+    using var counteredPazzleMat = GetCounteredMat(cropedPazzleMat);
+	
+	var coordinate = GetBestMatchCoordinate(captchaImage, counteredPazzleMat);
+
+    return (coordinate.X, coordinate.Y);
+}
+
+private Mat GetConvertedMat(Stream image, PixelFormat format)
+{
+	using Bitmap tempImageBitmap = new(image);
+	
+	using Bitmap convertedTempBitmap = new(tempImageBitmap.Width, tempImageBitmap.Height, format);
+    using Graphics gr = Graphics.FromImage(convertedTempBitmap);
+	gr.DrawImage(tempImageBitmap, new Rectangle(0, 0, convertedTempBitmap.Width, convertedTempBitmap.Height));
+	
+	return BitmapConverter.ToMat(convertedTempBitmap);
+}
+
+private Mat GetCounteredMat(Mat mat)
+{
+    var matCounters = OpenCvHelper.GetContours(mat);
+
+	var counteredPazzleMat = Mat.Zeros(mat.Size(), MatType.CV_8SC1).ToMat();
+
+	Scalar color = new Scalar(255);
+
+    for (int i = 0; i < matCounters.Length; i++)
+		counteredPazzleMat.DrawContours(matCounters, i++, color, 1, LineTypes.AntiAlias);
+		
+	return counteredPazzleMat;
+}
+
+private Point GetBestMatchCoordinate(byte[] originalImage, Mat targetMat)
+{
+	using var edgesMat = GetEdgesMat(originalImage);
+    return MatchHelper.GetBestMatch(edgesMat, targetMat);
+}
+
+private Mat GetEdgesMat(byte[] image)
+{
+	using var mat = Mat.FromImageData(image, ImreadModes.Color);
+	return OpenCvHelper.GetEdges(mat);
+}
+

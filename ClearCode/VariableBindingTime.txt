@@ -1,0 +1,104 @@
+1. Связывание во время выполнения программы.
+// Переменная checkScriptJobInterval связывается со своим значением
+// во время выполнения программы, т.к. необходима вариативность в зависимости
+// от предпочтений пользователя, обусловленных например пропускной способностью сети
+// на которую данная задача оказывает заметное влияние. В данном случае значение
+// извлекается из StdIn консольного приложения при его начальной загрузке.
+
+private static void ConfigureQuartz(IServiceCollection services, string[] args)
+{
+    TimeSpan checkScriptJobInterval = GetIntervalFromArgs(args);
+
+    // ...
+}
+
+private static TimeSpan GetIntervalFromArgs(string[] args)
+{
+    if (args.Length == 2 && args[0] == "-i" && int.TryParse(args[1], out int seconds))
+    {
+        return TimeSpan.FromSeconds(seconds);
+    }
+
+    throw new ArgumentException("The required interval parameter '-i' is missing or invalid.", nameof(args));
+}
+
+
+2. Связывание во время написания кода.
+// Значение переменной process.StartInfo.RedirectStandardOutput
+// связывается с соответсвующим boolean значением на этапе написания кода,
+// т.к. эта настройка никогда не будет меняться в будущем и больше
+// ни с чем не связана.
+
+private Process CreateNmapScanPortsProcess(string arguments)
+{
+    var process = new Process();
+
+    process.StartInfo.FileName = _settings.ExecutableNmapPath;
+
+    process.StartInfo.Arguments = arguments;
+
+    process.StartInfo.RedirectStandardOutput = true;
+
+    return process;
+}
+
+
+3. Связывание во время компиляции.
+// В конструкторе PortRange параметры метода Check.Range (minimumValue
+// и maximumValue) связываются со своими значениями во время компиляции
+// кода, т.к. определяются значениями констант DomainConsts.PortMinNumber
+// и DomainConsts.PortMaxNumber. Эти констаны используются в разных частях
+// программы для валидации и обеспечивают гибкость их изменения. При этом
+// изменение этих констант может повлиять на некоторые внешние контракты,
+// что автоматически приводит нас к тому, что они их изменение сопряжено
+// с выпуском новой версии приложения (как раз перекомпиляцией).
+
+public static class DomainConsts
+{
+    public const int PortMinNumber = 0;
+
+    public const int PortMaxNumber = 65535;
+}
+
+public class PortRange
+{
+    public int StartPort { get; }
+
+    public int EndPort { get; }
+
+    public PortRange(int startPort, int endPort)
+    {
+        Check.Range(startPort,
+            nameof(startPort),
+            DomainConsts.PortMinNumber,
+            DomainConsts.PortMaxNumber);
+
+        Check.Range(startPort,
+            nameof(endPort),
+            DomainConsts.PortMinNumber,
+            DomainConsts.PortMaxNumber);
+
+        if (startPort > endPort)
+            throw new InvalidPortRangeBoundariesException(startPort, endPort);
+
+        StartPort = startPort;
+        EndPort = endPort;
+    }
+}
+
+public static class Check
+{
+    public static int Range(
+        int value,
+        string parameterName,
+        int minimumValue,
+        int maximumValue = int.MaxValue)
+    {
+        if (value < minimumValue || value > maximumValue)
+        {
+            throw new ArgumentException($"{parameterName} is out of range min: {minimumValue} - max: {maximumValue}");
+        }
+
+        return value;
+    }
+}

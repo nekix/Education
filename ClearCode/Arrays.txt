@@ -1,0 +1,160 @@
+1. Заменил for на foreach, т.к. индексация не нужна.
+
+// Before
+private async Task CacheFiles()
+{
+    string[] fileEntries = Directory.GetFiles("src/main");
+	
+	for(int i = 0; i < fileEntries.Length; i++)
+	{
+		string fileName = Path.GetFileName(fileEntry);
+        List<string> rows = await GenerateFile(fileName);
+        var row = String.Join("\r\n", rows.ToArray());
+        fileList.TryAdd(fileName, row);
+	}
+}
+
+// After
+private async Task CacheFiles()
+{
+    string[] fileEntries = Directory.GetFiles("src/main");
+	
+    foreach (string fileEntry in fileEntries)
+    {
+		string fileName = Path.GetFileName(fileEntry);
+        List<string> rows = await GenerateFile(fileName);
+        var row = String.Join("\r\n", rows.ToArray());
+        fileList.TryAdd(fileName, row);
+    }
+}
+
+
+2. Заменил for на foreach, т.к. индексация не нужна.
+
+// Before
+private static StringDictionary Parse(string[] args)
+{
+    // ...
+
+    for (int i = 0; i < args.Length; i++)
+    {
+        parts = splitter.Split(args[i], 3);
+
+        // work with 'parts'
+    }
+
+    // ...
+}
+
+// After
+private static StringDictionary Parse(string[] args)
+{
+    // ...
+
+    foreach (string arg in args)
+    {
+        parts = splitter.Split(arg, 3);
+
+        // work with 'parts'
+    }
+
+    // ...
+}
+
+
+3. Заменил catalogs массив на catalogs очередь для обработки.
+4. Избавился от массива subCatalogs и доступа через индекс с помощью Linq
+операции с IEnumerable (для подсчёта согласно условию).
+
+// Before
+private async Task LoadUmg(IConfigurationSection holderConfig, Holder holder)
+{
+    // ...
+
+    string[] catalogs = Directory.GetDirectories(path);
+
+    for (int i = 0; i < catalogs.Length; i++)
+    {
+        string catalogName = Path.GetFileName(catalogs[i]);
+        
+        // ...
+
+        var subCatalogs = Directory.GetFiles(catalogs[i]);
+		int clv = 0;
+
+        for (int j = 0; j < subCatalogs.Length; j++)
+        {
+            if (subCatalogs[j].StartsWith(".")) continue;
+            clv++;
+        }
+
+        // ...
+    }
+
+    // ...
+}
+
+// After
+private async Task LoadUmg(IConfigurationSection holderConfig, Holder holder)
+{
+    // ...
+
+    Queue<string> catalogs = new Queue<string>(Directory.GetDirectories(path));
+
+    while (catalogs.TryDequeue(out string? catalog))
+    {
+        string catalogName = Path.GetFileName(catalog);
+
+        // ...
+
+        int clv = Directory.GetFiles(catalog)
+            .Count(subCatalog => !subCatalog.StartsWith("."));
+
+        // ...
+    }
+
+    // ...
+}
+
+
+5. Заменил for на foreach, т.к. индексация не нужна.
+
+public static Paragraph CreateParagraph(string propertyName, List<string> content, int fontSize)
+{
+    // ...
+
+    for (int i = 0; i < content.Count - 1; i++)
+    {
+        // ...
+        
+        Run run = new Run($"{content[i].Trim()}")
+        {
+            TextDecorations = TextDecorations.Underline
+        };
+        p.Inlines.Add(run);
+
+        // ...
+    }
+
+    // ..
+}
+
+public static Paragraph CreateParagraph(string propertyName, List<string> content, int fontSize)
+{
+    // ...
+
+    foreach (var str in content)
+    {
+        // ...
+
+        Run run = new Run($"{str.Trim()}")
+        {
+            TextDecorations = TextDecorations.Underline
+        };
+        p.Inlines.Add(run);
+
+        // ...
+    }
+
+    // ..
+}

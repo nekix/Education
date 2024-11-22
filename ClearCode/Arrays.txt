@@ -119,6 +119,7 @@ private async Task LoadUmg(IConfigurationSection holderConfig, Holder holder)
 
 5. Заменил for на foreach, т.к. индексация не нужна.
 
+// Before
 public static Paragraph CreateParagraph(string propertyName, List<string> content, int fontSize)
 {
     // ...
@@ -139,6 +140,7 @@ public static Paragraph CreateParagraph(string propertyName, List<string> conten
     // ..
 }
 
+// After
 public static Paragraph CreateParagraph(string propertyName, List<string> content, int fontSize)
 {
     // ...

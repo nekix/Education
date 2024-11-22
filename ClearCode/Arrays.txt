@@ -5,13 +5,13 @@ private async Task CacheFiles()
 {
     string[] fileEntries = Directory.GetFiles("src/main");
 	
-	for(int i = 0; i < fileEntries.Length; i++)
-	{
-		string fileName = Path.GetFileName(fileEntry);
+    for (int i = 0; i < fileEntries.Length; i++)
+    {
+        string fileName = Path.GetFileName(fileEntry);
         List<string> rows = await GenerateFile(fileName);
         var row = String.Join("\r\n", rows.ToArray());
         fileList.TryAdd(fileName, row);
-	}
+    }
 }
 
 // After
@@ -21,7 +21,7 @@ private async Task CacheFiles()
 	
     foreach (string fileEntry in fileEntries)
     {
-		string fileName = Path.GetFileName(fileEntry);
+        string fileName = Path.GetFileName(fileEntry);
         List<string> rows = await GenerateFile(fileName);
         var row = String.Join("\r\n", rows.ToArray());
         fileList.TryAdd(fileName, row);

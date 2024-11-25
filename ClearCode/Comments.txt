@@ -1,0 +1,428 @@
+1. Комментарии, поясняющие какие события процесса будут отслеживаться
+(т.к. настройка довольна сложная).
+
+public Listener(string directoryPath)
+{
+    // ...
+
+    KernelSession.EnableKernelProvider(
+        // Logs process starts and stops.
+        KernelTraceEventParser.Keywords.Process |
+
+        // Logs the mapping of file IDs to actual (kernel) file names.
+        KernelTraceEventParser.Keywords.DiskFileIO |
+
+        // log the start of the File I/O operation as well as the end. (Vista+ only) Generally
+        // not TOO volumous (typically less than 1K per second)
+        KernelTraceEventParser.Keywords.FileIOInit |
+
+
+        // Logs threads starts and stops
+        KernelTraceEventParser.Keywords.Thread |
+
+        // log file FileOperationEnd (has status code) when they complete (even ones that
+        // do not actually cause Disk I/O). (Vista+ only) Generally not TOO volumous (typically
+        // less than 1K per second) (No stacks associated with these
+        KernelTraceEventParser.Keywords.FileIO);
+
+    // ...
+}
+
+
+2. Комментарий TODO, напоминающий о тех. долге.
+
+public sealed class OutputTarget
+{
+    private const string StdoutTargetPath = "-";
+
+    public OutputFormat Format { get; private set; }
+
+    public string Path { get; private set; }
+
+    private OutputTarget(OutputFormat outputFormat, string outputFilename)
+    {
+        // TODO: Validate outputFormat enum.
+        Format = outputFormat;
+
+        Path = Check.NotNullOrWhiteSpace(outputFilename, nameof(outputFilename));
+    }
+
+    public static OutputTarget CreateFromStdout(OutputFormat outputFormat)
+        => new OutputTarget(outputFormat, StdoutTargetPath);
+}
+
+
+3. Дизайн изначально неудачный. Нужны хотя бы комментарии,
+поясняющие что делают данные Regex выражения,
+т.к. они достаточно сложны для понимания без пояснения.
+
+public static class Parser
+{
+	// Начало всех регулярных выражений.
+	// "StartReg + SearchValue + EndReg"
+	private const string StartReg = @"^(?:";
+	
+	// Конечная часть регулярного выражения для поиска
+	// строкового значения поля, начинающегося с FieldName.
+	// "StartReg + {FieldName} + LineEndReg"
+	// "{FieldName}: {полученная строка}\r\n"
+	private const string LineEndReg = @".*?)(?:\s*)([^\r\n]+)[\r\n]*";
+	
+	// Конечная часть регулярного выражения для поиска
+	// численного значения поля, начинающегося с FieldName.
+	// "StartReg + {FieldName} + LineEndReg"
+	// "{FieldName}: {полученное число}\r\n"
+	private const string NumberEndReg = @".*?)(?:\s*)(\d+)[\r\n]";
+	
+	// Конечная часть регулярного выражения для поиска
+	// параграфа, начинающегося с FieldName.
+	// "StartReg + {FieldName} + LineEndReg"
+	// "{FieldName}: {полученный параграф}\r\n\r\n"
+	private const string ParagraphsEndReg = @".*$)(?:[\r]*[\n]*)((?:^[^\r\n]+[\r]+[\n]+)+?)(?:[\r\n]{2,}|\r{2,}|\n{2,})";
+	
+	// Конечная часть регулярного выражения для поиска
+	// списка, начинающегося с FieldName.
+	// "StartReg + FieldName + LineEndReg"
+	// "{FieldName}: {полученная строка}"
+	private const string ListEndReg = @"\s*)(?:(?:[\p{Z},]*)([^,\n\r]+))*[\r\n]*";
+	
+	
+	private static string? GetLine(string text, string FieldName)
+	{
+		Regex regex = new(StartReg + FieldName + LineEndReg, RegexOptions.Multiline);
+
+		var result = regex.Match(text);
+		
+		// ...
+	}
+	
+	// ...
+}
+
+4. Комментарий, предупреждающий разработчика о чисто
+"техническом" предназначении этого конструктора.
+
+/// <summary>
+/// Only for ORM and serialization. Do not use!
+/// </summary>
+[Obsolete("Only for ORM and serialization. Do not use!")]
+private Host()
+
+{
+	// Only for ORM and serialization. Do not use!
+}
+
+
+5. Ссылка на документацию с описанием используемых режимов
+(т.к. это обертка над сторонней консольной программой).
+
+/// <summary>
+/// Перечисление режимов сканирования Nmap с возможностью комбинирования.
+/// Ссылка на документацию: https://nmap.org/book/man-port-scanning-techniques.html
+/// </summary>
+[Flags]
+public enum PortScanTypes
+{
+    /// <summary>
+    /// TCP SYN сканирование.
+    /// Параметр для Nmap: -sS
+    /// Подробнее: https://nmap.org/book/man-port-scanning-techniques.html#synscan
+    /// </summary>
+    TcpSyn = 1 << 0,
+
+    /// <summary>
+    /// TCP Connect сканирование.
+    /// Параметр для Nmap: -sT
+    /// Подробнее: https://nmap.org/book/man-port-scanning-techniques.html#tcpconnectscan
+    /// </summary>
+    TcpConnect = 1 << 1,
+
+    /// <summary>
+    /// UDP сканирование.
+    /// Параметр для Nmap: -sU
+    /// Подробнее: https://nmap.org/book/man-port-scanning-techniques.html#udpscan
+    /// </summary>
+    Udp = 1 << 2,
+
+    /// <summary>
+    /// TCP Null сканирование.
+    /// Параметр для Nmap: -sN
+    /// Подробнее: https://nmap.org/book/man-port-scanning-techniques.html#nullscan
+    /// </summary>
+    TcpNull = 1 << 3, // -sN
+
+    /// <summary>
+    /// FIN сканирование.
+    /// Параметр для Nmap: -sF
+    /// Подробнее: https://nmap.org/book/man-port-scanning-techniques.html#finscan
+    /// </summary>
+    TcpFin = 1 << 4, // -sF
+
+    /// <summary>
+    /// Xmas Tree сканирование.
+    /// Параметр для Nmap: -sX
+    /// Подробнее: https://nmap.org/book/man-port-scanning-techniques.html#xmasscan
+    /// </summary>
+    TcpXmas = 1 << 5, // -sX
+
+    // TODO: Others
+}
+
+
+6. Комментарий, поясняющий общедоступный контракт
+для внешнего потребителя.
+
+public interface IArgument
+{
+    /// <summary>
+    /// Returns the argument string for nmap params.
+    /// </summary>
+    /// <returns></returns>
+    public string GetArgument();
+}
+
+
+7. Комментарий, поясняющий принцип (недостатки) текущего алгоритма
+и оставляющий метку для дальнейшего улучшения.
+
+public class NaiveScriptAvailabilityService : IScriptAvailabilityService
+{
+    public Task<bool> CheckScriptAvailabilityAsync(Stream htmlData, CancellationToken token = default)
+    {
+		// Алгоритм наивный, т.к. заставляет нас загрузить весь htmlData
+		// и после построить HtmlDocument объект разобрав его.
+		// TODO: Из оптимизаций возможно работать с потоком в "ручном" режиме,
+		// загружать данные в некий буфер (а лучше два, для исключения разрыва разметки)
+		// итеративно и проверять буфер(ы) на наличие скрипта. Это потенциально
+		// позволит не загружать весь html для страниц, на которых скрипт определен в начале.
+	
+        var htmlDoc = new HtmlDocument();
+
+        htmlDoc.Load(htmlData);
+
+        var node = htmlDoc.DocumentNode
+            .SelectSingleNode($"//script[contains(@src, {_domainUrl})]");
+
+        return Task.FromResult(node != null);
+    }
+}
+
+
+1-2. Бессодержательные комментарии ("Подписка на события", "Настройка обработки ошибок"),
+нагроможденный конструктор. В качестве первой итерации
+рефакторинга следует вынести связанные действия в отдельные методы.
+В таком случае названия методов будут сами говорить об их предназначении
+и это позволит разделить код на связные блоки, что даст базу для последующего
+исправления кода.
+
+// Before
+internal partial class SearchDataViewModel : ViewModel
+{
+	// ...
+
+    public SearchDataViewModel(
+		// many params
+		)
+	{
+		_dataTableViewModel = dataTableViewModel;
+		_fileTreeViewModel = fileTreeViewModel;
+		
+		// ...
+		
+		// Подписка на события
+		DataTableViewModel.PropertyChanged += DataTableViewModel_PropertyChanged;
+		DataTableViewModel.PropertyChanged += (_, _) =>
+		{
+			OpenAnnotationCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.DeleteMaterialCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.ReplaceAnnotationCommand.NotifyCanExecuteChanged();
+		};
+		
+		FileTreeViewModel.PropertyChanged += FileTreeViewModel_PropertyChanged;
+		FileTreeViewModel.PropertyChanged += (_, _) =>
+		{
+			OpenFileCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.AddFileCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.AddFolderCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.DeleteFileCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.DeleteDirectoryCommand.NotifyCanExecuteChanged();
+		};
+		
+		// ... Many others event handling settings
+
+		// Настройка обработки ошибок
+		BaseWebApiExceptionHandlerFactory handlerFactory = new WebApiExceptionHandlerFactory();
+
+		var handleSettings = handlerFactory
+			.WithExceptionHandler(CurrentProgressBarViewModel.ProcessingExceptions)
+			.WithLogger(_logger)
+			.WithCallerName(nameof(OpenAnnotation))
+			.WithMessageForLogger($"Unable to open annotation, 'id:{DataTableViewModel.SelectedItem?.Id}'.")
+			.WithWebExpMessageForUser("Не удалось открыть аннотацию.")
+			.WithExpMessageForUser(ExceptionHumanMessages.UnhandledError)
+			.Build();
+		_exceptionHandler = new ExceptionHandler(handleSettings);
+		
+		handleSettings = handlerFactory
+			.WithExceptionHandler(CurrentProgressBarViewModel.ProcessingExceptions)
+			.WithLogger(_logger)
+			.WithCallerName(nameof(OpenFile))
+			.WithMessageForLogger($"Unable to open file, 'id:{FileTreeViewModel.SelectedItem?.Id}'.")
+			.WithWebExpMessageForUser("Не удалось открыть файл.")
+			.WithExpMessageForUser(ExceptionHumanMessages.UnhandledError)
+			.Build();
+		_exceptionHandler.AddHandleSettings(handleSettings);
+		
+		// ... Many others error handling settings
+	}
+}
+
+// After
+internal partial class SearchDataViewModel : ViewModel
+{
+	// ...
+	
+	public SearchDataViewModel(
+		// many params
+		)
+	{
+		// ...
+		
+		ConfigureChildViewModels();
+		
+		ConfigureErrorHandler();
+	}
+
+	public void ConfigureChildViewModels(
+		DataTableViewModel dataTableViewModel,
+		FileTreeViewModel fileTreeViewModel,
+		// other params
+		)
+	{
+		// ...
+
+		_dataTableViewModel = dataTableViewModel;		
+		DataTableViewModel.PropertyChanged += DataTableViewModel_PropertyChanged;
+		DataTableViewModel.PropertyChanged += (_, _) =>
+		{
+			OpenAnnotationCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.DeleteMaterialCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.ReplaceAnnotationCommand.NotifyCanExecuteChanged();
+		};
+	
+		_fileTreeViewModel = fileTreeViewModel;		
+		FileTreeViewModel.PropertyChanged += FileTreeViewModel_PropertyChanged;
+		FileTreeViewModel.PropertyChanged += (_, _) =>
+		{
+			OpenFileCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.AddFileCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.AddFolderCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.DeleteFileCommand.NotifyCanExecuteChanged();
+			EditDataViewModel.DeleteDirectoryCommand.NotifyCanExecuteChanged();
+		};
+
+		// ... Many others event handling settings
+	}
+
+	public void CreateErrorHandler()
+	{
+		BaseWebApiExceptionHandlerFactory handlerFactory = new WebApiExceptionHandlerFactory();
+
+		var handleSettings = handlerFactory
+			.WithExceptionHandler(CurrentProgressBarViewModel.ProcessingExceptions)
+			.WithLogger(_logger)
+			.WithCallerName(nameof(OpenAnnotation))
+			.WithMessageForLogger($"Unable to open annotation, 'id:{DataTableViewModel.SelectedItem?.Id}'.")
+			.WithWebExpMessageForUser("Не удалось открыть аннотацию.")
+			.WithExpMessageForUser(ExceptionHumanMessages.UnhandledError)
+			.Build();
+		var exceptionHandler = new ExceptionHandler(handleSettings);
+
+		handleSettings = handlerFactory
+			.WithExceptionHandler(CurrentProgressBarViewModel.ProcessingExceptions)
+			.WithLogger(_logger)
+			.WithCallerName(nameof(OpenFile))
+			.WithMessageForLogger($"Unable to open file, 'id:{FileTreeViewModel.SelectedItem?.Id}'.")
+			.WithWebExpMessageForUser("Не удалось открыть файл.")
+			.WithExpMessageForUser(ExceptionHumanMessages.UnhandledError)
+			.Build();
+		exceptionHandler.AddHandleSettings(handleSettings);
+
+		// ... Many others error handling settings
+
+		_exceptionHandler = exceptionHandler;
+	}
+}
+
+
+3. Бесполезный комментарий, не несущий никакой полезной информации
+(то, что это логика взаимодействия для FlowDocumentView.xaml
+в рамках WPF приложений и так крайне очевидный вывод).
+Решение - описать назначение элемента (пользовательского).
+
+// Before
+
+/// <summary>
+/// Логика взаимодействия для FlowDocumentView.xaml
+/// </summary>
+public partial class FlowDocumentView : UserControl
+{
+	// 
+}
+
+// After
+
+/// <summary>
+/// Контроллер для отображения потоковых документов (Flow documents).
+/// См. https://learn.microsoft.com/dotnet/desktop/wpf/advanced/flow-document-overview
+/// Отображает пользователю документ, заданный XAML разметкой (Flow Elements).
+/// </summary>
+public partial class FlowDocumentView : UserControl
+{
+	// 
+}
+
+
+4. Бесполезный комментарий. Это единственный конструктор.
+Следует его (комментарий) убрать.
+
+// Before
+
+[Authorize("Bearer", Roles = $"{UserRoles.User}")]
+[Route("api/[controller]")]
+[ApiController]
+public class YearOfReceiptsController : Controller
+{
+	private readonly IYearOfReceiptsRepository _repository;
+
+	/// <summary>
+	/// Конструктор по умолчанию
+	/// </summary>
+	/// <param name="repository"></param>
+	public YearOfReceiptsController(IYearOfReceiptsRepository repository)
+	{
+		_repository = repository;
+	}
+	
+	// ...
+}
+
+// After
+
+[Authorize("Bearer", Roles = $"{UserRoles.User}")]
+[Route("api/[controller]")]
+[ApiController]
+public class YearOfReceiptsController : Controller
+{
+	private readonly IYearOfReceiptsRepository _repository;
+
+	public YearOfReceiptsController(IYearOfReceiptsRepository repository)
+	{
+		_repository = repository;
+	}
+	
+	// ...
+}
+
+
+5.

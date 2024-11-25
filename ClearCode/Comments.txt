@@ -425,4 +425,49 @@ public class YearOfReceiptsController : Controller
 }
 
 
-5.
+5. Бесполезный комменатрий о подключении (это видно из названия метода).
+Лучше его просто убрать.
+
+// Before
+public class GetMailService : IGetMailService
+{
+    private readonly ILogger<GetMailService> _logger;
+    private MailParams _mailParams = new MailParams();
+    private ImapClient _client = new ImapClient();
+    private IMailFolder _inbox;
+
+    public GetMailService(ILogger<GetMailService> logger, IConfiguration configuration)
+    {
+        _logger = logger;
+        _mailParams = configuration.GetSection($"MailParams").Get<MailParams>();
+        _logger.LogInformation($"Получаем письма для {_mailParams.Mail}");
+        // Подключение
+        _client.Connect(_mailParams.Host, _mailParams.Port, _mailParams.Ssl);
+        _client.Authenticate(_mailParams.Mail, _mailParams.Pass);
+        _inbox = _client.Inbox;
+    }
+	
+	// ...
+}
+
+// After
+public class GetMailService : IGetMailService
+{
+    private readonly ILogger<GetMailService> _logger;
+    private MailParams _mailParams = new MailParams();
+    private ImapClient _client = new ImapClient();
+    private IMailFolder _inbox;
+
+    public GetMailService(ILogger<GetMailService> logger, IConfiguration configuration)
+    {
+        _logger = logger;
+        _mailParams = configuration.GetSection($"MailParams").Get<MailParams>();
+        _logger.LogInformation($"Получаем письма для {_mailParams.Mail}");
+		
+        _client.Connect(_mailParams.Host, _mailParams.Port, _mailParams.Ssl);
+        _client.Authenticate(_mailParams.Mail, _mailParams.Pass);
+        _inbox = _client.Inbox;
+    }
+	
+	// ...
+}

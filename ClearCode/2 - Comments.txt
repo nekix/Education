@@ -1,0 +1,299 @@
+1. 4 - Предупреждения о последствиях.
+
+public class DomainStatusRepository : IDomainStatusRepository
+{
+	// Не изменять. Работа без lock не протестирована.
+    // Обспечивает небольшое снижение производительности
+    // за счёт потокобезопасного доступа.
+    private readonly object _syncRoot = new object();
+
+    private readonly List<DomainStatus> _domainStatucesData;
+
+    public DomainStatusRepository()
+    {
+        _domainStatucesData = new List<DomainStatus>();
+    }
+	
+	public Task<List<DomainStatus>> GetListAsync(CancellationToken token = default)
+    {
+        token.ThrowIfCancellationRequested();
+
+        lock (_syncRoot)
+        {
+            return Task.FromResult(_domainStatucesData.ToList());
+        }
+    }
+	
+	// ...
+}
+
+
+2. 1 - Информативные комментарии.
+
+internal class TxtProxyFileService : IProxyFileService
+{
+    public List<Proxy> Open(string filename)
+    {
+        List<Proxy> proxy = new();
+
+        // Определение корректной строки с прокси.
+        // Два вида прокси:
+        // [1] - login, [2] - password, [3] - host, [4] - port;
+        // [5] - host, [6] - port.
+        Regex regex = new("(.+):(.+)@(.+):(.+)|(.+):(.+)");
+
+        using StreamReader sr = new(filename);
+
+        while (!sr.EndOfStream)
+        {
+            str = sr.ReadLine();
+
+            if (str != null && regex.IsMatch(str))
+            {
+                // ...
+            }
+        }
+
+        return proxy;
+    }
+}
+
+
+3 - 5.
+3 - Прояснение (про xcoordinate);
+1 - Информативные комментарии (про offset);
+2, 4 - Представление намерений и предупреждение о последствиях (про имитацию ввода).
+
+/// <summary>
+/// Решает появляющуюся капчу с пазлом.
+/// xcoordinate - абсолютная координата пазла на веб странице.
+/// </summary>
+/// <param name="driver"></param>
+/// <param name="xcoordinate">Абсолютная координата пазла на веб странице.</param>
+public void ResolveCaptcha(ChromeDriver driver, int xcoordinate)
+{
+    var slider = driver.FindElement(By.CssSelector(".tc-fg-item.tc-slider-normal"));
+
+    // Смещение специально посчитано для данного вида капчи
+    // на основе размеров основной и доп. картинки.
+    int offset = (int)(xcoordinate * 0.5 - 54);
+
+    var moveSlider = new Actions(driver)
+        .ClickAndHold(slider);
+
+    // Здесь и далеее необходимо для имитации человеческого ввода (иначе блок).
+    // Данный алгоритм получен и подтвержден экспериментально.
+    // Изменение может привести к блоку прокси или
+    // провалу решения капчи.
+    moveSlider = moveSlider.Pause(TimeSpan.FromMilliseconds(126));
+    var track = GetRandomSliderTrack(offset);
+
+    var sign = -1;
+    for (int i = 0; i < track.offsets.Count; i++)
+    {
+        sign *= -1;
+        moveSlider.MoveByOffset(track.offsets[i], sign);
+        moveSlider.Pause(TimeSpan.FromMilliseconds(track.pause[i]));
+    }
+
+    moveSlider.Release();
+    moveSlider.Perform();
+}
+
+
+6 - 7.
+6 - Комментарии TODO (про support "Forwarded" header).
+5 - Усиление (про X-Forwarded-For).
+
+public static class Ext
+{
+	public static string GetRequestIP(this HttpRequest request, bool tryUseXForwardHeader = true)
+	{
+		string ip = null;
+
+		// todo support new "Forwarded" header (2014) https://en.wikipedia.org/wiki/X-Forwarded-For
+
+		// X-Forwarded-For (csv list):  Using the First entry in the list seems to work
+		// for 99% of cases however it has been suggested that a better (although tedious)
+		// approach might be to read each IP from right to left and use the first public IP.
+		// http://stackoverflow.com/a/43554000/538763
+		//
+		if (tryUseXForwardHeader)
+			ip = GetHeaderValueAs<string>("X-Forwarded-For", request).SplitCsv().FirstOrDefault();
+			
+		if (ip.IsNullOrWhitespace() && request.HttpContext?.Connection?.RemoteIpAddress != null)
+			ip = request.HttpContext.Connection.RemoteIpAddress.ToString();
+
+		if (ip.IsNullOrWhitespace())
+			ip = GetHeaderValueAs<string>("REMOTE_ADDR", request);
+
+		if (ip.IsNullOrWhitespace())
+			throw new Exception("Unable to determine caller's IP.");
+
+		return ip;
+	}
+	
+	// ...
+}
+
+
+8. 6 - Комментарии TODO.
+
+public static List<Card> CollectTracks()
+{
+	var result = new List<Card>();
+	using (NpgsqlConnection conn = new NpgsqlConnection(DATABASE))
+	{
+		conn.Open();
+
+		string query = "select * From catalog.full_index_candidates()";
+
+		var cmd = new NpgsqlCommand(query, conn);
+		var reader = cmd.ExecuteReader();
+
+		// TODO: тут должен быть словарь с id=product_id , так как из sql идут данные неуникальные.
+		
+		// ...
+	}
+
+	return result;
+}
+
+
+9. 1 - Информативные комментарии.
+
+[JsonObject]
+public class MessageConverter : Newtonsoft.Json.JsonConverter
+{
+	// ...
+
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	{
+		if (reader.TokenType == JsonToken.StartObject)
+		{
+			reader.Read(); // userMessage 
+			reader.Read(); // userMessage.value
+			reader.Read(); // errorCode
+			reader.Read(); // errorCode.value
+			reader.Read(); // EndObject
+			return "NO_CONTENT_FOR_THIS_OPERATOR";
+		}
+		if (reader.TokenType == JsonToken.StartArray)
+		{
+			reader.Read();
+		}
+		
+		return reader.Value;
+	}
+
+	public override bool CanConvert(Type objectType)
+	{
+		return objectType == typeof(bool);
+	}
+}
+
+
+10. 2 - Представление намерений.
+
+private async Task GatherDailyStatistic(ISheet sheet, KeyValuePair<string, MemoryStream> file)
+{
+		List<WidgetDailyStatistic> statistic = new();
+		
+		// row = 1, т.к. хедеры (row = 0) игнорируются.
+		for (int row = 1; row <= sheet.LastRowNum; row++)
+		{
+			// ...
+		}
+		
+		await SaveDb(statistic);
+}
+
+
+11. 1 - Информативные комментарии.
+
+/// <summary>
+/// Корректирует описание операции загрузки файла
+/// для правильной обработки Swagger.
+/// Для работы необходим аттрибут FileContentType над методом.
+/// </summary>
+public class FileUploadFilter : IOperationFilter
+{
+	public void Apply(OpenApiOperation operation, OperationFilterContext context)
+	{
+		var isFileUploadOperation =
+			context.MethodInfo.CustomAttributes.Any(a => a.AttributeType == typeof(FileContentType));
+
+		if (!isFileUploadOperation) return;
+
+		// Очистка параметров необходима, чтобы стандартное
+		// определение параметров не ломало наше определение RequestBody.
+		operation.Parameters.Clear();
+
+		var uploadFileMediaType = new OpenApiMediaType()
+		{
+			Schema = new OpenApiSchema()
+			{
+				Type = "object",
+				Properties =
+				{
+					["uploadedFile"] = new OpenApiSchema()
+					{
+						Description = "Upload File",
+						Type = "file",
+						Format = "formData"
+					}
+				},
+				Required = new HashSet<string>() { "uploadedFile" }
+			}
+		};
+
+		operation.RequestBody = new OpenApiRequestBody
+		{
+			Content = { ["multipart/form-data"] = uploadFileMediaType },
+		};
+	}
+}
+
+
+12. 6 - Комментарии TODO.
+
+[DisallowConcurrentExecution]
+public class DomainsScriptCheckJob : IJob
+{
+    private readonly IDomainStatusRepository _domainStatusRepository;
+    private readonly IScriptAvailabilityService _scriptAvailabilityService;
+    private readonly IHtmlFetcher _htmlFetcher;
+    private readonly IDomainStatusReportService _reportService;
+
+    // TODO: Вынести в отдельный класс настроек и внедрять через DI.
+    // Или производить настройку через фабрику и конструктор.
+    private const int MaxDegreeOfParallelism = 10;
+
+    public DomainsScriptCheckJob(IDomainStatusRepository domainStatusRepository,
+                                 IScriptAvailabilityService scriptAvailabilityService,
+                                 IHtmlFetcher htmlFetcher,
+                                 IDomainStatusReportService reportService)
+    {
+        _domainStatusRepository = domainStatusRepository;
+        _scriptAvailabilityService = scriptAvailabilityService;
+        _htmlFetcher = htmlFetcher;
+        _reportService = reportService;
+    }
+
+    public async Task Execute(IJobExecutionContext context)
+    {
+        var domainsToCheck = await _domainStatusRepository.GetListAsync();
+
+        var parrallelOptions = new ParallelOptions()
+        {
+            MaxDegreeOfParallelism = MaxDegreeOfParallelism,
+            CancellationToken = context.CancellationToken
+        };
+		
+        await Parallel.ForEachAsync(domainsToCheck,
+            parrallelOptions,
+            async (domainStatus, token) => await CheckDomainScriptsAsync(domainStatus, token));
+    }
+	
+	// ...
+}

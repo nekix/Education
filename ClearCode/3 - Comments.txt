@@ -1,0 +1,461 @@
+1 - 3.
+4 - Шум (в определении класса). Данный класс, как и файл App.xaml
+для WPF приложений является типовым. Сам класс находится в App.xaml.cs
+файле и по умолчанию воспринимается WPF разработчиками как содержащий
+логику для App.xaml файла.
+7 - Избыточные комментарии (ConfigureServices). Название метода
+и типы/названия параметров говорят сами за себя. Комментарий не нужен.
+3, 12 - Недостоверный комментарий, использование комментария там, где
+можно использовать говорящее название метода (WalkDictionary). Комментарий
+несколько вводит в заблуждение насчёт того, что реально происходит, а название
+метода не стыкуется с предназначенеим. Лучше изменить название метода,
+добавить к нему в комментарии ссылку на объяснение, как это работает. Также,
+т.к. вызов этого метода очень важен, стоит прокомментировать в методе
+OnStartup почему именно.
+
+// Before
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
+{
+    // ...
+	
+	protected override async void OnStartup(StartupEventArgs e)
+	{
+		// ...
+
+		WalkDictionary(this.Resources);
+
+		var host = Host;
+		base.OnStartup(e);
+		
+		// ...
+	}
+
+    /// <summary>
+    /// Configure the services.
+    /// </summary>
+    /// <param name="host">The host.</param>
+    /// <param name="services">The services.</param>
+    public static void ConfigureServices(HostBuilderContext host, IServiceCollection services)
+    {
+        services.ConfigureHelpServices();
+        services.ConfigureProgressBarViewModels();
+
+        // ...
+    }
+
+    /// <summary>
+    /// Предзагрузка ресурсов для более плавной работы приложения
+    /// </summary>
+    /// <param name="resources">The resources.</param>
+    private static void WalkDictionary(ResourceDictionary resources)
+    {
+        foreach (DictionaryEntry entry in resources) { }
+
+        foreach (ResourceDictionary rd in resources.MergedDictionaries)
+            WalkDictionary(rd);
+    }
+}
+
+// After
+
+public partial class App : Application
+{
+    // ...
+	
+	protected override async void OnStartup(StartupEventArgs e)
+	{
+		// ...
+		
+		// Очень важный вызов, обеспечивает создание всех ресурсов
+		// вне зависимости от наличие ссылок на них.
+		// Без создания не будет работать динамическая загрузка
+		// модулей (MEF).
+		ExplicitLoadResources();
+
+		var host = Host;
+		base.OnStartup(e);
+		
+		// ...
+	}
+
+    public static void ConfigureServices(HostBuilderContext host, IServiceCollection services)
+    {
+        services.ConfigureHelpServices();
+        services.ConfigureProgressBarViewModels();
+
+        // ...
+    }
+
+    /// <summary>
+    /// See https://stackoverflow.com/a/26212538.
+    /// </summary>
+    /// <param name="resources">The resources.</param>
+    private static void ExplicitLoadResources()
+    {
+        foreach (DictionaryEntry entry in Resources) { }
+
+        foreach (ResourceDictionary rd in resources.MergedDictionaries)
+            WalkDictionary(rd);
+    }
+}
+
+
+4 - 7.
+2, 7 - Бормотание, избыточный комментарий (проверка annotationId). Комментарий
+мало того, что избыточный, так ещё и непонятно что проверяется (без чтения кода).
+Лучше убрать комментарий.
+2, 12 - Бормотание, использование комментария там, где можно использовать функцию или переменную
+(Проверка parentDirectoryId и Name). Комментарий ничего не говорит о том, что проверяется.
+Лучшей практикой было бы разделение кода на понятные из названия функции.
+7 - Избыточный комментарий (добавление файла). Лучше просто убрать.
+
+// Before`
+
+public class DocumentsRepository : IDocumentsRepository
+{
+	public async Task<FileInfo> InsertFileAsync(string fileName, Guid annotationId, byte[] fileContent, Guid? parentDirectoryId = null)
+	{
+		await using var context = _annotationDbContextFactory.CreateDbContext();
+
+		// Проверка annotationId
+		var annotation = await context.Annotations
+			.FirstAsync(a => a.Id == annotationId);
+
+		// ...
+
+		// Проверка parentDirectoryId и Name
+		if (parentDirectoryId != null && parentDirectoryId != Guid.Empty)
+		{
+			fileInfo.ParentDirectoryId = parentDirectoryId;
+			fileInfo.HierarchyLevel = await context.Directories
+				.Where(f => f.AnnotationId == annotationId)
+				.Where(f => f.Id == parentDirectoryId)
+				.Select(f => f.HierarchyLevel)
+				.FirstAsync() + 1;
+
+			if (await context.FilesInfo
+					.Where(fi => fi.AnnotationId == annotationId)
+					.Where(fi => fi.ParentDirectoryId == parentDirectoryId)
+					.Where(fi => fi.Name == fileName).AnyAsync())
+			{
+				throw new ArgumentException("File already exist.", nameof(fileName));
+			}
+		}
+		
+		// ...
+
+		// Проверка FileContent
+		if (fileContent.Length == 0)
+		{
+			throw new ArgumentException("FileContent length is '0'.", nameof(fileContent));
+		}
+
+		// ...
+
+		// Добавление файла
+		context.FilesInfo.Add(fileInfo);
+		await context.SaveChangesAsync();
+
+		return fileInfo;
+	}
+}
+
+// After
+
+public class DocumentsRepository : IDocumentsRepository
+{
+	public async Task<FileInfo> InsertFileAsync(string fileName, Guid annotationId, byte[] fileContent, Guid? parentDirectoryId = null)
+	{
+		await using var context = _annotationDbContextFactory.CreateDbContext();
+
+		var annotation = await context.Annotations
+			.FirstAsync(a => a.Id == annotationId);
+
+		// ...
+
+		if (Guid.IsNotNullOrDefault(parentDirectoryId))
+		{
+			fileInfo.ParentDirectoryId = parentDirectoryId;
+			fileInfo.HierarchyLevel = await GetDirectoryHierarchyLevelAsync(context, parentDirectoryId) + 1;
+
+			if (await AnyFileWithNameAsync(parentDirectoryId, fileName))
+				throw new ArgumentException("File already exist.", nameof(fileName));
+		}
+		
+		// ...
+
+		if (fileContent.Length == 0)
+			throw new ArgumentException("FileContent length is '0'.", nameof(fileContent));
+
+		// ...
+
+		context.FilesInfo.Add(fileInfo);
+		
+		await context.SaveChangesAsync();
+
+		return fileInfo;
+	}
+}
+
+
+7 - 10. 10 - Обязательыне комментарии. Данные комментарии только
+загромождают код, их лучше убрать.
+
+// Before
+
+internal partial class UploadViewModel : ViewModel
+{
+    /// <summary>
+    /// Представляет ViewModel для файлового древа
+    /// </summary>
+    [ObservableProperty] private FileTreeViewModel _fileTreeViewModel;
+
+    /// <summary>
+    /// Представляет ViewModel для предоставления содержимого документа аннотации
+    /// </summary>
+    [ObservableProperty] private FlowDocumentViewModel _annotaionDocumentViewModel;
+
+    /// <summary>
+    /// Представляет ViewModel для отображения статуса пользовательских операций
+    /// </summary>
+    [ObservableProperty] private ProgressBarViewModel<UploadViewModel> _progressBarViewModel;
+
+    // ...
+}
+
+// After
+
+internal partial class UploadViewModel : ViewModel
+{
+    [ObservableProperty] private FileTreeViewModel _fileTreeViewModel;
+
+    [ObservableProperty] private FlowDocumentViewModel _annotaionDocumentViewModel;
+
+    [ObservableProperty] private ProgressBarViewModel<UploadViewModel> _progressBarViewModel;
+
+    // ...
+}
+
+
+11 - 12.
+11 - Закомментированный код (GetAllScripts). Удалить ненужные комментарии.
+11 - Закомментированный код (GetBundle). Инфомация о том, зачем применено
+изменение должна трассировать (или содержаться) в коммите. Удалить ненужные
+комментарии.
+
+// Before
+
+public class CacheService : ICacheService
+{
+    // ...
+
+    public RedisCacheExtra GetAllScripts()
+    {
+        RedisCacheExtra result = new();
+
+        var extras = _db.SetMembers("scripts");
+        foreach (var extra in extras)
+        {
+            result.Add(extra);
+        }
+        return result;
+        // foreach (var extra in extras)
+        // {
+        //     result.Add(extra, GetScripts(extra));
+        // }
+        // return result;
+    }
+	
+	// ...
+	
+	public async Task<CachedScript?> GetBundle(string scriptName)
+	{
+		// ...
+	
+		var entry = (await _db.HashGetAllAsync(name)).ToDictionary();
+		
+		// _db.KeyExpire(name, TimeSpan.FromSeconds(_bundle.TTL));
+		// Поставлю сутки, чтобы не жили ненужные скрипты
+		_db.KeyExpire(name, TimeSpan.FromDays(1));
+		
+		var currentTime = DateTime.Now;
+		var updateTime = DateTime.Parse(entry.ContainsKey("datetime") ? entry["datetime"] : "");
+		
+		// ...
+	}
+
+    // ...
+}
+
+// After
+
+public class CacheService : ICacheService
+{
+    // ...
+
+    public RedisCacheExtra GetAllScripts()
+    {
+        RedisCacheExtra result = new();
+
+        var extras = _db.SetMembers("scripts");
+        
+		foreach (var extra in extras)
+			result.Add(extra);
+			
+        return result;
+    }
+
+	// ...
+	
+	public async Task<CachedScript?> GetBundle(string scriptName)
+	{
+		// ...
+	
+		var entry = (await _db.HashGetAllAsync(name)).ToDictionary();
+		
+		_db.KeyExpire(name, TimeSpan.FromDays(1));
+		
+		var currentTime = DateTime.Now;
+		var updateTime = DateTime.Parse(entry.ContainsKey("datetime") ? entry["datetime"] : "");
+		
+		// ...
+	}
+
+    // ...
+}
+
+
+13. 3, 9 - Недостоверный комментарий, нелокальная информация.
+Данный комментарий когда-то отражал единственный кейс использования
+данного класса, но теперь их больше и он недостоверен. К тому же
+эта информация относится к области использования а не определения
+класса, поэтому её следует убрать.
+
+// Before
+
+/// <summary>
+/// "main_media": {
+///     "Script": "",
+///     "ETagHash": ""
+/// }
+/// </summary>
+public class RedisCacheSource
+{
+    public string Script { get; set; } = String.Empty;
+    public string ETagHash { get; set; } = String.Empty;
+}
+
+// After
+
+public class RedisCacheSource
+{
+    public string Script { get; set; } = String.Empty;
+    public string ETagHash { get; set; } = String.Empty;
+}
+
+
+14. 11 - Закомментированный код. Убрать лишние комментарии.
+
+// Before
+
+public class AuthController : ControllerBase
+{
+	public AuthController(
+		HttpClient client,
+		IConfiguration configuration,
+		IStorageService storageService,
+		ILogger<AuthController> logger)
+	{
+		_auth = configuration["Api:Auth"];
+		_client = client;
+		_storageService = storageService;
+		_logger = logger;
+		//_whitelist = configuration.GetSection("Whitelist").Get<string[]>();
+	}
+}
+
+// After
+
+public class AuthController : ControllerBase
+{
+	public AuthController(
+		HttpClient client,
+		IConfiguration configuration,
+		IStorageService storageService,
+		ILogger<AuthController> logger)
+	{
+		_auth = configuration["Api:Auth"];
+		_client = client;
+		_storageService = storageService;
+		_logger = logger;
+		//_whitelist = configuration.GetSection("Whitelist").Get<string[]>();
+	}
+}
+
+
+15. 11 - Закомментированный код. Убрать лишние комментарии.
+
+// Before
+
+public class WorkpiecesConfiguration : IEntityTypeConfiguration<Workpiece>
+{
+    private readonly string _isDeletedSqlFilter;
+
+    public WorkpiecesConfiguration(string isDeletedSqlFilter)
+    {
+        _isDeletedSqlFilter = isDeletedSqlFilter;
+    }
+
+    public void Configure(EntityTypeBuilder<Workpiece> builder)
+    {
+        builder.ToTable(PlatformConsts.PrototypesManufacturing.WorkpiecesTableName, CoreConsts.DbSchema);
+
+        builder.ConfigureByConvention();
+		
+		// ...
+
+        builder.OwnsOne(x => x.Geometry, x =>
+        {
+            //x.Property(y => y.Width)
+            //    .IsRequired();
+
+            //x.Property(y => y.Height)
+            //    .IsRequired();
+
+            //x.Property(y => y.Length)
+            //    .IsRequired();
+
+            x.WithOwner();
+        }).Navigation(x => x.Geometry)
+            .IsRequired();
+    }
+}
+
+// After
+
+public class WorkpiecesConfiguration : IEntityTypeConfiguration<Workpiece>
+{
+    private readonly string _isDeletedSqlFilter;
+
+    public WorkpiecesConfiguration(string isDeletedSqlFilter)
+    {
+        _isDeletedSqlFilter = isDeletedSqlFilter;
+    }
+
+    public void Configure(EntityTypeBuilder<Workpiece> builder)
+    {
+        builder.ToTable(PlatformConsts.PrototypesManufacturing.WorkpiecesTableName, CoreConsts.DbSchema);
+
+        builder.ConfigureByConvention();
+		
+		// ...
+
+        builder.OwnsOne(x => x.Geometry, x => x.WithOwner())
+			.Navigation(x => x.Geometry)
+            .IsRequired();
+    }
+}

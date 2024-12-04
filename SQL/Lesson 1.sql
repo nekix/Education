@@ -11,7 +11,7 @@ SELECT
     s.name as squad_name,
     s.mission as squad_mission
 FROM Dwarves d
-	JOIN Squads s ON s.squad_id = d.squad_id
+    JOIN Squads s ON s.squad_id = d.squad_id
 
 /*
 Exercise 2

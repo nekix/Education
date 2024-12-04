@@ -3,7 +3,7 @@ Exercise 1
 */
 
 SELECT
-	d.dwarf_id,
+    d.dwarf_id,
     d.name,
     d.age,
     d.profession,
@@ -28,19 +28,19 @@ Exercise 3
 SELECT *
 FROM Tasks
 WHERE status = 'pending' AND priority = (
-	SELECT MAX(t.priority) FROM Tasks t WHERE t.status = 'pending');
+    SELECT MAX(t.priority) FROM Tasks t WHERE t.status = 'pending');
 
 /*
 Exercise 4
 */
 
 SELECT
-	d.dwarf_id,
-	d.name,
-	d.age,
-	d.profession,
-	d.squad_id,
-	COUNT(d) as items_count
+    d.dwarf_id,
+    d.name,
+    d.age,
+    d.profession,
+    d.squad_id,
+    COUNT(d) as items_count
 FROM Dwarves d
 JOIN Items i ON d.dwarf_id = i.owner_id
 GROUP BY d.dwarf_id;
@@ -63,8 +63,8 @@ Exercise 6
 */
 
 SELECT
-	d.profession,
-	COUNT(t) as uncompleted_tasks_count
+    d.profession,
+    COUNT(t) as uncompleted_tasks_count
 FROM Dwarves d
 JOIN Tasks t on d.dwarf_id = t.assigned_to and t.status != 'completed'
 GROUP BY d.profession

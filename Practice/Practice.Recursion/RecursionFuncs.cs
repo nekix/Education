@@ -4,73 +4,74 @@ namespace Practice.Recursion;
 
 public static class RecursionFuncs
 {
-    public static double Pow(double num, int power)
+    public static double Pow(double num, int power, double startPowValue = 1d)
     {
-        if (num == 0 && power < 0)
-            return double.PositiveInfinity;
-
-        if (power == 0)
-            return 1d;
-
-        if (power == 1)
-            return num;
-
-        return Pow(num, power - 1, num);
-    }
-
-    private static double Pow(double num, int power, double acc)
-    {
-        if (power == 0)
-            return acc;
-
-        if (power > 0)
+        switch (power)
         {
-            acc *= num;
-            power -= 1;
-        }
-        else
-        {
-            acc /= num;
-            power += 1;
+            case < 0 when num == 0:
+                return double.PositiveInfinity;
+            case 0:
+                return startPowValue;
+            case > 0:
+                startPowValue *= num;
+                power -= 1;
+                break;
+            default:
+                startPowValue /= num;
+                power += 1;
+                break;
         }
 
-        return Pow(num, power, acc);
+        return Pow(num, power, startPowValue);
     }
 
-    public static int SumOfDigits(int num)
+    public static int SumOfDigits(int num, int startSum = 0)
     {
         if (num < 0) num = -num;
 
-        return SumOfDigits(num / 10, num % 10);
+        return num == 0 ? startSum : SumOfDigits(num / 10, startSum + num % 10);
     }
 
-    private static int SumOfDigits(int num, int sum)
-    {
-        return num == 0 ? sum : SumOfDigits(num / 10, sum + num % 10);
-    }
-
-    public static int GetStackLength(Stack<int> stack)
-    {
-        return GetStackLength(stack, 0);
-    }
-
-    private static int GetStackLength(Stack<int> stack, int length)
+    public static int GetStackLength(Stack<int> stack, int startLength = 0)
     {
         if (!stack.TryPop(out var _))
-            return length;
+            return startLength;
 
-        return GetStackLength(stack, length + 1);
+        return GetStackLength(stack, startLength + 1);
     }
 
-    public static bool IsPalindrom(string str)
+    public static bool IsPalindrom(string str, int startCharOffset = 0)
     {
         int length = str.Length;
 
-        if (string.IsNullOrEmpty(str) || str.Length == 1) return true;
+        if (startCharOffset == str.Length / 2)
+            return true;
 
-        if (str[0] != str[length - 1])
+        if (str[startCharOffset] != str[length - startCharOffset - 1])
             return false;
 
-        return IsPalindrom(str.Substring(1, length - 2));
+        return IsPalindrom(str, startCharOffset + 1);
+    }
+
+    public static void PrintEvenNumberValues(List<int> numbers, int startIndex = 0)
+    {
+        if (startIndex >= numbers.Count)
+            return;
+
+        if (numbers[startIndex] % 2 == 0)
+            Console.WriteLine(numbers[startIndex]);
+
+        PrintEvenNumberValues(numbers, startIndex + 1);
+    }
+
+    public static void PrintValuesWithEvenNumberIndex(List<int> numbers, int startIndex = 0)
+    {
+        if (startIndex >= numbers.Count)
+            return;
+
+        if (startIndex % 2 == 0)
+            Console.WriteLine(numbers[startIndex]);
+
+        PrintValuesWithEvenNumberIndex(numbers, startIndex + 1);
     }
 }

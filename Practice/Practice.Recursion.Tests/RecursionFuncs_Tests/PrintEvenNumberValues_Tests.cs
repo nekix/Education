@@ -14,7 +14,7 @@ public class PrintEvenNumberValues_Tests
         using StringWriter consoleWriter = new StringWriter();
         Console.SetOut(consoleWriter);
         
-        RecursionFuncs.PrintEvenNumberValues(numbers.ToList());
+        RecursionFuncs.PrintEvenNumberValues(numbers.ToList(), 0);
 
         consoleWriter.Flush();
         string output = consoleWriter.GetStringBuilder().ToString();

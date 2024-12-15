@@ -18,6 +18,6 @@ public class IsPalindrom_Tests
     [InlineData("Молот толоМ", true)]
     public void Should_IsPalindrom(string str, bool isPalindrom)
     {
-        RecursionFuncs.IsPalindrom(str, 0).ShouldBe(isPalindrom);
+        RecursionFuncs.IsPalindrom(str).ShouldBe(isPalindrom);
     }
 }

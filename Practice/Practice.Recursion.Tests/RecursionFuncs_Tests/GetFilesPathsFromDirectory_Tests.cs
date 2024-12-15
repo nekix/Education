@@ -13,6 +13,6 @@ public class GetFilesPathsFromDirectory_Tests
 
         var files = Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories);
 
-        res.ShouldBe(files);
+        res.Order().ShouldBe(files.Order());
     }
 }

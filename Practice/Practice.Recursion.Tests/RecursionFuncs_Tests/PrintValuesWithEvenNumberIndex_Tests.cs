@@ -14,7 +14,7 @@ public class PrintValuesWithEvenNumberIndex_Tests
         using StringWriter consoleWriter = new StringWriter();
         Console.SetOut(consoleWriter);
 
-        RecursionFuncs.PrintValuesWithEvenNumberIndex(numbers.ToList(), 0);
+        RecursionFuncs.PrintValuesWithEvenNumberIndex(numbers.ToList());
 
         consoleWriter.Flush();
         string output = consoleWriter.GetStringBuilder().ToString();

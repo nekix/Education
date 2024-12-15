@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Practice.Recursion;
@@ -41,50 +42,75 @@ public static class RecursionFuncs
         return GetStackLength(stack, startLength + 1);
     }
 
-    public static bool IsPalindrom(string str, int startCharOffset)
+    public static bool IsPalindrom(string str)
+    {
+        return IsPalindrom(str, 0);
+    }
+
+    private static bool IsPalindrom(string str, int charOffset)
     {
         int length = str.Length;
 
-        if (startCharOffset == str.Length / 2)
+        if (charOffset == str.Length / 2)
             return true;
 
-        if (str[startCharOffset] != str[length - startCharOffset - 1])
+        if (str[charOffset] != str[length - charOffset - 1])
             return false;
 
-        return IsPalindrom(str, startCharOffset + 1);
+        return IsPalindrom(str, charOffset + 1);
     }
 
-    public static void PrintEvenNumberValues(List<int> numbers, int startIndex)
+    public static void PrintEvenNumberValues(List<int> numbers)
     {
-        if (startIndex >= numbers.Count)
-            return;
-
-        if (numbers[startIndex] % 2 == 0)
-            Console.WriteLine(numbers[startIndex]);
-
-        PrintEvenNumberValues(numbers, startIndex + 1);
+        PrintEvenNumberValues(numbers, 0);
     }
 
-    public static void PrintValuesWithEvenNumberIndex(List<int> numbers, int startIndex)
+    private static void PrintEvenNumberValues(List<int> numbers, int index)
     {
-        if (startIndex >= numbers.Count)
+        if (index >= numbers.Count)
             return;
 
-        if (startIndex % 2 == 0)
-            Console.WriteLine(numbers[startIndex]);
+        if (numbers[index] % 2 == 0)
+            Console.WriteLine(numbers[index]);
 
-        PrintValuesWithEvenNumberIndex(numbers, startIndex + 1);
+        PrintEvenNumberValues(numbers, index + 1);
+    }
+
+    public static void PrintValuesWithEvenNumberIndex(List<int> numbers)
+    {
+        PrintValuesWithEvenNumberIndex(numbers, 0);
+    }
+
+    private static void PrintValuesWithEvenNumberIndex(List<int> numbers, int index)
+    {
+        if (index >= numbers.Count)
+            return;
+
+        Console.WriteLine(numbers[index]);
+
+        PrintValuesWithEvenNumberIndex(numbers, index + 2);
     }
 
     public static int? GetSecondMaxValue(List<int> numbers)
     {
-        if (numbers.Count == 0)
+        if (numbers.Count < 2)
             return null;
 
-        int max = numbers[0];
-        int secondMax = numbers[0];
+        int max;
+        int secondMax;
 
-        return GetSecondMaxValue(numbers, 1, max, secondMax);
+        if (numbers[0] < numbers[1])
+        {
+            max = numbers[1];
+            secondMax = numbers[0];
+        }
+        else
+        {
+            max = numbers[0];
+            secondMax = numbers[1];
+        }
+
+        return GetSecondMaxValue(numbers, 2, max, secondMax);
     }
 
     private static int? GetSecondMaxValue(List<int> numbers, int index, int max, int secondMax)
@@ -107,34 +133,18 @@ public static class RecursionFuncs
 
     public static List<string> GetFilesPathsFromDirectory(string directoryPath)
     {
-        List<string> filesPaths = Directory.GetFiles(directoryPath).ToList();
+        List<string> files = Directory.GetFiles(directoryPath).ToList();
 
-        string[] dirs = Directory.GetDirectories(directoryPath);
+        string[] innerDirs = Directory.GetDirectories(directoryPath);
 
-        Queue<string> processingDirs = new Queue<string>(dirs);
-
-        return GetFilesPathsFromDirectory(processingDirs, filesPaths);
-    }
-
-    private static List<string> GetFilesPathsFromDirectory(Queue<string> processingDirs, List<string> filesPaths)
-    {
-        int processingDirsCount = processingDirs.Count;
-
-        if (processingDirsCount == 0)
-            return filesPaths;
-
-        for (int i = 0; i < processingDirsCount; i++)
+        foreach (string innerDir in innerDirs)
         {
-            string directory = processingDirs.Dequeue();
+            List<string> innerFiles = GetFilesPathsFromDirectory(innerDir);
 
-            string[] files = Directory.GetFiles(directory);
-            filesPaths.AddRange(files);
-
-            foreach (string subDir in Directory.GetDirectories(directory))
-                processingDirs.Enqueue(subDir);
+            files.AddRange(innerFiles);
         }
 
-        return GetFilesPathsFromDirectory(processingDirs, filesPaths);
+        return files;
     }
 
     public static List<string> GetAllBalancedParentheses(int openParenthesesCount)

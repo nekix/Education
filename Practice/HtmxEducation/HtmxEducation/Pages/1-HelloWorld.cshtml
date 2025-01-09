@@ -1,0 +1,14 @@
+﻿@page "/exercises/01"
+@using HtmxEducation.Pages
+@model HelloWorld
+@{
+    ViewBag.Title = "Hello world";
+}
+
+<button hx-get hx-target="#target">
+    Click for replace the "Change me!" text below with "Hello, World!" with Htmx!
+</button>
+
+<p2 id="target">
+    <span>Change me!</span>
+</p2>

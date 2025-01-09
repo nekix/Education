@@ -1,0 +1,12 @@
+﻿@page "/exercises/02"
+@using HtmxEducation.Pages
+@model StateManagement
+@{
+    ViewBag.Title = "State management";
+}
+
+<button hx-post="" hx-target="#count_target">
+    Click to accomplish the increment.
+</button>
+
+<h2 id="count_target">0</h2>

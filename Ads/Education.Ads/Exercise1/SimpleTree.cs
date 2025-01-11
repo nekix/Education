@@ -149,7 +149,7 @@ namespace AlgorithmsDataStructures2
             {
                 SimpleTreeNode<T> currentNode = nodes.Pop();
 
-                if (currentNode.Children == null)
+                if (currentNode.Children == null || currentNode.Children.Count == 0)
                 {
                     leafCount++;
                     continue;

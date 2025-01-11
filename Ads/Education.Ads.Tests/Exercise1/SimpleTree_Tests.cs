@@ -95,7 +95,7 @@ namespace Education.Ads.Tests.Exercise1
 
         [Theory]
         [MemberData(nameof(LeafCountData))]
-        public void Should_LeatCount(SimpleTree<int> tree, int count)
+        public void Should_LeafCount(SimpleTree<int> tree, int count)
         {
             tree.LeafCount().ShouldBe(count);
         }
@@ -210,6 +210,10 @@ namespace Education.Ads.Tests.Exercise1
         {
             var tree = new SimpleTree<int>(null);
             yield return new object[] { tree, 0 };
+
+            tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
+            tree.Root.Children = new List<SimpleTreeNode<int>>();
+            yield return new object[] { tree, 1 };
 
             // 1: To ROOT
             tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));

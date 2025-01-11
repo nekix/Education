@@ -44,7 +44,10 @@ namespace AlgorithmsDataStructures2
             // В предположении, что NodeToDelete принадлежит данному дереву.
 
             if (NodeToDelete == Root)
+            {
+                Root = null;
                 return;
+            }
 
             NodeToDelete.Parent.Children.Remove(NodeToDelete);
             NodeToDelete.Parent = null;
@@ -53,8 +56,9 @@ namespace AlgorithmsDataStructures2
         public List<SimpleTreeNode<T>> GetAllNodes()
         {
             List<SimpleTreeNode<T>> nodes = new List<SimpleTreeNode<T>>();
-
-            nodes.Add(Root);
+            
+            if (Root != null)
+                nodes.Add(Root);
 
             for (int i = 0; i < nodes.Count; i++)
                 if (nodes[i].Children != null)
@@ -68,7 +72,8 @@ namespace AlgorithmsDataStructures2
             Stack<SimpleTreeNode<T>> nodesStack = new Stack<SimpleTreeNode<T>>();
             List<SimpleTreeNode<T>> results = new List<SimpleTreeNode<T>>();
 
-            nodesStack.Push(Root);
+            if (Root != null)
+                nodesStack.Push(Root);
 
             while (nodesStack.Count != 0)
             {
@@ -105,10 +110,12 @@ namespace AlgorithmsDataStructures2
 
         public int Count()
         {
+            if (Root == null)
+                return 0;
+
             Stack<SimpleTreeNode<T>> nodes = new Stack<SimpleTreeNode<T>>();
 
             nodes.Push(Root);
-
             int nodesCount = 1;
 
             while (nodes.Count != 0)
@@ -129,6 +136,9 @@ namespace AlgorithmsDataStructures2
 
         public int LeafCount()
         {
+            if (Root == null)
+                return 0;
+
             Stack<SimpleTreeNode<T>> nodes = new Stack<SimpleTreeNode<T>>();
 
             nodes.Push(Root);

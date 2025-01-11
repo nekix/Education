@@ -43,7 +43,9 @@ namespace Education.Ads.Tests.Exercise1
             tree.DeleteNode(nodeToDelete);
 
             var nodes = new List<SimpleTreeNode<int>>();
-            nodes.Add(tree.Root);
+
+            if(tree.Root != null)
+                nodes.Add(tree.Root);
 
             bool isHasNode = false;
 
@@ -59,10 +61,7 @@ namespace Education.Ads.Tests.Exercise1
                     nodes.AddRange(nodes[i].Children);
             }
 
-            if (isRootNode)
-                Assert.True(isHasNode);
-            else
-                Assert.False(isHasNode);
+            Assert.False(isHasNode);
 
             nodes.Count.ShouldBe(nodesCount);
         }
@@ -142,7 +141,7 @@ namespace Education.Ads.Tests.Exercise1
             // 1: To ROOT
             var tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
             var nodeToDelete = tree.Root;
-            yield return new object[] { tree, nodeToDelete, true, 1 };
+            yield return new object[] { tree, nodeToDelete, true, 0 };
 
             // 2: To second level withoud children
             tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
@@ -160,8 +159,12 @@ namespace Education.Ads.Tests.Exercise1
 
         public static IEnumerable<object[]> GetAllNodesData()
         {
-            // 1: To ROOT
             var tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
+            tree.Root = null;
+            yield return new object[] { tree, 0 };
+
+            // 1: To ROOT
+            tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
             var nodeToDelete = tree.Root;
             yield return new object[] { tree, 1 };
 
@@ -181,8 +184,11 @@ namespace Education.Ads.Tests.Exercise1
 
         public static IEnumerable<object[]> CountData()
         {
+            var tree = new SimpleTree<int>(null);
+            yield return new object[] { tree, 0 };
+
             // 1: To ROOT
-            var tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
+            tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
             var nodeToDelete = tree.Root;
             yield return new object[] { tree, 1 };
 
@@ -202,8 +208,11 @@ namespace Education.Ads.Tests.Exercise1
 
         public static IEnumerable<object[]> LeafCountData()
         {
+            var tree = new SimpleTree<int>(null);
+            yield return new object[] { tree, 0 };
+
             // 1: To ROOT
-            var tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
+            tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
             var nodeToDelete = tree.Root;
             yield return new object[] { tree, 1 };
 
@@ -249,8 +258,17 @@ namespace Education.Ads.Tests.Exercise1
 
         public static IEnumerable<object[]> FindNodesByValueData()
         {
-            // 1: To ROOT
             var tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
+            tree.Root = null;
+            yield return new object[]
+            {
+                tree,
+                0,
+                new List<SimpleTreeNode<int>>()
+            };
+
+            // 1: To ROOT
+            tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
             yield return new object[] 
             { 
                 tree,

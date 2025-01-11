@@ -78,10 +78,13 @@ namespace Education.Ads.Tests.Exercise1
         [MemberData(nameof(FindNodesByValueData))]
         public void Should_FindNodesByValue(SimpleTree<int> tree, int value, List<SimpleTreeNode<int>> nodes)
         {
-            tree.FindNodesByValue(value)
-                .OrderBy(x => x.NodeValue)
-                .SequenceEqual(nodes
-                    .OrderBy(x => x.NodeValue));
+            var result = tree.FindNodesByValue(value);
+            result = result.OrderBy(x => x.GetHashCode()).ToList(); 
+            
+            var bRes = result.SequenceEqual(nodes
+                    .OrderBy(x => x.GetHashCode()).ToList());
+            
+            bRes.ShouldBeTrue();
         }
 
         [Theory]
@@ -264,9 +267,6 @@ namespace Education.Ads.Tests.Exercise1
                 tree,
                 1,
                 new List<SimpleTreeNode<int>>()
-                {
-                    tree.Root,
-                }
             };
 
             // 2: To second level withoud children

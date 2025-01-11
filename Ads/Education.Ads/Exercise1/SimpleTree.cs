@@ -70,14 +70,11 @@ namespace AlgorithmsDataStructures2
 
             nodesStack.Push(Root);
 
-            int stackCount = 1;
-
-            while (stackCount != 0)
+            while (nodesStack.Count != 0)
             {
                 SimpleTreeNode<T> currentNode = nodesStack.Pop();
-                stackCount--;
 
-                if (currentNode.Equals(val))
+                if (currentNode.NodeValue.Equals(val))
                     results.Add(currentNode);
 
                 if (currentNode.Children == null) continue;
@@ -85,7 +82,6 @@ namespace AlgorithmsDataStructures2
                 foreach (SimpleTreeNode<T> child in currentNode.Children)
                 {
                     nodesStack.Push(child);
-                    stackCount++;
                 }
             }
 
@@ -114,19 +110,16 @@ namespace AlgorithmsDataStructures2
             nodes.Push(Root);
 
             int nodesCount = 1;
-            int stackCount = 1;
 
-            while (stackCount != 0)
+            while (nodes.Count != 0)
             {
                 SimpleTreeNode<T> currentNode = nodes.Pop();
-                stackCount--;
 
                 if (currentNode.Children == null) continue;
 
                 foreach (SimpleTreeNode<T> child in currentNode.Children)
                 {
                     nodes.Push(child);
-                    stackCount++;
                     nodesCount++;
                 }
             }
@@ -141,12 +134,10 @@ namespace AlgorithmsDataStructures2
             nodes.Push(Root);
 
             int leafCount = 0;
-            int stackCount = 1;
 
-            while (stackCount != 0)
+            while (nodes.Count != 0)
             {
                 SimpleTreeNode<T> currentNode = nodes.Pop();
-                stackCount--;
 
                 if (currentNode.Children == null)
                 {
@@ -157,7 +148,6 @@ namespace AlgorithmsDataStructures2
                 foreach (SimpleTreeNode<T> child in currentNode.Children)
                 {
                     nodes.Push(child);
-                    stackCount++;
                 }
             }
 

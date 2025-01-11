@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AlgorithmsDataStructures2
 {
@@ -9,12 +8,14 @@ namespace AlgorithmsDataStructures2
         public T NodeValue; // значение в узле
         public SimpleTreeNode<T> Parent; // родитель или null для корня
         public List<SimpleTreeNode<T>> Children; // список дочерних узлов или null
+        public int Level;
 
         public SimpleTreeNode(T val, SimpleTreeNode<T> parent)
         {
             NodeValue = val;
             Parent = parent;
             Children = null;
+            Level = -1;
         }
     }
 
@@ -31,7 +32,7 @@ namespace AlgorithmsDataStructures2
         {
             // В предположении, что ParentNode принадлежит данному дереву.
 
-            if(ParentNode.Children == null)
+            if (ParentNode.Children == null)
                 ParentNode.Children = new List<SimpleTreeNode<T>>();
 
             ParentNode.Children.Add(NewChild);
@@ -52,12 +53,12 @@ namespace AlgorithmsDataStructures2
         public List<SimpleTreeNode<T>> GetAllNodes()
         {
             List<SimpleTreeNode<T>> nodes = new List<SimpleTreeNode<T>>();
-            
+
             nodes.Add(Root);
 
-            foreach (SimpleTreeNode<T> node in nodes)
-                if (node.Children != null)
-                    nodes.AddRange(node.Children);
+            for (int i = 0; i < nodes.Count; i++)
+                if (nodes[i].Children != null)
+                    nodes.AddRange(nodes[i].Children);
 
             return nodes;
         }
@@ -95,13 +96,15 @@ namespace AlgorithmsDataStructures2
         {
             // В предположении, что OriginalNode принадлежит данному дереву.
 
-            NewParent.Parent = OriginalNode.Parent;
-            NewParent.Children.Add(OriginalNode);
+            if (OriginalNode == Root)
+                return;
 
             OriginalNode.Parent.Children.Remove(OriginalNode);
-            OriginalNode.Parent.Children.Add(NewParent);
-            
             OriginalNode.Parent = NewParent;
+
+            if (NewParent.Children == null)
+                NewParent.Children = new List<SimpleTreeNode<T>>();
+            NewParent.Children.Add(OriginalNode);
         }
 
         public int Count()
@@ -137,7 +140,7 @@ namespace AlgorithmsDataStructures2
 
             nodes.Push(Root);
 
-            int leafCount = 1;
+            int leafCount = 0;
             int stackCount = 1;
 
             while (stackCount != 0)

@@ -45,6 +45,11 @@
     <Compile Include="Exercise1\SimpleTreeExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Ads.Exercise6\Ads.Exercise6.csproj">
+      <Project>{1dc42eb1-9fa3-4520-87a8-22c31b2cb20c}</Project>
+      <Name>Ads.Exercise6</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

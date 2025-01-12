@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Education.Ads.Exercise1;
 
 namespace AlgorithmsDataStructures2
 {
@@ -15,7 +16,10 @@ namespace AlgorithmsDataStructures2
             NodeValue = val;
             Parent = parent;
             Children = null;
-            Level = -1;
+
+            Level = parent != null 
+                ? parent.Level + 1
+                : -1;
         }
     }
 
@@ -26,6 +30,8 @@ namespace AlgorithmsDataStructures2
         public SimpleTree(SimpleTreeNode<T> root)
         {
             Root = root;
+
+            Root?.UpdateNodesLevelsRecursive(0);
         }
 
         public void AddChild(SimpleTreeNode<T> ParentNode, SimpleTreeNode<T> NewChild)
@@ -37,6 +43,8 @@ namespace AlgorithmsDataStructures2
 
             ParentNode.Children.Add(NewChild);
             NewChild.Parent = ParentNode;
+
+            NewChild.UpdateNodesLevelsRecursive(ParentNode.Level + 1);
         }
 
         public void DeleteNode(SimpleTreeNode<T> NodeToDelete)
@@ -85,9 +93,7 @@ namespace AlgorithmsDataStructures2
                 if (currentNode.Children == null) continue;
 
                 foreach (SimpleTreeNode<T> child in currentNode.Children)
-                {
                     nodesStack.Push(child);
-                }
             }
 
             return results;
@@ -105,7 +111,10 @@ namespace AlgorithmsDataStructures2
 
             if (NewParent.Children == null)
                 NewParent.Children = new List<SimpleTreeNode<T>>();
+
             NewParent.Children.Add(OriginalNode);
+
+            OriginalNode.UpdateNodesLevelsRecursive(NewParent.Level + 1);
         }
 
         public int Count()
@@ -156,9 +165,7 @@ namespace AlgorithmsDataStructures2
                 }
 
                 foreach (SimpleTreeNode<T> child in currentNode.Children)
-                {
                     nodes.Push(child);
-                }
             }
 
             return leafCount;

@@ -37,7 +37,7 @@ namespace Education.Ads.Tests.Exercise1
 
         [Theory]
         [MemberData(nameof(IsSymmetricallyData))]
-        public void Should_IsSymmetrically(SimpleTree<int> tree, bool isSymmetrically)
+        public void Should_IsSymmetricallyIterative(SimpleTree<int> tree, bool isSymmetrically)
         {
             tree.IsSymmetricallyIterative().ShouldBe(isSymmetrically);
         }
@@ -103,6 +103,22 @@ namespace Education.Ads.Tests.Exercise1
             var node32 = new SimpleTreeNode<int>(4, null);
             var node33 = new SimpleTreeNode<int>(3, null);
             var node34 = new SimpleTreeNode<int>(4, null);
+            tree.AddChild(node1, node31);
+            tree.AddChild(node1, node32);
+            tree.AddChild(node2, node33);
+            tree.AddChild(node2, node34);
+            yield return new object[] { tree, false };
+
+            root = new SimpleTreeNode<int>(0, null);
+            tree = new SimpleTree<int>(root);
+            node1 = new SimpleTreeNode<int>(1, root);
+            node2 = new SimpleTreeNode<int>(1, root);
+            tree.AddChild(root, node1);
+            tree.AddChild(root, node2);
+            node31 = new SimpleTreeNode<int>(7, null);
+            node32 = new SimpleTreeNode<int>(9, null);
+            node33 = new SimpleTreeNode<int>(8, null);
+            node34 = new SimpleTreeNode<int>(7, null);
             tree.AddChild(node1, node31);
             tree.AddChild(node1, node32);
             tree.AddChild(node2, node33);

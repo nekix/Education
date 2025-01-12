@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Ads.Exercise6;
 using Education.Ads.Exercise1;
 
 namespace AlgorithmsDataStructures2
@@ -31,7 +32,8 @@ namespace AlgorithmsDataStructures2
         {
             Root = root;
 
-            Root?.UpdateNodesLevelsRecursive(0);
+            if(Root != null)
+                UpdateNodesLevelsRecursive(Root, 0);
         }
 
         public void AddChild(SimpleTreeNode<T> ParentNode, SimpleTreeNode<T> NewChild)
@@ -44,7 +46,7 @@ namespace AlgorithmsDataStructures2
             ParentNode.Children.Add(NewChild);
             NewChild.Parent = ParentNode;
 
-            NewChild.UpdateNodesLevelsRecursive(ParentNode.Level + 1);
+            UpdateNodesLevelsRecursive(NewChild, ParentNode.Level + 1);
         }
 
         public void DeleteNode(SimpleTreeNode<T> NodeToDelete)
@@ -114,7 +116,7 @@ namespace AlgorithmsDataStructures2
 
             NewParent.Children.Add(OriginalNode);
 
-            OriginalNode.UpdateNodesLevelsRecursive(NewParent.Level + 1);
+            UpdateNodesLevelsRecursive(OriginalNode, NewParent.Level + 1);
         }
 
         public int Count()
@@ -171,6 +173,150 @@ namespace AlgorithmsDataStructures2
             return leafCount;
         }
 
+        public SimpleTree<T> UpdateNodesLevelsRecursive()
+        {
+            if (Root != null)
+                UpdateNodesLevelsRecursive(Root, 0);
+
+            return this;
+        }
+
+        private void UpdateNodesLevelsRecursive(SimpleTreeNode<T> node, int nodeLevel)
+        {
+            node.Level = nodeLevel;
+
+            if (node.Children == null)
+                return;
+
+            foreach (var child in node.Children)
+                UpdateNodesLevelsRecursive(child, nodeLevel + 1);
+        }
+
+        public SimpleTree<T> UpdateNodesLevelsIterative()
+        {
+            Queue<SimpleTreeNode<T>> nodesQueue = new Queue<SimpleTreeNode<T>>();
+
+            nodesQueue.Enqueue(Root);
+
+            int level = 0;
+            int nodesLevelCount = 1;
+
+            while (nodesQueue.Count != 0)
+            {
+                SimpleTreeNode<T> currentNode = nodesQueue.Dequeue();
+
+                currentNode.Level = level;
+
+                nodesLevelCount--;
+
+                if (currentNode.Children != null)
+                {
+                    foreach (SimpleTreeNode<T> child in currentNode.Children)
+                    {
+                        nodesQueue.Enqueue(child);
+                    }
+                }
+
+                if (nodesLevelCount == 0)
+                {
+                    level++;
+                    nodesLevelCount = nodesQueue.Count;
+                }
+            }
+
+            return this;
+        }
+
+        public bool IsSymmetricallyRecursive()
+        {
+            if (Root == null)
+                return true;
+
+            return IsSymmetricallyRecursive(Root.Children);
+        }
+
+        private bool IsSymmetricallyRecursive(List<SimpleTreeNode<T>> children)
+        {
+            if(children == null || children.Count == 0)
+                return true;
+
+            for (int i = 0, j = children.Count - 1; i < j; i++, j--)
+            {
+                if (!children[i].NodeValue.Equals(children[j].NodeValue))
+                    return false;
+
+                // Ветви зеркально расходятся
+                if (!IsSymmetricallyRecursive(children[i].Children, children[j].Children))
+                    return false;
+            }
+
+            // Средний ветвь (если есть)
+            if (children.Count % 2 != 0)
+                return IsSymmetricallyRecursive(children[children.Count / 2].Children);
+
+            return true;
+        }
+
+        private bool IsSymmetricallyRecursive(List<SimpleTreeNode<T>> leftChildren, List<SimpleTreeNode<T>> rightChildren)
+        {
+            if (leftChildren == null && rightChildren == null)
+                return true;
+
+            if (leftChildren == null || rightChildren == null)
+                return false;
+
+            if (leftChildren.Count != rightChildren.Count)
+                return false;
+
+            for (int i = 0, j = leftChildren.Count - 1; i < leftChildren.Count; i++, j--)
+            {
+                if (!leftChildren[i].NodeValue.Equals(rightChildren[j].NodeValue))
+                    return false;
+
+                if (!IsSymmetricallyRecursive(leftChildren[i].Children, rightChildren[j].Children))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public bool IsSymmetricallyIterative()
+        {
+            if (Root == null)
+                return true;
+
+            // Т.к. по умолчанию в C# нет реализации деки, я использовал свою из первой части курса АСД
+            ImprovedDeque<SimpleTreeNode<T>> nodesDeque = new ImprovedDeque<SimpleTreeNode<T>>();
+            nodesDeque.AddFront(Root);
+
+            while (nodesDeque.Size() > 0)
+            {
+                SimpleTreeNode<T> leftNode = nodesDeque.RemoveFront();
+
+                if (nodesDeque.Size() != 0)
+                {
+                    SimpleTreeNode<T> rightNode = nodesDeque.RemoveTail();
+
+                    if (!leftNode.NodeValue.Equals(rightNode.NodeValue))
+                        return false;
+
+                    if (leftNode.Children == null && leftNode.Children == null)
+                        continue;
+
+                    if (leftNode.Children.Count != rightNode.Children.Count)
+                        return false;
+
+                    foreach (SimpleTreeNode<T> child in rightNode.Children)
+                        nodesDeque.AddTail(child);
+                }
+
+                if (leftNode.Children != null)
+                    foreach (SimpleTreeNode<T> child in leftNode.Children)
+                        nodesDeque.AddTail(child);
+            }
+
+            return true;
+        }
     }
 
 }

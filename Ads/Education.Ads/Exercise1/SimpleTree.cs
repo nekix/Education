@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Ads.Exercise6;
-using Education.Ads.Exercise1;
 
 namespace AlgorithmsDataStructures2
 {
@@ -306,13 +305,13 @@ namespace AlgorithmsDataStructures2
                     if (leftNode.Children.Count != rightNode.Children.Count)
                         return false;
 
-                    foreach (SimpleTreeNode<T> child in rightNode.Children)
-                        nodesDeque.AddTail(child);
+                    for (int i = rightNode.Children.Count - 1; i >= 0; i--)
+                        nodesDeque.AddTail(rightNode.Children[i]);
                 }
 
                 if (leftNode.Children != null)
                     foreach (SimpleTreeNode<T> child in leftNode.Children)
-                        nodesDeque.AddTail(child);
+                        nodesDeque.AddFront(child);
             }
 
             return true;

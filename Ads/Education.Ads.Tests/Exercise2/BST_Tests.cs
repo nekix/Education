@@ -57,6 +57,13 @@ namespace Education.Ads.Tests.Exercise2
             checkTree.Invoke(tree);
         }
 
+        [Theory]
+        [MemberData(nameof(GetCountData))]
+        public void Should_Count(BST<int> tree, int count)
+        {
+            tree.Count().ShouldBe(count);
+        }
+
         public static IEnumerable<object[]> GetFindNodeByKeyData()
         {
             // 1: Левый отсутсвующий
@@ -117,47 +124,47 @@ namespace Education.Ads.Tests.Exercise2
         public static IEnumerable<object[]> GetDeleteNodeByKeyData()
         {
             // 1: Root узел
-            //var tree = GetDefaultTree();
-            //Action<BST<int>> action = (t) =>
-            //{
-            //    t.Count().ShouldBe(0);
-            //};
-            //yield return new object[] { tree, 8, true, action };
+            var tree = GetDefaultTree();
+            Action<BST<int>> action = (t) =>
+            {
+                t.Count().ShouldBe(0);
+            };
+            yield return new object[] { tree, 8, true, action };
 
-            //// 2: Удаление НЕ листа
-            //tree = GetDefaultTree();
-            //action = (t) =>
-            //{
-            //    t.Count().ShouldBe(16);
-            //    t.FindNodeByKey(8).Node.RightChild.RightChild.RightChild.NodeKey.ShouldBe(17);
-            //};
-            //yield return new object[] { tree, 15, true, action };
+            // 2: Удаление НЕ листа
+            tree = GetDefaultTree();
+            action = (t) =>
+            {
+                t.Count().ShouldBe(16);
+                t.FindNodeByKey(8).Node.RightChild.RightChild.RightChild.NodeKey.ShouldBe(17);
+            };
+            yield return new object[] { tree, 15, true, action };
 
-            //// 3: Удаление листа
-            //tree = GetDefaultTree();
-            //action = (t) =>
-            //{
-            //    t.Count().ShouldBe(16);
-            //    t.FindNodeByKey(8).Node.RightChild.LeftChild.LeftChild.ShouldBeNull();
-            //};
-            //yield return new object[] { tree, 9, true, action };
+            // 3: Удаление листа
+            tree = GetDefaultTree();
+            action = (t) =>
+            {
+                t.Count().ShouldBe(16);
+                t.FindNodeByKey(8).Node.RightChild.LeftChild.LeftChild.ShouldBeNull();
+            };
+            yield return new object[] { tree, 9, true, action };
 
-            //// 4: Несуществующий узел
-            //tree = GetDefaultTree();
-            //action = (t) =>
-            //{
-            //    t.Count().ShouldBe(17);
-            //};
-            //yield return new object[] { tree, 16, false, action };
+            // 4: Несуществующий узел
+            tree = GetDefaultTree();
+            action = (t) =>
+            {
+                t.Count().ShouldBe(17);
+            };
+            yield return new object[] { tree, 16, false, action };
 
             // 5: Удаление НЕ листа с двумя потомками
-            var tree = GetDefaultTree();
+            tree = GetDefaultTree();
             tree.AddKeyValue(18, 301);
             tree.AddKeyValue(25, 302);
             tree.AddKeyValue(22, 303);
             tree.AddKeyValue(20, 304);
             tree.AddKeyValue(21, 305);
-            Action<BST<int>> action = (t) =>
+            action = (t) =>
             {
                 t.Count().ShouldBe(21);
                 t.FindNodeByKey(8).Node.RightChild.RightChild.RightChild.RightChild.RightChild.NodeKey.ShouldBe(20);
@@ -174,6 +181,21 @@ namespace Education.Ads.Tests.Exercise2
                 t.FindNodeByKey(8).Node.RightChild.RightChild.RightChild.RightChild.RightChild.RightChild.LeftChild.Parent.LeftChild.NodeKey.ShouldBe(22);
             };
             yield return new object[] { tree, 19, true, action };
+        }
+
+        public static IEnumerable<object[]> GetCountData()
+        {
+            // 1: Пустое
+            var tree = new BST<int>(null);
+            yield return new object[] { tree, 0 };
+
+            // 2: Только root
+            tree = new BST<int>(new BSTNode<int>(5, 5, null));
+            yield return new object[] { tree, 1 };
+
+            // 3: Заполненное
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 17 };
         }
 
         public static BST<int> GetDefaultTree()

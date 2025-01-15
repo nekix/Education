@@ -134,6 +134,90 @@ namespace AlgorithmsDataStructures2
             if (!bstFind.NodeHasKey)
                 return false;
 
+            if (bstFind.Node == Root)
+            {
+                Root = null;
+                return true;
+            }
+
+            var deletedNode = bstFind.Node;
+
+            BSTNode<T> newChild = null;
+
+            if (deletedNode.LeftChild == null && deletedNode.RightChild != null)
+            {
+                newChild = deletedNode.RightChild;
+
+                deletedNode.RightChild = null;
+            }
+            else if (deletedNode.LeftChild != null && deletedNode.RightChild == null)
+            {
+                newChild = deletedNode.LeftChild;
+
+                deletedNode.LeftChild = null;
+            }
+            else if (deletedNode.LeftChild != null && deletedNode.RightChild != null)
+            {
+                newChild = deletedNode.RightChild;
+
+                while (newChild.LeftChild != null)
+                    newChild = newChild.LeftChild;
+
+                if (newChild.RightChild != null)
+                {
+                    if (newChild.Parent.RightChild == newChild)
+                    {
+                        newChild.Parent.RightChild = newChild.RightChild;
+                        newChild.RightChild.Parent = newChild.Parent;
+                    }
+                    else
+                    {
+                        newChild.Parent.LeftChild = newChild.RightChild;
+                        newChild.RightChild.Parent = newChild.Parent;
+                    }
+                }
+                else
+                {
+                    if (newChild.Parent.RightChild == newChild)
+                    {
+                        newChild.Parent.RightChild = null;
+                    }
+                    else
+                    {
+                        newChild.Parent.LeftChild = null;
+                    }
+                }
+
+                newChild.Parent = deletedNode.Parent;
+
+                newChild.LeftChild = deletedNode.LeftChild;
+                deletedNode.LeftChild.Parent = newChild;
+
+                newChild.RightChild = deletedNode.RightChild;
+                deletedNode.RightChild.Parent = newChild;
+            }
+
+            if (deletedNode.Parent.RightChild == deletedNode)
+            {
+                deletedNode.Parent.RightChild = newChild;
+            }
+            else
+            {
+                deletedNode.Parent.LeftChild = newChild;
+            }
+
+            deletedNode.Parent = null;
+
+            return true;
+        }
+
+        public bool DeleteNodeByKeyV2(int key)
+        {
+            var bstFind = FindNodeByKey(key);
+
+            if (!bstFind.NodeHasKey)
+                return false;
+
             var deletedNode = bstFind.Node;
             var parent = deletedNode.Parent;
 

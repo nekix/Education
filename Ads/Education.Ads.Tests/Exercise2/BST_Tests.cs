@@ -131,7 +131,7 @@ namespace Education.Ads.Tests.Exercise2
             };
             yield return new object[] { tree, 8, true, action };
 
-            // 2: Удаление НЕ листа
+            // 2: Удаление НЕ листа (с одним дочерним узлом)
             tree = GetDefaultTree();
             action = (t) =>
             {
@@ -157,7 +157,7 @@ namespace Education.Ads.Tests.Exercise2
             };
             yield return new object[] { tree, 16, false, action };
 
-            // 5: Удаление НЕ листа с двумя потомками
+            // 5: Удаление НЕ листа (с двумя потомками, узел приемник с правым потомком)
             tree = GetDefaultTree();
             tree.AddKeyValue(18, 301);
             tree.AddKeyValue(25, 302);
@@ -181,6 +181,14 @@ namespace Education.Ads.Tests.Exercise2
                 t.FindNodeByKey(8).Node.RightChild.RightChild.RightChild.RightChild.RightChild.RightChild.LeftChild.Parent.LeftChild.NodeKey.ShouldBe(22);
             };
             yield return new object[] { tree, 19, true, action };
+
+            // 6: Удаление НЕ листа (с двумя потомками, узел приемник без правого потомка)
+            tree = GetDefaultTree();
+            action = (t) =>
+            {
+                t.Count().ShouldBe(16);
+            };
+            yield return new object[] { tree, 12, true, action };
         }
 
         public static IEnumerable<object[]> GetCountData()
@@ -196,6 +204,13 @@ namespace Education.Ads.Tests.Exercise2
             // 3: Заполненное
             tree = GetDefaultTree();
             yield return new object[] { tree, 17 };
+
+            // 4: Заполненное после удаления нескольких узлов
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(17);
+            tree.DeleteNodeByKey(1);
+            tree.DeleteNodeByKey(12);
+            yield return new object[] { tree, 14 };
         }
 
         public static BST<int> GetDefaultTree()

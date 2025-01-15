@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 
 namespace AlgorithmsDataStructures2
 {
@@ -175,9 +176,20 @@ namespace AlgorithmsDataStructures2
                         newChild.RightChild.Parent = newChild.Parent;
                     }
                 }
+                else
+                {
+                    if (newChild.Parent.RightChild == newChild)
+                    {
+                        newChild.Parent.RightChild = null;
+                    }
+                    else
+                    {
+                        newChild.Parent.LeftChild = null;
+                    }
+                }
 
                 newChild.Parent = deletedNode.Parent;
-                
+
                 newChild.LeftChild = deletedNode.LeftChild;
                 deletedNode.LeftChild.Parent = newChild;
 
@@ -195,6 +207,194 @@ namespace AlgorithmsDataStructures2
             }
 
             deletedNode.Parent = null;
+
+            return true;
+        }
+
+        public bool DeleteNodeByKeyV2(int key)
+        {
+            var bstFind = FindNodeByKey(key);
+
+            if (!bstFind.NodeHasKey)
+                return false;
+
+            if (bstFind.Node == Root)
+            {
+                Root = null;
+                return true;
+            }
+
+            var deletedNode = bstFind.Node;
+
+            BSTNode<T> newChild = null;
+
+            // Один правый потомок
+            if (deletedNode.LeftChild == null && deletedNode.RightChild != null)
+            {
+                // Новый
+                newChild = deletedNode.RightChild;
+
+                // Родитель удаляемого
+                var parent = deletedNode.Parent;
+                if (parent != null)
+                {
+                    if (parent.RightChild == deletedNode)
+                    {
+                        parent.RightChild = newChild;
+                    }
+                    else
+                    {
+                        parent.LeftChild = newChild;
+                    }
+                }
+                newChild.Parent = parent;
+
+                // Удялемый
+                deletedNode.Parent = null;
+                deletedNode.RightChild = null;
+            }
+            // Один левый потомок
+            else if (deletedNode.LeftChild != null && deletedNode.RightChild == null)
+            {
+                // Новый
+                newChild = deletedNode.LeftChild;
+
+                // Родитель удаляемого
+                var parent = deletedNode.Parent;
+                if (parent != null)
+                {
+                    if (parent.RightChild == deletedNode)
+                    {
+                        parent.RightChild = newChild;
+                    }
+                    else
+                    {
+                        parent.LeftChild = newChild;
+                    }
+                }
+                newChild.Parent = parent;
+
+                // Удялемый
+                deletedNode.Parent = null;
+                deletedNode.LeftChild = null;
+            }
+            // Два потомка
+            else if (deletedNode.LeftChild != null && deletedNode.RightChild != null)
+            {
+                newChild = deletedNode.RightChild;
+
+                while (newChild.LeftChild != null)
+                    newChild = newChild.LeftChild;
+
+                // Есть правый узел
+                if (newChild.RightChild != null)
+                {
+                    // Правый ребенок приемника
+                    var rightNewChild = newChild.RightChild;
+                    rightNewChild.Parent = newChild.Parent;
+
+                    // Родитель узла приемника
+                    var newChildParent = newChild.Parent;
+                    if (newChildParent.RightChild == newChild)
+                    {
+                        newChildParent.RightChild = rightNewChild;
+                    }
+                    else
+                    {
+                        newChildParent.LeftChild = rightNewChild;
+                    }
+
+                    // Родитель удаляемого
+                    var parent = deletedNode.Parent;
+                    if (parent != null)
+                    {
+                        if (parent.RightChild == deletedNode)
+                        {
+                            parent.RightChild = newChild;
+                        }
+                        else
+                        {
+                            parent.LeftChild = newChild;
+                        }
+                    }
+                    newChild.Parent = parent;
+
+                    // Левый потомок удаляемого
+                    newChild.LeftChild = deletedNode.LeftChild;
+                    newChild.LeftChild.Parent = newChild;
+
+                    // Правый потомок удаляемого
+                    newChild.RightChild = deletedNode.RightChild;
+                    newChild.RightChild.Parent = newChild;
+
+                    // Удаляемый
+                    deletedNode.Parent = null;
+                    deletedNode.RightChild = null;
+                    deletedNode.LeftChild = null;
+                }
+                // Лист
+                else
+                {
+                    // Родитель узла приемника
+                    var newChildParent = newChild.Parent;
+                    if (newChildParent.RightChild == newChild)
+                    {
+                        newChildParent.RightChild = null;
+                    }
+                    else
+                    {
+                        newChildParent.LeftChild = null;
+                    }
+
+                    // Родитель удаляемого
+                    var parent = deletedNode.Parent;
+                    if (parent != null)
+                    {
+                        if (parent.RightChild == deletedNode)
+                        {
+                            parent.RightChild = newChild;
+                        }
+                        else
+                        {
+                            parent.LeftChild = newChild;
+                        }
+                    }
+                    newChild.Parent = parent;
+
+                    // Левый потомок удаляемого
+                    newChild.LeftChild = deletedNode.LeftChild;
+                    newChild.LeftChild.Parent = newChild;
+
+                    // Правый потомок удаляемого
+                    newChild.RightChild = deletedNode.RightChild;
+                    newChild.RightChild.Parent = newChild;
+
+                    // Удаляемый
+                    deletedNode.Parent = null;
+                    deletedNode.RightChild = null;
+                    deletedNode.LeftChild = null;
+                }
+            }
+            // Удаление листа
+            else
+            {
+                // Родитель удаляемого
+                var parent = deletedNode.Parent;
+                if (parent != null)
+                {
+                    if (parent.RightChild == deletedNode)
+                    {
+                        parent.RightChild = null;
+                    }
+                    else
+                    {
+                        parent.LeftChild = null;
+                    }
+                }
+
+                // Удаляемый
+                deletedNode.Parent = null;
+            }
 
             return true;
         }

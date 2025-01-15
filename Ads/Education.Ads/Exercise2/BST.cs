@@ -134,93 +134,8 @@ namespace AlgorithmsDataStructures2
             if (!bstFind.NodeHasKey)
                 return false;
 
-            if (bstFind.Node == Root)
-            {
-                Root = null;
-                return true;
-            }
-
             var deletedNode = bstFind.Node;
-
-            BSTNode<T> newChild = null;
-
-            if (deletedNode.LeftChild == null && deletedNode.RightChild != null)
-            {
-                newChild = deletedNode.RightChild;
-
-                deletedNode.RightChild = null;
-            }
-            else if (deletedNode.LeftChild != null && deletedNode.RightChild == null)
-            {
-                newChild = deletedNode.LeftChild;
-
-                deletedNode.LeftChild = null;
-            }
-            else if (deletedNode.LeftChild != null && deletedNode.RightChild != null)
-            {
-                newChild = deletedNode.RightChild;
-
-                while (newChild.LeftChild != null)
-                    newChild = newChild.LeftChild;
-
-                if (newChild.RightChild != null)
-                {
-                    if (newChild.Parent.RightChild == newChild)
-                    {
-                        newChild.RightChild.Parent = newChild.Parent;
-                    }
-                    else
-                    {
-                        newChild.RightChild.Parent = newChild.Parent;
-                    }
-                }
-
-                if (newChild.Parent.RightChild == newChild)
-                {
-                    newChild.Parent.RightChild = newChild.RightChild;
-                }
-                else
-                {
-                    newChild.Parent.LeftChild = newChild.RightChild;
-                }
-
-                newChild.Parent = deletedNode.Parent;
-
-                newChild.LeftChild = deletedNode.LeftChild;
-                deletedNode.LeftChild.Parent = newChild;
-
-                newChild.RightChild = deletedNode.RightChild;
-                deletedNode.RightChild.Parent = newChild;
-            }
-
-            if (deletedNode.Parent.RightChild == deletedNode)
-            {
-                deletedNode.Parent.RightChild = newChild;
-            }
-            else
-            {
-                deletedNode.Parent.LeftChild = newChild;
-            }
-
-            deletedNode.Parent = null;
-
-            return true;
-        }
-
-        public bool DeleteNodeByKeyV2(int key)
-        {
-            var bstFind = FindNodeByKey(key);
-
-            if (!bstFind.NodeHasKey)
-                return false;
-
-            if (bstFind.Node == Root)
-            {
-                Root = null;
-                return true;
-            }
-
-            var deletedNode = bstFind.Node;
+            var parent = deletedNode.Parent;
 
             BSTNode<T> newChild = null;
 
@@ -230,8 +145,7 @@ namespace AlgorithmsDataStructures2
                 // Новый
                 newChild = deletedNode.RightChild;
 
-                // Родитель удаляемого
-                var parent = deletedNode.Parent;
+                // Родитель удаляемого  
                 if (parent != null)
                 {
                     if (parent.RightChild == deletedNode)
@@ -244,10 +158,6 @@ namespace AlgorithmsDataStructures2
                     }
                 }
                 newChild.Parent = parent;
-
-                // Удялемый
-                deletedNode.Parent = null;
-                deletedNode.RightChild = null;
             }
             // Один левый потомок
             else if (deletedNode.LeftChild != null && deletedNode.RightChild == null)
@@ -256,7 +166,7 @@ namespace AlgorithmsDataStructures2
                 newChild = deletedNode.LeftChild;
 
                 // Родитель удаляемого
-                var parent = deletedNode.Parent;
+                parent = deletedNode.Parent;
                 if (parent != null)
                 {
                     if (parent.RightChild == deletedNode)
@@ -269,10 +179,6 @@ namespace AlgorithmsDataStructures2
                     }
                 }
                 newChild.Parent = parent;
-
-                // Удялемый
-                deletedNode.Parent = null;
-                deletedNode.LeftChild = null;
             }
             // Два потомка
             else if (deletedNode.LeftChild != null && deletedNode.RightChild != null)
@@ -282,100 +188,55 @@ namespace AlgorithmsDataStructures2
                 while (newChild.LeftChild != null)
                     newChild = newChild.LeftChild;
 
+                var newChildParent = newChild.Parent;
+
+                // Правый ребенок приемника 
+                var rightNewChild = newChild.RightChild;
                 // Есть правый узел
                 if (newChild.RightChild != null)
                 {
-                    // Правый ребенок приемника
-                    var rightNewChild = newChild.RightChild;
+                    
                     rightNewChild.Parent = newChild.Parent;
-
-                    // Родитель узла приемника
-                    var newChildParent = newChild.Parent;
-                    if (newChildParent.RightChild == newChild)
-                    {
-                        newChildParent.RightChild = rightNewChild;
-                    }
-                    else
-                    {
-                        newChildParent.LeftChild = rightNewChild;
-                    }
-
-                    // Родитель удаляемого
-                    var parent = deletedNode.Parent;
-                    if (parent != null)
-                    {
-                        if (parent.RightChild == deletedNode)
-                        {
-                            parent.RightChild = newChild;
-                        }
-                        else
-                        {
-                            parent.LeftChild = newChild;
-                        }
-                    }
-                    newChild.Parent = parent;
-
-                    // Левый потомок удаляемого
-                    newChild.LeftChild = deletedNode.LeftChild;
-                    newChild.LeftChild.Parent = newChild;
-
-                    // Правый потомок удаляемого
-                    newChild.RightChild = deletedNode.RightChild;
-                    newChild.RightChild.Parent = newChild;
-
-                    // Удаляемый
-                    deletedNode.Parent = null;
-                    deletedNode.RightChild = null;
-                    deletedNode.LeftChild = null;
                 }
-                // Лист
+
+                // Родитель узла приемника                   
+                if (newChildParent.RightChild == newChild)
+                {
+                    newChildParent.RightChild = rightNewChild;
+                }
                 else
                 {
-                    // Родитель узла приемника
-                    var newChildParent = newChild.Parent;
-                    if (newChildParent.RightChild == newChild)
+                    newChildParent.LeftChild = rightNewChild;
+                }
+
+                // Родитель удаляемого
+                parent = deletedNode.Parent;
+                if (parent != null)
+                {
+                    if (parent.RightChild == deletedNode)
                     {
-                        newChildParent.RightChild = null;
+                        parent.RightChild = newChild;
                     }
                     else
                     {
-                        newChildParent.LeftChild = null;
+                        parent.LeftChild = newChild;
                     }
-
-                    // Родитель удаляемого
-                    var parent = deletedNode.Parent;
-                    if (parent != null)
-                    {
-                        if (parent.RightChild == deletedNode)
-                        {
-                            parent.RightChild = newChild;
-                        }
-                        else
-                        {
-                            parent.LeftChild = newChild;
-                        }
-                    }
-                    newChild.Parent = parent;
-
-                    // Левый потомок удаляемого
-                    newChild.LeftChild = deletedNode.LeftChild;
-                    newChild.LeftChild.Parent = newChild;
-
-                    // Правый потомок удаляемого
-                    newChild.RightChild = deletedNode.RightChild;
-                    newChild.RightChild.Parent = newChild;
-
-                    // Удаляемый
-                    deletedNode.Parent = null;
-                    deletedNode.RightChild = null;
-                    deletedNode.LeftChild = null;
                 }
+                newChild.Parent = parent;
+
+                // Левый потомок удаляемого
+                newChild.LeftChild = deletedNode.LeftChild;
+                newChild.LeftChild.Parent = newChild;
+
+                // Правый потомок удаляемого
+                newChild.RightChild = deletedNode.RightChild;
+                newChild.RightChild.Parent = newChild;
             }
             // Удаление листа
             else
             {
                 // Родитель удаляемого
-                var parent = deletedNode.Parent;
+                parent = deletedNode.Parent;
                 if (parent != null)
                 {
                     if (parent.RightChild == deletedNode)
@@ -387,10 +248,15 @@ namespace AlgorithmsDataStructures2
                         parent.LeftChild = null;
                     }
                 }
-
-                // Удаляемый
-                deletedNode.Parent = null;
             }
+
+            // Удаляемый
+            deletedNode.Parent = null;
+            deletedNode.RightChild = null;
+            deletedNode.LeftChild = null;
+
+            if (parent == null)
+                Root = newChild;
 
             return true;
         }

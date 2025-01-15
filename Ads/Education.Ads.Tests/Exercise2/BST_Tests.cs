@@ -127,7 +127,8 @@ namespace Education.Ads.Tests.Exercise2
             var tree = GetDefaultTree();
             Action<BST<int>> action = (t) =>
             {
-                t.Count().ShouldBe(0);
+                t.Count().ShouldBe(16);
+                t.FindNodeByKey(8).NodeHasKey.ShouldBeFalse();
             };
             yield return new object[] { tree, 8, true, action };
 

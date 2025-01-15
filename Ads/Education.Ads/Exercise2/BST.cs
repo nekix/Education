@@ -134,12 +134,6 @@ namespace AlgorithmsDataStructures2
             if (!bstFind.NodeHasKey)
                 return false;
 
-            if (bstFind.Node == Root)
-            {
-                Root = null;
-                return true;
-            }
-
             var deletedNode = bstFind.Node;
 
             BSTNode<T> newChild = null;
@@ -176,17 +170,17 @@ namespace AlgorithmsDataStructures2
                         newChild.RightChild.Parent = newChild.Parent;
                     }
                 }
-                else
-                {
-                    //if (newChild.Parent.RightChild == newChild)
-                    //{
-                    //    newChild.Parent.RightChild = null;
-                    //}
-                    //else
-                    //{
-                    //    newChild.Parent.LeftChild = null;
-                    //}
-                }
+                //else
+                //{
+                //    if (newChild.Parent.RightChild == newChild)
+                //    {
+                //        newChild.Parent.RightChild = null;
+                //    }
+                //    else
+                //    {
+                //        newChild.Parent.LeftChild = null;
+                //    }
+                //}
 
                 newChild.Parent = deletedNode.Parent;
 
@@ -197,7 +191,11 @@ namespace AlgorithmsDataStructures2
                 deletedNode.RightChild.Parent = newChild;
             }
 
-            if (deletedNode.Parent.RightChild == deletedNode)
+            if (bstFind.Node == Root)
+            {
+                Root = newChild;
+            }
+            else if (deletedNode.Parent.RightChild == deletedNode)
             {
                 deletedNode.Parent.RightChild = newChild;
             }

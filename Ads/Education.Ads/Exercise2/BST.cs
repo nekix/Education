@@ -167,25 +167,21 @@ namespace AlgorithmsDataStructures2
                 {
                     if (newChild.Parent.RightChild == newChild)
                     {
-                        newChild.Parent.RightChild = newChild.RightChild;
                         newChild.RightChild.Parent = newChild.Parent;
                     }
                     else
                     {
-                        newChild.Parent.LeftChild = newChild.RightChild;
                         newChild.RightChild.Parent = newChild.Parent;
                     }
                 }
+
+                if (newChild.Parent.RightChild == newChild)
+                {
+                    newChild.Parent.RightChild = newChild.RightChild;
+                }
                 else
                 {
-                    if (newChild.Parent.RightChild == newChild)
-                    {
-                        newChild.Parent.RightChild = null;
-                    }
-                    else
-                    {
-                        newChild.Parent.LeftChild = null;
-                    }
+                    newChild.Parent.LeftChild = newChild.RightChild;
                 }
 
                 newChild.Parent = deletedNode.Parent;

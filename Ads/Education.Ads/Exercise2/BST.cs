@@ -170,17 +170,17 @@ namespace AlgorithmsDataStructures2
                         newChild.RightChild.Parent = newChild.Parent;
                     }
                 }
-                //else
-                //{
-                //    if (newChild.Parent.RightChild == newChild)
-                //    {
-                //        newChild.Parent.RightChild = null;
-                //    }
-                //    else
-                //    {
-                //        newChild.Parent.LeftChild = null;
-                //    }
-                //}
+                else
+                {
+                    if (newChild.Parent.RightChild == newChild)
+                    {
+                        newChild.Parent.RightChild = null;
+                    }
+                    else
+                    {
+                        newChild.Parent.LeftChild = null;
+                    }
+                }
 
                 newChild.Parent = deletedNode.Parent;
 

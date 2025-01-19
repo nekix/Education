@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Exercise1\SimpleTree.cs" />
     <Compile Include="Exercise2\BST.cs" />
+    <Compile Include="Exercise2\BSTInt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

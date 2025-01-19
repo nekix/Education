@@ -64,6 +64,26 @@ namespace Education.Ads.Tests.Exercise2
             tree.Count().ShouldBe(count);
         }
 
+        [Theory]
+        [MemberData(nameof(GetCheckEqualData))]
+        public void Should_CheckEqual(BST<int> firstTree, BST<int> secondTree, bool result)
+        {
+            firstTree.CheckEqual(secondTree).ShouldBe(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLeafPathsData))]
+        public void Should_GetLeafPaths(BST<int> tree, int pathLength, List<List<BSTNode<int>>> paths)
+        {
+            var result = tree.GetLeafPaths(pathLength);
+            
+            result.Count.ShouldBe(paths.Count);
+            for (int i = 0; i < result.Count; i++)
+            {
+                result[i].ShouldBe(paths[i]);
+            }
+        }
+
         public static IEnumerable<object[]> GetFindNodeByKeyData()
         {
             // 1: Левый отсутсвующий
@@ -212,6 +232,233 @@ namespace Education.Ads.Tests.Exercise2
             tree.DeleteNodeByKey(1);
             tree.DeleteNodeByKey(12);
             yield return new object[] { tree, 14 };
+        }
+
+        public static IEnumerable<object[]> GetCheckEqualData()
+        {
+            // 1: Оба пустых
+            var firstTree = new BST<int>(null);
+            var secondTree = new BST<int>(null);
+            yield return new object[] { firstTree, secondTree, true };
+
+            // 2: Одно пустое, одно с Root
+            firstTree = new BST<int>(null);
+            secondTree = new BST<int>(new BSTNode<int>(5, 5, null));
+            yield return new object[] { firstTree, secondTree, false };
+
+            // 3: Оба с Root
+            firstTree = new BST<int>(new BSTNode<int>(5, 5, null));
+            secondTree = new BST<int>(new BSTNode<int>(5, 5, null));
+            yield return new object[] { firstTree, secondTree, true };
+
+            // 4: Оба с Root(разные ключи)
+            firstTree = new BST<int>(new BSTNode<int>(3, 5, null));
+            secondTree = new BST<int>(new BSTNode<int>(5, 5, null));
+            yield return new object[] { firstTree, secondTree, false };
+
+            // 5: Оба с Root(разные значения)
+            firstTree = new BST<int>(new BSTNode<int>(3, 5, null));
+            secondTree = new BST<int>(new BSTNode<int>(5, 5, null));
+            yield return new object[] { firstTree, secondTree, false };
+
+            // 6: Оба заполненные
+            firstTree = GetDefaultTree();
+            secondTree = GetDefaultTree();
+            yield return new object[] { firstTree, secondTree, true };
+
+            // 7: Оба заполненные (разные значения в одной ноде)
+            firstTree = GetDefaultTree();
+            secondTree = GetDefaultTree();
+            firstTree.FindNodeByKey(17).Node.NodeValue = 125;
+            yield return new object[] { firstTree, secondTree, false };
+
+            // 8: Оба заполненные (разные ключи в одной ноде)
+            firstTree = GetDefaultTree();
+            secondTree = GetDefaultTree();
+            firstTree.FindNodeByKey(17).Node.NodeKey = 18;
+            yield return new object[] { firstTree, secondTree, false };
+
+            // 9: Оба заполненные (разноче число нод)
+            firstTree = GetDefaultTree();
+            secondTree = GetDefaultTree();
+            firstTree.FindNodeByKey(10).Node.LeftChild = null;
+            yield return new object[] { firstTree, secondTree, false };
+
+            // 10: Оба заполненных дерева, но через разные операции
+            firstTree = GetDefaultTree();
+            firstTree.DeleteNodeByKey(17);
+            firstTree.DeleteNodeByKey(19);
+            firstTree.DeleteNodeByKey(8);
+            firstTree.DeleteNodeByKey(7);
+            var secondRootNode = new BSTNode<int>(8, 100, null);
+            secondTree = new BST<int>(secondRootNode);
+            secondTree.AddKeyValue(4, 101);
+            secondTree.AddKeyValue(12, 102);
+            secondTree.AddKeyValue(2, 103);
+            secondTree.AddKeyValue(6, 104);
+            secondTree.AddKeyValue(10, 105);
+            secondTree.AddKeyValue(14, 106);
+            secondTree.AddKeyValue(1, 107);
+            secondTree.AddKeyValue(3, 108);
+            secondTree.AddKeyValue(5, 109);
+            secondTree.AddKeyValue(7, 110);
+            secondTree.AddKeyValue(9, 111);
+            secondTree.AddKeyValue(11, 112);
+            secondTree.AddKeyValue(13, 113);
+            secondTree.AddKeyValue(15, 114);
+            secondTree.AddKeyValue(17, 115);
+            secondTree.AddKeyValue(19, 116);
+            secondTree.DeleteNodeByKey(8);
+            secondTree.DeleteNodeByKey(7);
+
+            yield return new object[] { firstTree, secondTree, false };
+        }
+
+        public static IEnumerable<object[]> GetLeafPathsData()
+        {
+            // 1: Пустое дерево
+            var tree = new BST<int>(null);
+            yield return new object[] { tree, 1, new List<List<BSTNode<int>>>(0) };
+
+            // 2: Только корневой и длина пути 1
+            tree = new BST<int>(new BSTNode<int>(8, 100, null));
+            yield return new object[] { tree, 1, new List<List<BSTNode<int>>>(0) };
+
+            // 3: Только корневой и длина пути 2
+            tree = new BST<int>(new BSTNode<int>(8, 100, null));
+            yield return new object[] { tree, 2, new List<List<BSTNode<int>>>(0) };
+
+            // 4: Основное дерево, только третий уровень
+            tree = GetDefaultTree();
+            var paths = new List<List<BSTNode<int>>>
+            {
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(2).Node,
+                    tree.FindNodeByKey(1).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(2).Node,
+                    tree.FindNodeByKey(3).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(6).Node,
+                    tree.FindNodeByKey(5).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(6).Node,
+                    tree.FindNodeByKey(7).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(9).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(11).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(14).Node,
+                    tree.FindNodeByKey(13).Node,
+                },
+            };
+            yield return new object[] { tree, 3, paths };
+
+
+            // 5: Основное дерево, третий уровень
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 4, new List<List<BSTNode<int>>>(0) };
+
+            // 6: Основное дерево, четвертый уровень
+            tree = GetDefaultTree();
+            paths = new List<List<BSTNode<int>>>
+            {
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(14).Node,
+                    tree.FindNodeByKey(15).Node,
+                    tree.FindNodeByKey(17).Node,
+                    tree.FindNodeByKey(19).Node,
+                },
+            };
+            yield return new object[] { tree, 5, paths };
+
+            // 7: Основное дерево, удалено 4 узла, второй уровень
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(8);
+            tree.DeleteNodeByKey(9);
+            tree.DeleteNodeByKey(5);
+            tree.DeleteNodeByKey(7);
+            paths = new List<List<BSTNode<int>>>
+            {
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(6).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(11).Node,
+                },
+            };
+            yield return new object[] { tree, 2, paths };
+
+            // 8: Основное дерево, удалено 4 узла, третий уровень
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(8);
+            tree.DeleteNodeByKey(9);
+            tree.DeleteNodeByKey(5);
+            tree.DeleteNodeByKey(7);
+            paths = new List<List<BSTNode<int>>>
+            {
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(2).Node,
+                    tree.FindNodeByKey(1).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(4).Node,
+                    tree.FindNodeByKey(2).Node,
+                    tree.FindNodeByKey(3).Node,
+                },
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(10).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(14).Node,
+                    tree.FindNodeByKey(13).Node,
+                },
+            };
+            yield return new object[] { tree, 3, paths };
         }
 
         public static BST<int> GetDefaultTree()

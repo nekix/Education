@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AlgorithmsDataStructures;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.IO.Pipes;
+using System.Linq;
 
 namespace AlgorithmsDataStructures2
 {
@@ -39,7 +42,7 @@ namespace AlgorithmsDataStructures2
 
     public class BST<T>
     {
-        BSTNode<T> Root; // корень дерева, или null
+        protected BSTNode<T> Root; // корень дерева, или null
 
         public BST(BSTNode<T> node)
         {
@@ -48,8 +51,8 @@ namespace AlgorithmsDataStructures2
 
         public BSTFind<T> FindNodeByKey(int key)
         {
-            var node = Root;
-            var result = new BSTFind<T>();
+            BSTNode<T> node = Root;
+            BSTFind<T> result = new BSTFind<T>();
 
             while (node != null)
             {
@@ -87,7 +90,7 @@ namespace AlgorithmsDataStructures2
 
         public bool AddKeyValue(int key, T val)
         {
-            var bstFind = FindNodeByKey(key);
+            BSTFind<T> bstFind = FindNodeByKey(key);
 
             if (bstFind.Node == null)
             {
@@ -111,7 +114,7 @@ namespace AlgorithmsDataStructures2
 
         public BSTNode<T> FinMinMax(BSTNode<T> FromNode, bool FindMax)
         {
-            var node = FromNode;
+            BSTNode<T> node = FromNode;
 
             if (FindMax)
             {
@@ -129,24 +132,26 @@ namespace AlgorithmsDataStructures2
 
         public bool DeleteNodeByKey(int key)
         {
-            var bstFind = FindNodeByKey(key);
+            BSTFind<T> bstFind = FindNodeByKey(key);
 
             if (!bstFind.NodeHasKey)
                 return false;
 
-            var deletedNode = bstFind.Node;
+            BSTNode<T> deletedNode = bstFind.Node;
 
             BSTNode<T> newChild = null;
 
             if (deletedNode.LeftChild == null && deletedNode.RightChild != null)
             {
                 newChild = deletedNode.RightChild;
+                newChild.Parent = deletedNode.Parent;
 
                 deletedNode.RightChild = null;
             }
             else if (deletedNode.LeftChild != null && deletedNode.RightChild == null)
             {
                 newChild = deletedNode.LeftChild;
+                newChild.Parent = deletedNode.Parent;
 
                 deletedNode.LeftChild = null;
             }
@@ -238,5 +243,97 @@ namespace AlgorithmsDataStructures2
 
             return nodesCount;
         }
+
+        public bool CheckEqual(BST<T> tree)
+        {
+            if (Root == null)
+                return tree.Root == null;
+
+            Stack<BSTNode<T>> nodes = new Stack<BSTNode<T>>();
+
+            nodes.Push(Root);
+            nodes.Push(tree.Root);
+
+            while (nodes.Count != 0)
+            {
+                BSTNode<T> firstNode = nodes.Pop();
+                BSTNode<T> secondNode = nodes.Pop();
+
+                if (firstNode.NodeKey != secondNode.NodeKey)
+                    return false;
+
+                if (!firstNode.NodeValue.Equals(secondNode.NodeValue))
+                    return false;
+
+                if (firstNode.LeftChild != null)
+                {
+                    if (secondNode.LeftChild == null)
+                        return false;
+
+                    nodes.Push(firstNode.LeftChild);
+                    nodes.Push(secondNode.LeftChild);
+                }
+                else if (secondNode.LeftChild != null)
+                    return false;
+
+                if (firstNode.RightChild != null)
+                {
+                    if (secondNode.RightChild == null)
+                        return false;
+
+                    nodes.Push(firstNode.RightChild);
+                    nodes.Push(secondNode.RightChild);
+                }
+                else if (secondNode.RightChild != null)
+                    return false;
+            }
+
+            return true;
+        }
+
+        public List<List<BSTNode<T>>> GetLeafPaths(int pathLength)
+        {
+            List<List<BSTNode<T>>> leafPaths = new List<List<BSTNode<T>>>();
+
+            if (Root == null)
+                return leafPaths;
+
+            if (pathLength < 1)
+                return leafPaths;
+
+            Stack<BSTNode<T>> nodes = new Stack<BSTNode<T>>();
+            Stack<BSTNode<T>> currentPath = new Stack<BSTNode<T>>();
+
+            nodes.Push(Root);
+
+            while (nodes.Count != 0)
+            {
+                BSTNode<T> currentNode = nodes.Pop();
+
+                if (currentPath.Count != 0 && currentPath.Peek() != currentNode.Parent)
+                    while (currentPath.Peek() != currentNode.Parent)
+                        currentPath.Pop();
+
+                currentPath.Push(currentNode);
+
+                if (currentPath.Count - 1 == pathLength)
+                {
+                    if (currentNode.RightChild == null && currentNode.LeftChild == null)
+                        leafPaths.Add(currentPath.Reverse().ToList());
+                }
+                else
+                {
+                    if (currentNode.RightChild != null)
+                        nodes.Push(currentNode.RightChild);
+
+                    if (currentNode.LeftChild != null)
+                        nodes.Push(currentNode.LeftChild);
+                }
+            }
+
+            return leafPaths;
+        }
+
+
     }
 }

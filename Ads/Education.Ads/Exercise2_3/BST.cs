@@ -137,80 +137,72 @@ namespace AlgorithmsDataStructures2
             if (!bstFind.NodeHasKey)
                 return false;
 
-            BSTNode<T> deletedNode = bstFind.Node;
+            BSTNode<T> delNode = bstFind.Node;
+            BSTNode<T> delParent = delNode.Parent;
 
-            BSTNode<T> newChild = null;
+            BSTNode<T> newNode = null;
 
-            if (deletedNode.LeftChild == null && deletedNode.RightChild != null)
+            if (delNode.LeftChild == null || delNode.RightChild == null)
             {
-                newChild = deletedNode.RightChild;
-                newChild.Parent = deletedNode.Parent;
+                newNode = delNode.LeftChild ?? delNode.RightChild;
 
-                deletedNode.RightChild = null;
+                if (delParent != null)
+            {
+                    if (delNode == delParent.LeftChild)
+                        delParent.LeftChild = newNode;
+                    else
+                        delParent.RightChild = newNode;
+
+                    if (newNode != null)
+                        newNode.Parent = delParent;
             }
-            else if (deletedNode.LeftChild != null && deletedNode.RightChild == null)
-            {
-                newChild = deletedNode.LeftChild;
-                newChild.Parent = deletedNode.Parent;
-
-                deletedNode.LeftChild = null;
-            }
-            else if (deletedNode.LeftChild != null && deletedNode.RightChild != null)
-            {
-                newChild = deletedNode.RightChild;
-
-                while (newChild.LeftChild != null)
-                    newChild = newChild.LeftChild;
-
-                if (newChild.RightChild != null)
-                {
-                    if (newChild.Parent.RightChild == newChild)
-                    {
-                        newChild.Parent.RightChild = newChild.RightChild;
-                        newChild.RightChild.Parent = newChild.Parent;
-                    }
                     else
                     {
-                        newChild.Parent.LeftChild = newChild.RightChild;
-                        newChild.RightChild.Parent = newChild.Parent;
+                    Root = newNode;
                     }
                 }
                 else
                 {
-                    if (newChild.Parent.RightChild == newChild)
-                    {
-                        newChild.Parent.RightChild = null;
-                    }
+                newNode = delNode.RightChild;
+
+                while (newNode.LeftChild != null)
+                    newNode = newNode.LeftChild;
+
+                BSTNode<T> newNodeParent = newNode.Parent;
+
+                // Фиксация оставшегося родительского узла
+                // ноды-приемника
+                newNodeParent.LeftChild = newNode.RightChild;
+                if (newNodeParent.LeftChild != null)
+                    newNodeParent.LeftChild.Parent = newNodeParent;
+
+                // Фиксация с левым узлом удаляемой узла
+                newNode.LeftChild = delNode.LeftChild;
+                newNode.LeftChild.Parent = newNode;
+
+                // Фиксация с правым узлом удялемого узла
+                newNode.RightChild = delNode.RightChild;
+                newNode.RightChild.Parent = newNode;
+
+                // Фиксация с родителем удаляемого узла
+                newNode.Parent = delParent;
+                if (delParent != null)
+            {
+                    if (delParent.LeftChild == delNode)
+                        delParent.LeftChild = newNode;
                     else
-                    {
-                        newChild.Parent.LeftChild = null;
-                    }
-                }
-
-                newChild.Parent = deletedNode.Parent;
-
-                newChild.LeftChild = deletedNode.LeftChild;
-                deletedNode.LeftChild.Parent = newChild;
-
-                newChild.RightChild = deletedNode.RightChild;
-                if (deletedNode.RightChild != null)
-                    deletedNode.RightChild.Parent = newChild;
-            }
-
-            if (bstFind.Node == Root)
-            {
-                Root = newChild;
-            }
-            else if (deletedNode.Parent.RightChild == deletedNode)
-            {
-                deletedNode.Parent.RightChild = newChild;
+                        delParent.RightChild = newNode;
             }
             else
             {
-                deletedNode.Parent.LeftChild = newChild;
+                    Root = newNode;
+            }
             }
 
-            deletedNode.Parent = null;
+            // Очистка удаляемого узла
+            delNode.RightChild = null;
+            delNode.LeftChild = null;
+            delNode.Parent = null;
 
             return true;
         }

@@ -334,6 +334,67 @@ namespace AlgorithmsDataStructures2
             return leafPaths;
         }
 
+        public List<BSTNode<T>> WideAllNodes()
+        {
+            List<BSTNode<T>> nodesResult = new List<BSTNode<T>>();
+            Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
 
+            nodesQueue.Enqueue(Root);
+
+            while (nodesQueue.Count != 0)
+            {
+                BSTNode<T> currentNode = nodesQueue.Dequeue();
+                nodesResult.Add(currentNode);
+
+                if (currentNode.LeftChild != null)
+                    nodesQueue.Enqueue(currentNode.LeftChild);
+
+                if (currentNode.RightChild != null)
+                    nodesQueue.Enqueue(currentNode.RightChild);
+            }
+
+            return nodesResult;
+        }
+
+        public List<BSTNode<T>> DeepAllNodes(int order)
+        {
+            throw new NotImplementedException();
+        }
+
+        private List<BSTNode<T>> DeepAllNodesInOrder()
+        {
+            throw new NotImplementedException();
+        }
+
+        private List<BSTNode<T>> DeepAllNodesPostOrder()
+        {
+            throw new NotImplementedException();
+        }
+
+        private List<BSTNode<T>> DeepAllNodesPreOrder()
+        {
+            List<BSTNode<T>> nodes = new List<BSTNode<T>>();
+
+            if (Root == null)
+                return nodes;
+
+            Stack<BSTNode<T>> stackNodes = new Stack<BSTNode<T>>();
+
+            stackNodes.Push(Root);
+
+            while (stackNodes.Count != 0)
+            {
+                BSTNode<T> currentNode = stackNodes.Pop();
+                nodes.Add(currentNode);
+
+                if (currentNode.LeftChild != null)
+                    stackNodes.Push(currentNode.LeftChild);
+
+                if (currentNode.RightChild != null)
+                    stackNodes.Push(currentNode.RightChild);
+            }
+
+            return nodes;
+        }
     }
 }

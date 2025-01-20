@@ -24,36 +24,36 @@ namespace Education.Ads.Tests.Exercise2
 
         public static IEnumerable<object[]> GetMaxValuePathsData()
         {
-            //// 1: Пустое дерево
-            //var tree = new BSTInt(null);
-            //yield return new object[] { tree, new List<List<BSTNode<int>>>(0) };
+            // 1: Пустое дерево
+            var tree = new BSTInt(null);
+            yield return new object[] { tree, new List<List<BSTNode<int>>>(0) };
 
-            //// 2: Только корневой
-            //tree = new BSTInt(new BSTNode<int>(8, 100, null));
-            //yield return new object[] { tree, new List<List<BSTNode<int>>>(0) };
+            // 2: Только корневой
+            tree = new BSTInt(new BSTNode<int>(8, 100, null));
+            yield return new object[] { tree, new List<List<BSTNode<int>>>(0) };
 
-            //// 3: Основное дерево
-            //tree = GetDefaultTree();
-            //var paths = new List<List<BSTNode<int>>>
-            //{
-            //    new List<BSTNode<int>>
-            //    {
-            //        tree.FindNodeByKey(8).Node,
-            //        tree.FindNodeByKey(12).Node,
-            //        tree.FindNodeByKey(14).Node,
-            //        tree.FindNodeByKey(15).Node,
-            //        tree.FindNodeByKey(17).Node,
-            //        tree.FindNodeByKey(19).Node,
-            //    },
-            //};
-            //yield return new object[] { tree, paths };
+            // 3: Основное дерево
+            tree = GetDefaultTree();
+            var paths = new List<List<BSTNode<int>>>
+            {
+                new List<BSTNode<int>>
+                {
+                    tree.FindNodeByKey(8).Node,
+                    tree.FindNodeByKey(12).Node,
+                    tree.FindNodeByKey(14).Node,
+                    tree.FindNodeByKey(15).Node,
+                    tree.FindNodeByKey(17).Node,
+                    tree.FindNodeByKey(19).Node,
+                },
+            };
+            yield return new object[] { tree, paths };
 
             // 4: Основное дерево, удалено 2 узла и изменен 1
-            var tree = GetDefaultTree();
+            tree = GetDefaultTree();
             tree.DeleteNodeByKey(17);
             tree.DeleteNodeByKey(19);
             tree.FindNodeByKey(7).Node.NodeValue += 7;
-            var paths = new List<List<BSTNode<int>>>
+            paths = new List<List<BSTNode<int>>>
             {
                 new List<BSTNode<int>>
                 {

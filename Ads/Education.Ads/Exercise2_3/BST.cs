@@ -193,7 +193,8 @@ namespace AlgorithmsDataStructures2
                 deletedNode.LeftChild.Parent = newChild;
 
                 newChild.RightChild = deletedNode.RightChild;
-                deletedNode.RightChild.Parent = newChild;
+                if (deletedNode.RightChild != null)
+                    deletedNode.RightChild.Parent = newChild;
             }
 
             if (bstFind.Node == Root)
@@ -337,6 +338,10 @@ namespace AlgorithmsDataStructures2
         public List<BSTNode<T>> WideAllNodes()
         {
             List<BSTNode<T>> nodesResult = new List<BSTNode<T>>();
+
+            if (Root == null)
+                return nodesResult;
+
             Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
 
             nodesQueue.Enqueue(Root);
@@ -358,17 +363,86 @@ namespace AlgorithmsDataStructures2
 
         public List<BSTNode<T>> DeepAllNodes(int order)
         {
-            throw new NotImplementedException();
+            switch (order)
+            {
+                case 0:
+                    return DeepAllNodesInOrder();
+                case 1:
+                    return DeepAllNodesPostOrder();
+                case 2:
+                    return DeepAllNodesPreOrder();
+            }
+
+            return null;
         }
 
         private List<BSTNode<T>> DeepAllNodesInOrder()
         {
-            throw new NotImplementedException();
+            List<BSTNode<T>> nodes = new List<BSTNode<T>>();
+
+            if (Root == null)
+                return nodes;
+
+            Stack<BSTNode<T>> stackNodes = new Stack<BSTNode<T>>();
+
+            BSTNode<T> currentNode = Root;
+
+            while (stackNodes.Count != 0)
+            {
+                while (currentNode != null)
+                {
+                    stackNodes.Push(currentNode);
+                    currentNode = currentNode.LeftChild;
+                }
+
+                if (stackNodes.Count != 0)
+                {
+                    currentNode = stackNodes.Pop();
+                    nodes.Add(currentNode);
+                }
+                
+                currentNode = currentNode.RightChild;
+            }
+
+            return nodes;
         }
 
         private List<BSTNode<T>> DeepAllNodesPostOrder()
         {
-            throw new NotImplementedException();
+            List<BSTNode<T>> nodes = new List<BSTNode<T>>();
+
+            if (Root == null)
+                return nodes;
+            
+            Stack<BSTNode<T>> nodesStack = new Stack<BSTNode<T>>();
+
+            BSTNode<T> currentNode = Root;
+
+            while (nodesStack.Count != 0)
+            {
+                while (currentNode != null)
+                {
+                    nodesStack.Push(currentNode);
+                    Root = currentNode.LeftChild;
+                }
+
+                if (nodesStack.Count == 0)
+                    break;
+
+                currentNode = nodesStack.Pop();
+
+                if (nodesStack.Count != 0 && nodesStack.Peek() == currentNode)
+                {
+                    currentNode = currentNode.RightChild;
+                }
+                else
+                {
+                    nodes.Add(currentNode);
+                    currentNode = null;
+                }
+            }
+
+            return nodes;
         }
 
         private List<BSTNode<T>> DeepAllNodesPreOrder()
@@ -387,11 +461,11 @@ namespace AlgorithmsDataStructures2
                 BSTNode<T> currentNode = stackNodes.Pop();
                 nodes.Add(currentNode);
 
-                if (currentNode.LeftChild != null)
-                    stackNodes.Push(currentNode.LeftChild);
-
                 if (currentNode.RightChild != null)
                     stackNodes.Push(currentNode.RightChild);
+
+                if (currentNode.LeftChild != null)
+                    stackNodes.Push(currentNode.LeftChild);
             }
 
             return nodes;

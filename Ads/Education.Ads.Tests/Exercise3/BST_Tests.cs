@@ -12,21 +12,37 @@ namespace Education.Ads.Tests.Exercise3
         [Theory]
         [MemberData(nameof(GetWideAllNodesData))]
         public void Should_WideAllNodes(BST<int> tree, List<BSTNode<int>> result)
-        {
-            var res = tree.WideAllNodes();
-
-            var t = result.Select(x => x.NodeKey).ToList();
-            var t2 = res.Select(x => x.NodeKey).ToList();
-
-
-            res.ShouldBe(result);
+        { 
+            var nodes = tree.WideAllNodes();
+            nodes.Count.ShouldBe(result.Count);
+            nodes.ShouldBe(result);
         }
 
         [Theory]
-        [MemberData(nameof(GetDeepAllNodesData))]
-        public void Should_DeepAllNodes(BST<int> tree, int order, List<BSTNode<int>> result)
+        [MemberData(nameof(GetDeepAllNodesInOrderData))]
+        public void Should_DeepAllNodes_InOrder(BST<int> tree, List<BSTNode<int>> result)
         {
-            tree.DeepAllNodes(order).ShouldBe(result);
+            var nodes = tree.DeepAllNodes(0);
+            nodes.Count.ShouldBe(result.Count);
+            nodes.ShouldBe(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetDeepAllNodesPostOrderData))]
+        public void Should_DeepAllNodes_PostOrder(BST<int> tree, List<BSTNode<int>> result)
+        {
+            var nodes = tree.DeepAllNodes(1);
+            nodes.Count.ShouldBe(result.Count);
+            nodes.ShouldBe(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetDeepAllNodesPreOrderData))]
+        public void Should_DeepAllNodes_PreOrder(BST<int> tree, List<BSTNode<int>> result)
+        {
+            var nodes = tree.DeepAllNodes(2);
+            nodes.Count.ShouldBe(result.Count);
+            nodes.ShouldBe(result);
         }
 
         public static IEnumerable<object[]> GetWideAllNodesData()
@@ -123,10 +139,206 @@ namespace Education.Ads.Tests.Exercise3
             yield return new object[] { tree, result };
         }
 
-        public static IEnumerable<object[]> GetDeepAllNodesData()
+        public static IEnumerable<object[]> GetDeepAllNodesInOrderData()
         {
-            throw new NotImplementedException();
+            return GetWideAllNodesData()
+                .Select(x =>
+                {
+                    x[1] = ((List<BSTNode<int>>)x[1])
+                        .OrderBy(y => y.NodeKey)
+                        .ToList();
+                    return x;
+                }).ToList();
         }
+
+        public static IEnumerable<object[]> GetDeepAllNodesPostOrderData()
+        {
+            // 1: Пустое дерево
+            var tree = new BST<int>(null);
+            var result = new List<BSTNode<int>>();
+            yield return new object[] { tree, result };
+
+            // 2: Только Root
+            tree = new BST<int>(new BSTNode<int>(8, 100, null));
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(8).Node
+            };
+            yield return new object[] { tree, result };
+
+            // 3: Большое дерево
+            tree = GetDefaultTree();
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(1).Node,
+                tree.FindNodeByKey(3).Node,
+                tree.FindNodeByKey(2).Node,
+                tree.FindNodeByKey(5).Node,
+                tree.FindNodeByKey(7).Node,
+                tree.FindNodeByKey(6).Node,
+                tree.FindNodeByKey(4).Node,
+                tree.FindNodeByKey(9).Node,
+                tree.FindNodeByKey(11).Node,
+                tree.FindNodeByKey(10).Node,
+                tree.FindNodeByKey(13).Node,
+                tree.FindNodeByKey(19).Node,
+                tree.FindNodeByKey(17).Node,
+                tree.FindNodeByKey(15).Node,
+                tree.FindNodeByKey(14).Node,
+                tree.FindNodeByKey(12).Node,
+                tree.FindNodeByKey(8).Node,
+            };
+            yield return new object[] { tree, result };
+
+            // 4: Большое дерево без пары узлов
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(5);
+            tree.DeleteNodeByKey(6);
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(1).Node,
+                tree.FindNodeByKey(3).Node,
+                tree.FindNodeByKey(2).Node,
+                tree.FindNodeByKey(7).Node,
+                tree.FindNodeByKey(4).Node,
+                tree.FindNodeByKey(9).Node,
+                tree.FindNodeByKey(11).Node,
+                tree.FindNodeByKey(10).Node,
+                tree.FindNodeByKey(13).Node,
+                tree.FindNodeByKey(19).Node,
+                tree.FindNodeByKey(17).Node,
+                tree.FindNodeByKey(15).Node,
+                tree.FindNodeByKey(14).Node,
+                tree.FindNodeByKey(12).Node,
+                tree.FindNodeByKey(8).Node,
+            };
+            yield return new object[] { tree, result };
+
+            // 5: Большое дерево с парой новых узлов
+            tree = GetDefaultTree();
+            tree.AddKeyValue(-5, 1001);
+            tree.AddKeyValue(-3, 1002);
+            tree.AddKeyValue(-1, 1003);
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(-1).Node,
+                tree.FindNodeByKey(-3).Node,
+                tree.FindNodeByKey(-5).Node,
+                tree.FindNodeByKey(1).Node,
+                tree.FindNodeByKey(3).Node,
+                tree.FindNodeByKey(2).Node,
+                tree.FindNodeByKey(5).Node,
+                tree.FindNodeByKey(7).Node,
+                tree.FindNodeByKey(6).Node,
+                tree.FindNodeByKey(4).Node,
+                tree.FindNodeByKey(9).Node,
+                tree.FindNodeByKey(11).Node,
+                tree.FindNodeByKey(10).Node,
+                tree.FindNodeByKey(13).Node,
+                tree.FindNodeByKey(19).Node,
+                tree.FindNodeByKey(17).Node,
+                tree.FindNodeByKey(15).Node,
+                tree.FindNodeByKey(14).Node,
+                tree.FindNodeByKey(12).Node,
+                tree.FindNodeByKey(8).Node,
+            };
+            yield return new object[] { tree, result };
+        }
+
+        public static IEnumerable<object[]> GetDeepAllNodesPreOrderData()
+        {
+            // 1: Пустое дерево
+            var tree = new BST<int>(null);
+            var result = new List<BSTNode<int>>();
+            yield return new object[] { tree, result };
+
+            // 2: Только Root
+            tree = new BST<int>(new BSTNode<int>(8, 100, null));
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(8).Node
+            };
+            yield return new object[] { tree, result };
+
+            // 3: Большое дерево
+            tree = GetDefaultTree();
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(8).Node,
+                tree.FindNodeByKey(4).Node,
+                tree.FindNodeByKey(2).Node,
+                tree.FindNodeByKey(1).Node,
+                tree.FindNodeByKey(3).Node,
+                tree.FindNodeByKey(6).Node,
+                tree.FindNodeByKey(5).Node,
+                tree.FindNodeByKey(7).Node,
+                tree.FindNodeByKey(12).Node,
+                tree.FindNodeByKey(10).Node,
+                tree.FindNodeByKey(9).Node,
+                tree.FindNodeByKey(11).Node,
+                tree.FindNodeByKey(14).Node,
+                tree.FindNodeByKey(13).Node,
+                tree.FindNodeByKey(15).Node,
+                tree.FindNodeByKey(17).Node,
+                tree.FindNodeByKey(19).Node,
+            };
+            yield return new object[] { tree, result };
+
+            // 4: Большое дерево без пары узлов
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(5);
+            tree.DeleteNodeByKey(6);
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(8).Node,
+                tree.FindNodeByKey(4).Node,
+                tree.FindNodeByKey(2).Node,
+                tree.FindNodeByKey(1).Node,
+                tree.FindNodeByKey(3).Node,
+                tree.FindNodeByKey(7).Node,
+                tree.FindNodeByKey(12).Node,
+                tree.FindNodeByKey(10).Node,
+                tree.FindNodeByKey(9).Node,
+                tree.FindNodeByKey(11).Node,
+                tree.FindNodeByKey(14).Node,
+                tree.FindNodeByKey(13).Node,
+                tree.FindNodeByKey(15).Node,
+                tree.FindNodeByKey(17).Node,
+                tree.FindNodeByKey(19).Node,
+            };
+            yield return new object[] { tree, result };
+
+            // 5: Большое дерево с парой новых узлов
+            tree = GetDefaultTree();
+            tree.AddKeyValue(-5, 1001);
+            tree.AddKeyValue(-3, 1002);
+            tree.AddKeyValue(-1, 1003);
+            result = new List<BSTNode<int>>()
+            {
+                tree.FindNodeByKey(8).Node,
+                tree.FindNodeByKey(4).Node,
+                tree.FindNodeByKey(2).Node,
+                tree.FindNodeByKey(1).Node,
+                tree.FindNodeByKey(-5).Node,
+                tree.FindNodeByKey(-3).Node,
+                tree.FindNodeByKey(-1).Node,
+                tree.FindNodeByKey(3).Node,
+                tree.FindNodeByKey(6).Node,
+                tree.FindNodeByKey(5).Node,
+                tree.FindNodeByKey(7).Node,
+                tree.FindNodeByKey(12).Node,
+                tree.FindNodeByKey(10).Node,
+                tree.FindNodeByKey(9).Node,
+                tree.FindNodeByKey(11).Node,
+                tree.FindNodeByKey(14).Node,
+                tree.FindNodeByKey(13).Node,
+                tree.FindNodeByKey(15).Node,
+                tree.FindNodeByKey(17).Node,
+                tree.FindNodeByKey(19).Node,
+            };
+            yield return new object[] { tree, result };
+        }
+
 
         public static BST<int> GetDefaultTree()
         {

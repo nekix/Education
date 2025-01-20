@@ -13,7 +13,7 @@ namespace AlgorithmsDataStructures2
         public T NodeValue; // значение в узле
         public BSTNode<T> Parent; // родитель или null для корня
         public BSTNode<T> LeftChild; // левый потомок
-        public BSTNode<T> RightChild; // правый потомок	
+        public BSTNode<T> RightChild; // правый потомок
 
         public BSTNode(int key, T val, BSTNode<T> parent)
         {
@@ -140,14 +140,14 @@ namespace AlgorithmsDataStructures2
             BSTNode<T> delNode = bstFind.Node;
             BSTNode<T> delParent = delNode.Parent;
 
-            BSTNode<T> newNode = null;
+            BSTNode<T> newNode;
 
             if (delNode.LeftChild == null || delNode.RightChild == null)
             {
                 newNode = delNode.LeftChild ?? delNode.RightChild;
 
                 if (delParent != null)
-            {
+                {
                     if (delNode == delParent.LeftChild)
                         delParent.LeftChild = newNode;
                     else
@@ -155,14 +155,14 @@ namespace AlgorithmsDataStructures2
 
                     if (newNode != null)
                         newNode.Parent = delParent;
-            }
-                    else
-                    {
-                    Root = newNode;
-                    }
                 }
                 else
                 {
+                    Root = newNode;
+                }
+            }
+            else
+            {
                 newNode = delNode.RightChild;
 
                 while (newNode.LeftChild != null)
@@ -187,16 +187,16 @@ namespace AlgorithmsDataStructures2
                 // Фиксация с родителем удаляемого узла
                 newNode.Parent = delParent;
                 if (delParent != null)
-            {
+                {
                     if (delParent.LeftChild == delNode)
                         delParent.LeftChild = newNode;
                     else
                         delParent.RightChild = newNode;
-            }
-            else
-            {
+                }
+                else
+                {
                     Root = newNode;
-            }
+                }
             }
 
             // Очистка удаляемого узла
@@ -365,7 +365,7 @@ namespace AlgorithmsDataStructures2
                     return DeepAllNodesPreOrder();
             }
 
-            return null;
+            return new List<BSTNode<T>>(0);
         }
 
         private List<BSTNode<T>> DeepAllNodesInOrder()
@@ -377,24 +377,22 @@ namespace AlgorithmsDataStructures2
 
             Stack<BSTNode<T>> stackNodes = new Stack<BSTNode<T>>();
 
-            BSTNode<T> currentNode = Root;
+            BSTNode<T> node = Root;
 
-            while (stackNodes.Count != 0)
+            do
             {
-                while (currentNode != null)
+                while (node != null)
                 {
-                    stackNodes.Push(currentNode);
-                    currentNode = currentNode.LeftChild;
+                    stackNodes.Push(node);
+                    node = node.LeftChild;
                 }
 
-                if (stackNodes.Count != 0)
-                {
-                    currentNode = stackNodes.Pop();
-                    nodes.Add(currentNode);
-                }
-                
-                currentNode = currentNode.RightChild;
-            }
+                node = stackNodes.Pop();
+                nodes.Add(node);
+
+                node = node.RightChild;
+            } 
+            while (node != null || stackNodes.Count != 0);
 
             return nodes;
         }
@@ -407,31 +405,43 @@ namespace AlgorithmsDataStructures2
                 return nodes;
             
             Stack<BSTNode<T>> nodesStack = new Stack<BSTNode<T>>();
-
-            BSTNode<T> currentNode = Root;
+            
+            nodesStack.Push(Root);
+            BSTNode<T> parentNode = null;
 
             while (nodesStack.Count != 0)
             {
-                while (currentNode != null)
+                BSTNode<T> currentNode = nodesStack.Peek();
+
+                if (parentNode == null || parentNode.LeftChild == currentNode || parentNode.RightChild == currentNode)
                 {
-                    nodesStack.Push(currentNode);
-                    Root = currentNode.LeftChild;
+                    if (currentNode.LeftChild != null)
+                        nodesStack.Push(currentNode.LeftChild);
+                    else if (currentNode.RightChild != null)
+                        nodesStack.Push(currentNode.RightChild);
+                    else
+                    {
+                        nodesStack.Pop();
+                        nodes.Add(currentNode);
+                    }
                 }
-
-                if (nodesStack.Count == 0)
-                    break;
-
-                currentNode = nodesStack.Pop();
-
-                if (nodesStack.Count != 0 && nodesStack.Peek() == currentNode)
+                else if (currentNode.LeftChild == parentNode)
                 {
-                    currentNode = currentNode.RightChild;
+                    if (currentNode.RightChild != null)
+                        nodesStack.Push(currentNode.RightChild);
+                    else
+                    {
+                        nodesStack.Pop();
+                        nodes.Add(currentNode);
+                    }
                 }
-                else
+                else if (currentNode.RightChild == parentNode)
                 {
+                    nodesStack.Pop();
                     nodes.Add(currentNode);
-                    currentNode = null;
                 }
+               
+                parentNode = currentNode;
             }
 
             return nodes;

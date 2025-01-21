@@ -1,8 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AlgorithmsDataStructures2
 {
+    public class BSTNode
+    {
+        public int NodeKey;
+        public BSTNode Parent;
+        public BSTNode LeftChild;
+        public BSTNode RightChild;
+    }
+
     public class BSTNode<T>
     {
         public int NodeKey;
@@ -321,12 +330,12 @@ namespace AlgorithmsDataStructures2
             return leafPaths;
         }
 
-        public List<BSTNode<T>> WideAllNodes()
+        public List<BSTNode> WideAllNodes()
         {
             List<BSTNode<T>> nodesResult = new List<BSTNode<T>>();
 
             if (Root == null)
-                return nodesResult;
+                return new List<BSTNode>();
 
             Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
 
@@ -344,10 +353,10 @@ namespace AlgorithmsDataStructures2
                     nodesQueue.Enqueue(currentNode.RightChild);
             }
 
-            return nodesResult;
+            return ConverToBSTNode(nodesResult);
         }
 
-        public List<BSTNode<T>> DeepAllNodes(int order)
+        public List<BSTNode> DeepAllNodes(int order)
         {
             switch (order)
             {
@@ -359,15 +368,15 @@ namespace AlgorithmsDataStructures2
                     return DeepAllNodesPreOrder();
             }
 
-            return new List<BSTNode<T>>(0);
+            return new List<BSTNode>(0);
         }
 
-        private List<BSTNode<T>> DeepAllNodesInOrder()
+        private List<BSTNode> DeepAllNodesInOrder()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();
 
             if (Root == null)
-                return nodes;
+                return new List<BSTNode>(0);
 
             Stack<BSTNode<T>> stackNodes = new Stack<BSTNode<T>>();
 
@@ -388,15 +397,15 @@ namespace AlgorithmsDataStructures2
             } 
             while (node != null || stackNodes.Count != 0);
 
-            return nodes;
+            return ConverToBSTNode(nodes);
         }
 
-        private List<BSTNode<T>> DeepAllNodesPostOrder()
+        private List<BSTNode> DeepAllNodesPostOrder()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();
 
             if (Root == null)
-                return nodes;
+                return new List<BSTNode>(0);
             
             Stack<BSTNode<T>> nodesStack = new Stack<BSTNode<T>>();
             
@@ -438,15 +447,15 @@ namespace AlgorithmsDataStructures2
                 parentNode = currentNode;
             }
 
-            return nodes;
+            return ConverToBSTNode(nodes);
         }
 
-        private List<BSTNode<T>> DeepAllNodesPreOrder()
+        private List<BSTNode> DeepAllNodesPreOrder()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();
 
             if (Root == null)
-                return nodes;
+                return new List<BSTNode>(0);
 
             Stack<BSTNode<T>> stackNodes = new Stack<BSTNode<T>>();
 
@@ -464,7 +473,40 @@ namespace AlgorithmsDataStructures2
                     stackNodes.Push(currentNode.LeftChild);
             }
 
-            return nodes;
+            return ConverToBSTNode(nodes);
+        }
+
+        private List<BSTNode> ConverToBSTNode(List<BSTNode<T>> nodes)
+        {
+            var newNodes = nodes
+                .Select(x => new BSTNode { NodeKey = x.NodeKey })
+                .ToList();
+
+            for (int i = 0; i < newNodes.Count; i++)
+            {
+                var newNode = newNodes[i];
+                var oldNode = nodes[i];
+
+                if (oldNode.Parent != null)
+                {
+                    newNode.Parent = newNodes
+                        .First(n => n.NodeKey == oldNode.Parent.NodeKey);
+                }
+
+                if (oldNode.LeftChild != null)
+                {
+                    newNode.LeftChild = newNodes
+                        .First(n => n.NodeKey == oldNode.LeftChild.NodeKey);
+                }
+
+                if (oldNode.RightChild != null)
+                {
+                    newNode.RightChild = newNodes
+                        .First(n => n.NodeKey == oldNode.RightChild.NodeKey);
+                }
+            }
+
+            return newNodes;
         }
     }
 }

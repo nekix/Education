@@ -14,8 +14,12 @@ namespace Education.Ads.Tests.Exercise3
         public void Should_WideAllNodes(BST<int> tree, List<BSTNode<int>> result)
         { 
             var nodes = tree.WideAllNodes();
+
             nodes.Count.ShouldBe(result.Count);
-            nodes.ShouldBe(result);
+            nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
+            nodes.Select(x => x.Parent?.NodeKey).ShouldBe(result.Select(x => x.Parent?.NodeKey));
+            nodes.Select(x => x.LeftChild?.NodeKey).ShouldBe(result.Select(x => x.LeftChild?.NodeKey));
+            nodes.Select(x => x.RightChild?.NodeKey).ShouldBe(result.Select(x => x.RightChild?.NodeKey));
         }
 
         [Theory]
@@ -23,8 +27,12 @@ namespace Education.Ads.Tests.Exercise3
         public void Should_DeepAllNodes_InOrder(BST<int> tree, List<BSTNode<int>> result)
         {
             var nodes = tree.DeepAllNodes(0);
+
             nodes.Count.ShouldBe(result.Count);
-            nodes.ShouldBe(result);
+            nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
+            nodes.Select(x => x.Parent?.NodeKey).ShouldBe(result.Select(x => x.Parent?.NodeKey));
+            nodes.Select(x => x.LeftChild?.NodeKey).ShouldBe(result.Select(x => x.LeftChild?.NodeKey));
+            nodes.Select(x => x.RightChild?.NodeKey).ShouldBe(result.Select(x => x.RightChild?.NodeKey));
         }
 
         [Theory]
@@ -32,8 +40,12 @@ namespace Education.Ads.Tests.Exercise3
         public void Should_DeepAllNodes_PostOrder(BST<int> tree, List<BSTNode<int>> result)
         {
             var nodes = tree.DeepAllNodes(1);
+
             nodes.Count.ShouldBe(result.Count);
-            nodes.ShouldBe(result);
+            nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
+            nodes.Select(x => x.Parent?.NodeKey).ShouldBe(result.Select(x => x.Parent?.NodeKey));
+            nodes.Select(x => x.LeftChild?.NodeKey).ShouldBe(result.Select(x => x.LeftChild?.NodeKey));
+            nodes.Select(x => x.RightChild?.NodeKey).ShouldBe(result.Select(x => x.RightChild?.NodeKey));
         }
 
         [Theory]
@@ -41,8 +53,12 @@ namespace Education.Ads.Tests.Exercise3
         public void Should_DeepAllNodes_PreOrder(BST<int> tree, List<BSTNode<int>> result)
         {
             var nodes = tree.DeepAllNodes(2);
+
             nodes.Count.ShouldBe(result.Count);
-            nodes.ShouldBe(result);
+            nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
+            nodes.Select(x => x.Parent?.NodeKey).ShouldBe(result.Select(x => x.Parent?.NodeKey));
+            nodes.Select(x => x.LeftChild?.NodeKey).ShouldBe(result.Select(x => x.LeftChild?.NodeKey));
+            nodes.Select(x => x.RightChild?.NodeKey).ShouldBe(result.Select(x => x.RightChild?.NodeKey));
         }
 
         public static IEnumerable<object[]> GetWideAllNodesData()

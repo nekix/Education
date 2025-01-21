@@ -9,11 +9,11 @@ namespace AlgorithmsDataStructures2
 {
     public class BSTNode<T>
     {
-        public int NodeKey; // ключ узла
-        public T NodeValue; // значение в узле
-        public BSTNode<T> Parent; // родитель или null для корня
-        public BSTNode<T> LeftChild; // левый потомок
-        public BSTNode<T> RightChild; // правый потомок
+        public int NodeKey;
+        public T NodeValue;
+        public BSTNode<T> Parent;
+        public BSTNode<T> LeftChild;
+        public BSTNode<T> RightChild;
 
         public BSTNode(int key, T val, BSTNode<T> parent)
         {
@@ -25,16 +25,12 @@ namespace AlgorithmsDataStructures2
         }
     }
 
-    // промежуточный результат поиска
     public class BSTFind<T>
     {
-        // null если в дереве вообще нету узлов
         public BSTNode<T> Node;
 
-        // true если узел найден
         public bool NodeHasKey;
 
-        // true, если родительскому узлу надо добавить новый левым
         public bool ToLeft;
 
         public BSTFind() { Node = null; }
@@ -42,7 +38,7 @@ namespace AlgorithmsDataStructures2
 
     public class BST<T>
     {
-        protected BSTNode<T> Root; // корень дерева, или null
+        protected BSTNode<T> Root;
 
         public BST(BSTNode<T> node)
         {
@@ -170,21 +166,16 @@ namespace AlgorithmsDataStructures2
 
                 BSTNode<T> newNodeParent = newNode.Parent;
 
-                // Фиксация оставшегося родительского узла
-                // ноды-приемника
                 newNodeParent.LeftChild = newNode.RightChild;
                 if (newNodeParent.LeftChild != null)
                     newNodeParent.LeftChild.Parent = newNodeParent;
 
-                // Фиксация с левым узлом удаляемой узла
                 newNode.LeftChild = delNode.LeftChild;
                 newNode.LeftChild.Parent = newNode;
 
-                // Фиксация с правым узлом удялемого узла
                 newNode.RightChild = delNode.RightChild;
                 newNode.RightChild.Parent = newNode;
 
-                // Фиксация с родителем удаляемого узла
                 newNode.Parent = delParent;
                 if (delParent != null)
                 {
@@ -199,7 +190,6 @@ namespace AlgorithmsDataStructures2
                 }
             }
 
-            // Очистка удаляемого узла
             delNode.RightChild = null;
             delNode.LeftChild = null;
             delNode.Parent = null;

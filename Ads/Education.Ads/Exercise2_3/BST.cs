@@ -1,9 +1,5 @@
-﻿using AlgorithmsDataStructures;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.IO.Pipes;
-using System.Linq;
 
 namespace AlgorithmsDataStructures2
 {
@@ -302,7 +298,15 @@ namespace AlgorithmsDataStructures2
                 if (currentPath.Count - 1 == pathLength)
                 {
                     if (currentNode.RightChild == null && currentNode.LeftChild == null)
-                        leafPaths.Add(currentPath.Reverse().ToList());
+                    {
+                        var temp = currentPath.ToArray();
+                        var path = new List<BSTNode<T>>(temp.Length);
+
+                        for (int i = temp.Length - 1; i >= 0; i--)
+                            path.Add(temp[i]);
+
+                        leafPaths.Add(path);
+                    }      
                 }
                 else
                 {

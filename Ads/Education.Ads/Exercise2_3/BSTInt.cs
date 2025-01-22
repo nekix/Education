@@ -43,7 +43,7 @@ namespace AlgorithmsDataStructures2
                 currentPath.Push(currentNode);
                 currentSum += currentNode.NodeValue;
 
-                if (currentNode.RightChild == null && currentNode.LeftChild == null)
+                if (CheckIsLeaf(currentNode))
                 {
                     if (maxSum == currentSum)
                     {

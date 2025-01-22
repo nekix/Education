@@ -75,7 +75,7 @@ namespace Education.Ads.Tests.Exercise2
         [MemberData(nameof(GetLeafPathsData))]
         public void Should_GetLeafPaths(BST<int> tree, int pathLength, List<List<BSTNode<int>>> paths)
         {
-            var result = tree.GetLeafPaths(pathLength);
+            var result = tree.GetLeafPathsIterative(pathLength);
             
             result.Count.ShouldBe(paths.Count);
             for (int i = 0; i < result.Count; i++)

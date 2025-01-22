@@ -279,7 +279,7 @@ namespace AlgorithmsDataStructures2
             return true;
         }
 
-        public List<List<BSTNode<T>>> GetLeafPaths(int pathLength)
+        public List<List<BSTNode<T>>> GetLeafPathsIterative(int pathLength)
         {
             List<List<BSTNode<T>>> leafPaths = new List<List<BSTNode<T>>>();
 
@@ -306,16 +306,8 @@ namespace AlgorithmsDataStructures2
 
                 if (currentPath.Count - 1 == pathLength)
                 {
-                    if (currentNode.RightChild == null && currentNode.LeftChild == null)
-                    {
-                        var temp = currentPath.ToArray();
-                        var path = new List<BSTNode<T>>(temp.Length);
-
-                        for (int i = temp.Length - 1; i >= 0; i--)
-                            path.Add(temp[i]);
-
-                        leafPaths.Add(path);
-                    }      
+                    if (CheckIsLeaf(currentNode))
+                        leafPaths.Add(currentPath.Reverse().ToList());
                 }
                 else
                 {
@@ -328,6 +320,24 @@ namespace AlgorithmsDataStructures2
             }
 
             return leafPaths;
+        }
+
+        public void GetLeafPathsRecursive(BSTNode<T> node, int level, List<BSTNode<T>> leafPath, List<List<BSTNode<T>>> leafPaths)
+        {
+            if (node == null)
+                return;
+
+            leafPath.Add(node);
+
+            if (CheckIsLeaf(node))
+                leafPaths.Add(leafPath);
+            else
+            {
+                GetLeafPathsRecursive(node.LeftChild, level + 1, leafPath, leafPaths);
+                GetLeafPathsRecursive(node.RightChild, level + 1, leafPath, leafPaths);
+            }
+
+            leafPath.RemoveAt(leafPath.Count - 1);
         }
 
         public List<BSTNode> WideAllNodes()
@@ -393,6 +403,9 @@ namespace AlgorithmsDataStructures2
                     nodesQueue.Enqueue(currentNode.RightChild);
             }
         }
+
+        protected bool CheckIsLeaf(BSTNode<T> node)
+            => node.RightChild == null && node.LeftChild == null;
 
         private List<BSTNode> DeepAllNodesInOrder()
         {

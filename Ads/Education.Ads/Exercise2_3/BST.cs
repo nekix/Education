@@ -371,6 +371,29 @@ namespace AlgorithmsDataStructures2
             return new List<BSTNode>(0);
         }
 
+        public void InvertTree()
+        {
+            if (Root == null)
+                return;
+
+            Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
+
+            nodesQueue.Enqueue(Root);
+
+            while (nodesQueue.Count != 0)
+            {
+                BSTNode<T> currentNode = nodesQueue.Dequeue();
+
+                (currentNode.LeftChild, currentNode.RightChild) = (currentNode.RightChild, currentNode.LeftChild);
+
+                if (currentNode.LeftChild != null)
+                    nodesQueue.Enqueue(currentNode.LeftChild);
+
+                if (currentNode.RightChild != null)
+                    nodesQueue.Enqueue(currentNode.RightChild);
+            }
+        }
+
         private List<BSTNode> DeepAllNodesInOrder()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();

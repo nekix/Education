@@ -61,6 +61,26 @@ namespace Education.Ads.Tests.Exercise3
             nodes.Select(x => x.RightChild?.NodeKey).ShouldBe(result.Select(x => x.RightChild?.NodeKey));
         }
 
+        [Theory]
+        [MemberData(nameof(GetShouldInvertTreeData))]
+        public void Should_InvertTree(BST<int> tree, BST<int> treeCopy)
+        {
+            tree.InvertTree();
+
+            tree.DeepAllNodes(0).ForEach(n =>
+            {
+                n.RightChild?.Parent.ShouldBe(n);
+                n.LeftChild?.Parent.ShouldBe(n);
+
+                n.RightChild?.NodeKey.ShouldBeLessThan(n.NodeKey);
+                n.LeftChild?.NodeKey.ShouldBeGreaterThan(n.NodeKey);
+            });
+            
+            tree.InvertTree();
+
+            tree.CheckEqual(treeCopy).ShouldBeTrue();
+        }
+             
         public static IEnumerable<object[]> GetWideAllNodesData()
         {
             // 1: Пустое дерево
@@ -355,6 +375,43 @@ namespace Education.Ads.Tests.Exercise3
             yield return new object[] { tree, result };
         }
 
+        public static IEnumerable<object[]> GetShouldInvertTreeData()
+        {
+            // 1: Пустое дерево
+            var tree = new BST<int>(null);
+            var treeCopy = new BST<int>(null);
+            yield return new object[] { tree, treeCopy };
+
+            // 2: Только Root
+            tree = new BST<int>(new BSTNode<int>(8, 100, null));
+            treeCopy = new BST<int>(new BSTNode<int>(8, 100, null));
+            yield return new object[] { tree, treeCopy };
+
+            // 3: Большое дерево
+            tree = GetDefaultTree();
+            treeCopy = GetDefaultTree();
+            yield return new object[] { tree, treeCopy };
+
+            // 4: Большое дерево без пары узлов
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(5);
+            tree.DeleteNodeByKey(6);
+            treeCopy = GetDefaultTree();
+            treeCopy.DeleteNodeByKey(5);
+            treeCopy.DeleteNodeByKey(6);
+            yield return new object[] { tree, treeCopy };
+
+            // 5: Большое дерево с парой новых узлов
+            tree = GetDefaultTree();
+            tree.AddKeyValue(-5, 1001);
+            tree.AddKeyValue(-3, 1002);
+            tree.AddKeyValue(-1, 1003);
+            treeCopy = GetDefaultTree();
+            treeCopy.AddKeyValue(-5, 1001);
+            treeCopy.AddKeyValue(-3, 1002);
+            treeCopy.AddKeyValue(-1, 1003);
+            yield return new object[] { tree, treeCopy };
+        }
 
         public static BST<int> GetDefaultTree()
         {

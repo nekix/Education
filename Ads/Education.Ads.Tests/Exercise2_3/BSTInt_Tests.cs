@@ -7,19 +7,37 @@ using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
 
-namespace Education.Ads.Tests.Exercise2
+namespace Education.Ads.Tests.Exercise2_3
 {
     public class BSTInt_Tests
     {
         [Theory]
         [MemberData(nameof(GetMaxValuePathsData))]
-        public void Should_GetMaxValuePaths(BSTInt tree, List<List<BSTNode<int>>> paths)
+        public void Should_GetMaxValuePathsIterative(BSTInt tree, List<List<BSTNode<int>>> paths)
         {
-            var results = tree.GetMaxValuePaths();
+            var results = tree.GetMaxValuePathsIterative();
 
             results.Count.ShouldBe(paths.Count);
             for (int i = 0; i < paths.Count; i++)
                 results[i].ShouldBe(paths[i]);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetMaxValuePathsData))]
+        public void Should_GetMaxValuePathsRecursive(BSTInt tree, List<List<BSTNode<int>>> paths)
+        {
+            var results = tree.GetMaxValuePathsRecursive();
+
+            results.Count.ShouldBe(paths.Count);
+            for (int i = 0; i < paths.Count; i++)
+                results[i].ShouldBe(paths[i]);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetGetLevelWithMaxValueSumData))]
+        public void Should_GetLevelWithMaxValueSum(BSTInt tree, int level)
+        {
+            tree.GetLevelWithMaxValueSum().ShouldBe(level);
         }
 
         public static IEnumerable<object[]> GetMaxValuePathsData()
@@ -71,6 +89,33 @@ namespace Education.Ads.Tests.Exercise2
                 },
             };
             yield return new object[] { tree, paths };
+        }
+
+        public static IEnumerable<object[]> GetGetLevelWithMaxValueSumData()
+        {
+            // 1: Пустое дерево
+            var tree = new BSTInt(null);
+            yield return new object[] { tree, -1 };
+
+            // 2: Только корневой
+            tree = new BSTInt(new BSTNode<int>(8, 100, null));
+            yield return new object[] { tree, 0 };
+
+            // 3: Основное дерево
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 3 };
+
+            // 4: Основное дерево, удалено 2 узла и изменен 1
+            tree = GetDefaultTree();
+            tree.DeleteNodeByKey(17);
+            tree.FindNodeByKey(19).Node.NodeValue = 100000;
+            yield return new object[] { tree, 4 };
+
+            // 5: Два уровня с одинаковой суммой
+            tree = GetDefaultTree();
+            tree.FindNodeByKey(12).Node.NodeValue = 1399;
+            tree.FindNodeByKey(6).Node.NodeValue = 1186;
+            yield return new object[] { tree, 1 };
         }
 
         public static BSTInt GetDefaultTree()

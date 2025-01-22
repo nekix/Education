@@ -49,7 +49,7 @@ namespace Education.Ads.Tests.Exercise1
             // 2: Только root node
             yield return new object[] { new SimpleTree<int>(new SimpleTreeNode<int>(0, null)), true };
 
-            /// 3: Root node и одна дочерняя
+            // 3: Root node и одна дочерняя
             var tree = new SimpleTree<int>(new SimpleTreeNode<int>(0, null));
             tree.AddChild(tree.Root, new SimpleTreeNode<int>(1, tree.Root));
             yield return new object[] { tree, true };

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace Education.Ads.Tests.Exercise2
+namespace Education.Ads.Tests.Exercise2_3
 {
     public class BST_Tests
     {
@@ -73,10 +73,23 @@ namespace Education.Ads.Tests.Exercise2
 
         [Theory]
         [MemberData(nameof(GetLeafPathsData))]
-        public void Should_GetLeafPaths(BST<int> tree, int pathLength, List<List<BSTNode<int>>> paths)
+        public void Should_GetLeafPathsIterative(BST<int> tree, int pathLength, List<List<BSTNode<int>>> paths)
         {
             var result = tree.GetLeafPathsIterative(pathLength);
             
+            result.Count.ShouldBe(paths.Count);
+            for (int i = 0; i < result.Count; i++)
+            {
+                result[i].ShouldBe(paths[i]);
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLeafPathsData))]
+        public void Should_GetLeafPathsRecursive(BST<int> tree, int pathLength, List<List<BSTNode<int>>> paths)
+        {
+            var result = tree.GetLeafPathsRecursive(pathLength);
+
             result.Count.ShouldBe(paths.Count);
             for (int i = 0; i < result.Count; i++)
             {

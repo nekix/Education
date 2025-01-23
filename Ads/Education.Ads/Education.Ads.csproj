@@ -44,6 +44,7 @@
     <Compile Include="Exercise1\SimpleTree.cs" />
     <Compile Include="Exercise2_3\BST.cs" />
     <Compile Include="Exercise2_3\BSTInt.cs" />
+    <Compile Include="Exercise_3\TreeExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

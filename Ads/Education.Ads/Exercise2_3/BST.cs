@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 
 namespace AlgorithmsDataStructures2
 {
@@ -322,22 +323,41 @@ namespace AlgorithmsDataStructures2
             return leafPaths;
         }
 
-        public void GetLeafPathsRecursive(BSTNode<T> node, int level, List<BSTNode<T>> leafPath, List<List<BSTNode<T>>> leafPaths)
+        public List<List<BSTNode<T>>> GetLeafPathsRecursive(int pathLength)
         {
-            if (node == null)
+            if (Root == null)
+                return new List<List<BSTNode<T>>>(0);
+
+            if (pathLength < 1)
+                return new List<List<BSTNode<T>>>(0);
+
+            List<List<BSTNode<T>>> leafPaths = new List<List<BSTNode<T>>>();
+            List<BSTNode<T>> currentPath = new List<BSTNode<T>>(pathLength);
+
+            GetLeafPathsRecursive(Root, pathLength, currentPath, leafPaths);
+
+            return leafPaths;
+        }
+
+        private void GetLeafPathsRecursive(BSTNode<T> startNode, int pathLength, List<BSTNode<T>> currentPath, List<List<BSTNode<T>>> leafPaths)
+        {
+            if (startNode == null)
                 return;
 
-            leafPath.Add(node);
+            currentPath.Add(startNode);
 
-            if (CheckIsLeaf(node))
-                leafPaths.Add(leafPath);
+            if (currentPath.Count - 1 == pathLength)
+            {
+                if (CheckIsLeaf(startNode))
+                    leafPaths.Add(currentPath.ToList());
+            }
             else
             {
-                GetLeafPathsRecursive(node.LeftChild, level + 1, leafPath, leafPaths);
-                GetLeafPathsRecursive(node.RightChild, level + 1, leafPath, leafPaths);
+                GetLeafPathsRecursive(startNode.LeftChild, pathLength, currentPath, leafPaths);
+                GetLeafPathsRecursive(startNode.RightChild, pathLength, currentPath, leafPaths);
             }
 
-            leafPath.RemoveAt(leafPath.Count - 1);
+            currentPath.RemoveAt(currentPath.Count - 1);
         }
 
         public List<BSTNode> WideAllNodes()
@@ -363,7 +383,7 @@ namespace AlgorithmsDataStructures2
                     nodesQueue.Enqueue(currentNode.RightChild);
             }
 
-            return ConverToBSTNode(nodesResult);
+            return ConvertToBstNode(nodesResult);
         }
 
         public List<BSTNode> DeepAllNodes(int order)
@@ -433,7 +453,7 @@ namespace AlgorithmsDataStructures2
             } 
             while (node != null || stackNodes.Count != 0);
 
-            return ConverToBSTNode(nodes);
+            return ConvertToBstNode(nodes);
         }
 
         private List<BSTNode> DeepAllNodesPostOrder()
@@ -483,7 +503,7 @@ namespace AlgorithmsDataStructures2
                 parentNode = currentNode;
             }
 
-            return ConverToBSTNode(nodes);
+            return ConvertToBstNode(nodes);
         }
 
         private List<BSTNode> DeepAllNodesPreOrder()
@@ -509,19 +529,19 @@ namespace AlgorithmsDataStructures2
                     stackNodes.Push(currentNode.LeftChild);
             }
 
-            return ConverToBSTNode(nodes);
+            return ConvertToBstNode(nodes);
         }
 
-        private List<BSTNode> ConverToBSTNode(List<BSTNode<T>> nodes)
+        private List<BSTNode> ConvertToBstNode(List<BSTNode<T>> nodes)
         {
-            var newNodes = nodes
+            List<BSTNode> newNodes = nodes
                 .Select(x => new BSTNode { NodeKey = x.NodeKey })
                 .ToList();
 
             for (int i = 0; i < newNodes.Count; i++)
             {
-                var newNode = newNodes[i];
-                var oldNode = nodes[i];
+                BSTNode newNode = newNodes[i];
+                BSTNode<T> oldNode = nodes[i];
 
                 if (oldNode.Parent != null)
                 {

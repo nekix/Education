@@ -9,7 +9,7 @@ namespace AlgorithmsDataStructures2
 
         public aBST(int depth)
         {
-            int tree_size = (int)Math.Pow(2, depth);
+            int tree_size = GetTreeSize(depth);
             Tree = new int?[tree_size];
             for (int i = 0; i<tree_size; i++) Tree[i] = null;
         }
@@ -24,19 +24,17 @@ namespace AlgorithmsDataStructures2
                 {
                     return index;
                 }
-                else if (index > key)
+                if (Tree[index] == null)
+                {
+                    return -index;
+                }
+                else if (Tree[index] > key)
                 {
                     index = GetLeftChildIndex(index);
-
-                    if (Tree[index] == null)
-                        return -index;
                 }
                 else
                 {
                     index = GetRightChildIndex(index);
-
-                    if (Tree[index] == null)
-                        return -index;
                 }
             }
             
@@ -50,11 +48,24 @@ namespace AlgorithmsDataStructures2
             if (index == null)
                 return -1;
 
-            if (index >= 0)
+            if (index > 0)
                 return index.Value;
 
-            Tree[index.Value] = key;
-            return index.Value;
+            if (index == 0 && Tree[index.Value] != null)
+                return index.Value;
+
+            Tree[-index.Value] = key;
+            return -index.Value;
+        }
+
+        private int GetTreeSize(int depth)
+        {
+            int size = 0;
+
+            for (int i = 0; i <= depth; i++)
+                size += 1 << i;
+
+            return size;
         }
 
         private int GetLeftChildIndex(int index)

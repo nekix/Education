@@ -19,11 +19,15 @@ namespace Education.Ads.Exercise_3
             if (preorder[count - 1] != inorder[count - 1])
                 return null;
 
-            return RecoverTree(0, preorder.Length, 0, inorder.Length, preorder, inorder);
+            int preLeft = 0;
+            return RecoverTree(ref preLeft, 0, inorder.Length, preorder, inorder);
         }
 
-        private static BSTNode RecoverTree(int preLeft, int preRigth, int inLeft, int inRight, int[] preorder, int[] inorder)
+        private static BSTNode RecoverTree(ref int preLeft, int inLeft, int inRight, int[] preorder, int[] inorder)
         {
+            if (inLeft >= inRight)
+                return null;
+
             int root = preorder[preLeft];
             int inRootIndex = -1;
 
@@ -36,20 +40,22 @@ namespace Education.Ads.Exercise_3
                 }
             }
 
+            preLeft++;
+
             BSTNode node = new BSTNode { NodeKey = root };
-            
-            if (inRootIndex > 0)
+
+            BSTNode leftNode = RecoverTree(ref preLeft, inLeft, inRootIndex, preorder, inorder);
+            if (leftNode != null)
             {
-                BSTNode leftNode = RecoverTree(preLeft + 1, inRootIndex + 1, inLeft, inRootIndex, preorder, inorder);
                 leftNode.Parent = node;
                 node.LeftChild = leftNode;
-            }   
+            }
 
-            if (inRootIndex + 1 < inRight - inLeft)
+            BSTNode rightNode = RecoverTree(ref preLeft, inRootIndex + 1, inRight, preorder, inorder);
+            if (rightNode != null)
             {
-                BSTNode rightNode = RecoverTree(inRootIndex + 1, preRigth, inRootIndex + 1, inRight, preorder, inorder);
                 rightNode.Parent = node;
-                node.RightChild = rightNode;
+                node.RightChild = rightNode;    
             }      
 
             return node;

@@ -5,7 +5,7 @@ namespace AlgorithmsDataStructures2
 {
     public class aBST
     {
-        public int?[] Tree; // массив ключей
+        public int?[] Tree;
 
         public aBST(int depth)
         {

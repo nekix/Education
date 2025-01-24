@@ -1,6 +1,4 @@
 ﻿using AlgorithmsDataStructures2;
-using System;
-using System.Collections.Generic;
 
 namespace Education.Ads.Exercise_3
 {

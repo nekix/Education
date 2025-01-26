@@ -132,6 +132,7 @@ namespace AlgorithmsDataStructures2
             while (nodesQueue.Count != 0)
             {
                 BSTNode<int> currentNode = nodesQueue.Dequeue();
+
                 nodesLevelCount--;
                 sum += currentNode.NodeValue;
 

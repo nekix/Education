@@ -373,6 +373,7 @@ namespace AlgorithmsDataStructures2
             while (nodesQueue.Count != 0)
             {
                 BSTNode<T> currentNode = nodesQueue.Dequeue();
+
                 nodesResult.Add(currentNode);
 
                 if (currentNode.LeftChild != null)
@@ -385,7 +386,7 @@ namespace AlgorithmsDataStructures2
             return ConvertToBstNode(nodesResult);
         }
 
-        public List<BSTNode> DeepAllNodes(int order)
+        public List<BSTNode> DeepAllNodesIterative(int order)
         {
             switch (order)
             {
@@ -398,6 +399,21 @@ namespace AlgorithmsDataStructures2
             }
 
             return new List<BSTNode>(0);
+        }
+
+        public List<BSTNode> DeepAllNodesRecursive(int order)
+        {
+            if (Root == null)
+                return new List<BSTNode>(0);
+
+            if (order < 0 || order > 2)
+                return new List<BSTNode>(0);
+
+            List<BSTNode<T>> nodes = new List<BSTNode<T>>();
+
+            DeepAllNodesRecursive(order, Root, nodes);
+
+            return ConvertToBstNode(nodes);
         }
 
         public void InvertTree()
@@ -413,7 +429,7 @@ namespace AlgorithmsDataStructures2
             {
                 BSTNode<T> currentNode = nodesQueue.Dequeue();
 
-                (currentNode.LeftChild, currentNode.RightChild) = (currentNode.RightChild, currentNode.LeftChild);
+                SwapChildren(currentNode);
 
                 if (currentNode.LeftChild != null)
                     nodesQueue.Enqueue(currentNode.LeftChild);
@@ -425,6 +441,11 @@ namespace AlgorithmsDataStructures2
 
         protected bool CheckIsLeaf(BSTNode<T> node)
             => node.RightChild == null && node.LeftChild == null;
+
+        protected void SwapChildren(BSTNode<T> currentNode)
+        {
+            (currentNode.LeftChild, currentNode.RightChild) = (currentNode.RightChild, currentNode.LeftChild);
+        }
 
         private List<BSTNode> DeepAllNodesInOrder()
         {
@@ -529,6 +550,25 @@ namespace AlgorithmsDataStructures2
             }
 
             return ConvertToBstNode(nodes);
+        }
+
+        private void DeepAllNodesRecursive(int order, BSTNode<T> node, List<BSTNode<T>> nodes)
+        {
+            if (node == null)
+                return;
+
+            if (order == 2)
+                nodes.Add(node);
+
+            DeepAllNodesRecursive(order, node.LeftChild, nodes);
+
+            if (order == 0)
+                nodes.Add(node);
+
+            DeepAllNodesRecursive(order, node.RightChild, nodes);
+
+            if (order == 1)
+                nodes.Add(node);
         }
 
         private List<BSTNode> ConvertToBstNode(List<BSTNode<T>> nodes)

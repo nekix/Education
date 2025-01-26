@@ -92,8 +92,8 @@ namespace Education.Ads.Tests.Exercise3
 
             // 5: Из большого BST
             var tree = GetDefaultTree();
-            preorder = tree.DeepAllNodes(2).Select(n => n.NodeKey).ToArray();
-            inorder = tree.DeepAllNodes(0).Select(n => n.NodeKey).ToArray();
+            preorder = tree.DeepAllNodesIterative(2).Select(n => n.NodeKey).ToArray();
+            inorder = tree.DeepAllNodesIterative(0).Select(n => n.NodeKey).ToArray();
             check = (node) =>
             {
                 var root = tree.FindNodeByKey(8).Node;

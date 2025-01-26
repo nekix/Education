@@ -24,22 +24,11 @@ namespace Education.Ads.Tests.Exercise3
 
         [Theory]
         [MemberData(nameof(GetDeepAllNodesInOrderData))]
-        public void Should_DeepAllNodes_InOrder(BST<int> tree, List<BSTNode<int>> result)
-        {
-            var nodes = tree.DeepAllNodes(0);
-
-            nodes.Count.ShouldBe(result.Count);
-            nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
-            nodes.Select(x => x.Parent?.NodeKey).ShouldBe(result.Select(x => x.Parent?.NodeKey));
-            nodes.Select(x => x.LeftChild?.NodeKey).ShouldBe(result.Select(x => x.LeftChild?.NodeKey));
-            nodes.Select(x => x.RightChild?.NodeKey).ShouldBe(result.Select(x => x.RightChild?.NodeKey));
-        }
-
-        [Theory]
         [MemberData(nameof(GetDeepAllNodesPostOrderData))]
-        public void Should_DeepAllNodes_PostOrder(BST<int> tree, List<BSTNode<int>> result)
+        [MemberData(nameof(GetDeepAllNodesPreOrderData))]
+        public void Should_DeepAllNodesIterative(BST<int> tree, int order, List<BSTNode<int>> result)
         {
-            var nodes = tree.DeepAllNodes(1);
+            var nodes = tree.DeepAllNodesIterative(order);
 
             nodes.Count.ShouldBe(result.Count);
             nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
@@ -49,10 +38,12 @@ namespace Education.Ads.Tests.Exercise3
         }
 
         [Theory]
+        [MemberData(nameof(GetDeepAllNodesInOrderData))]
+        [MemberData(nameof(GetDeepAllNodesPostOrderData))]
         [MemberData(nameof(GetDeepAllNodesPreOrderData))]
-        public void Should_DeepAllNodes_PreOrder(BST<int> tree, List<BSTNode<int>> result)
+        public void Should_DeepAllNodesRecursive(BST<int> tree, int order, List<BSTNode<int>> result)
         {
-            var nodes = tree.DeepAllNodes(2);
+            var nodes = tree.DeepAllNodesIterative(order);
 
             nodes.Count.ShouldBe(result.Count);
             nodes.Select(x => x.NodeKey).ShouldBe(result.Select(x => x.NodeKey));
@@ -67,7 +58,7 @@ namespace Education.Ads.Tests.Exercise3
         {
             tree.InvertTree();
 
-            tree.DeepAllNodes(0).ForEach(n =>
+            tree.DeepAllNodesIterative(0).ForEach(n =>
             {
                 n.RightChild?.Parent.ShouldBe(n);
                 n.LeftChild?.Parent.ShouldBe(n);
@@ -180,10 +171,13 @@ namespace Education.Ads.Tests.Exercise3
             return GetWideAllNodesData()
                 .Select(x =>
                 {
-                    x[1] = ((List<BSTNode<int>>)x[1])
+                    var newX = new object[3];
+                    newX[0] = x[0];
+                    newX[1] = 0;
+                    newX[2] = ((List<BSTNode<int>>)x[1])
                         .OrderBy(y => y.NodeKey)
                         .ToList();
-                    return x;
+                    return newX;
                 }).ToList();
         }
 
@@ -192,7 +186,7 @@ namespace Education.Ads.Tests.Exercise3
             // 1: Пустое дерево
             var tree = new BST<int>(null);
             var result = new List<BSTNode<int>>();
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 1, result };
 
             // 2: Только Root
             tree = new BST<int>(new BSTNode<int>(8, 100, null));
@@ -200,7 +194,7 @@ namespace Education.Ads.Tests.Exercise3
             {
                 tree.FindNodeByKey(8).Node
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 1, result };
 
             // 3: Большое дерево
             tree = GetDefaultTree();
@@ -224,7 +218,7 @@ namespace Education.Ads.Tests.Exercise3
                 tree.FindNodeByKey(12).Node,
                 tree.FindNodeByKey(8).Node,
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 1, result };
 
             // 4: Большое дерево без пары узлов
             tree = GetDefaultTree();
@@ -248,7 +242,7 @@ namespace Education.Ads.Tests.Exercise3
                 tree.FindNodeByKey(12).Node,
                 tree.FindNodeByKey(8).Node,
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 1, result };
 
             // 5: Большое дерево с парой новых узлов
             tree = GetDefaultTree();
@@ -278,7 +272,7 @@ namespace Education.Ads.Tests.Exercise3
                 tree.FindNodeByKey(12).Node,
                 tree.FindNodeByKey(8).Node,
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 1, result };
         }
 
         public static IEnumerable<object[]> GetDeepAllNodesPreOrderData()
@@ -286,7 +280,7 @@ namespace Education.Ads.Tests.Exercise3
             // 1: Пустое дерево
             var tree = new BST<int>(null);
             var result = new List<BSTNode<int>>();
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 2, result };
 
             // 2: Только Root
             tree = new BST<int>(new BSTNode<int>(8, 100, null));
@@ -294,7 +288,7 @@ namespace Education.Ads.Tests.Exercise3
             {
                 tree.FindNodeByKey(8).Node
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 2, result };
 
             // 3: Большое дерево
             tree = GetDefaultTree();
@@ -318,7 +312,7 @@ namespace Education.Ads.Tests.Exercise3
                 tree.FindNodeByKey(17).Node,
                 tree.FindNodeByKey(19).Node,
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 2, result };
 
             // 4: Большое дерево без пары узлов
             tree = GetDefaultTree();
@@ -342,7 +336,7 @@ namespace Education.Ads.Tests.Exercise3
                 tree.FindNodeByKey(17).Node,
                 tree.FindNodeByKey(19).Node,
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 2, result };
 
             // 5: Большое дерево с парой новых узлов
             tree = GetDefaultTree();
@@ -372,7 +366,7 @@ namespace Education.Ads.Tests.Exercise3
                 tree.FindNodeByKey(17).Node,
                 tree.FindNodeByKey(19).Node,
             };
-            yield return new object[] { tree, result };
+            yield return new object[] { tree, 2, result };
         }
 
         public static IEnumerable<object[]> GetShouldInvertTreeData()

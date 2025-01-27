@@ -366,22 +366,8 @@ namespace AlgorithmsDataStructures2
             if (Root == null)
                 return new List<BSTNode>();
 
-            Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
-
-            nodesQueue.Enqueue(Root);
-
-            while (nodesQueue.Count != 0)
-            {
-                BSTNode<T> currentNode = nodesQueue.Dequeue();
-
-                nodesResult.Add(currentNode);
-
-                if (currentNode.LeftChild != null)
-                    nodesQueue.Enqueue(currentNode.LeftChild);
-
-                if (currentNode.RightChild != null)
-                    nodesQueue.Enqueue(currentNode.RightChild);
-            }
+            foreach (var node in WideAllNodes(Root))
+                nodesResult.Add(node);
 
             return ConvertToBstNode(nodesResult);
         }
@@ -391,11 +377,11 @@ namespace AlgorithmsDataStructures2
             switch (order)
             {
                 case 0:
-                    return DeepAllNodesInOrder();
+                    return DeepAllNodesInOrderIterative();
                 case 1:
-                    return DeepAllNodesPostOrder();
+                    return DeepAllNodesPostOrderIterative();
                 case 2:
-                    return DeepAllNodesPreOrder();
+                    return DeepAllNodesPreOrderIterative();
             }
 
             return new List<BSTNode>(0);
@@ -421,33 +407,54 @@ namespace AlgorithmsDataStructures2
             if (Root == null)
                 return;
 
-            Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
-
-            nodesQueue.Enqueue(Root);
-
-            while (nodesQueue.Count != 0)
-            {
-                BSTNode<T> currentNode = nodesQueue.Dequeue();
-
-                SwapChildren(currentNode);
-
-                if (currentNode.LeftChild != null)
-                    nodesQueue.Enqueue(currentNode.LeftChild);
-
-                if (currentNode.RightChild != null)
-                    nodesQueue.Enqueue(currentNode.RightChild);
-            }
+            foreach (var node in WideAllNodes(Root))
+                SwapChildren(node);
         }
-
-        protected bool CheckIsLeaf(BSTNode<T> node)
-            => node.RightChild == null && node.LeftChild == null;
 
         protected void SwapChildren(BSTNode<T> currentNode)
         {
             (currentNode.LeftChild, currentNode.RightChild) = (currentNode.RightChild, currentNode.LeftChild);
         }
 
-        private List<BSTNode> DeepAllNodesInOrder()
+        protected bool CheckIsLeaf(BSTNode<T> node)
+            => node.RightChild == null && node.LeftChild == null;
+
+        protected IEnumerable<BSTNode<T>> WideAllNodes(BSTNode<T> startNode)
+        {
+            Queue<BSTNode<T>> nodesQueue = new Queue<BSTNode<T>>();
+
+            nodesQueue.Enqueue(Root);
+
+            while (nodesQueue.Count != 0)
+                foreach (var node in WideCurrentItems(nodesQueue))
+                    yield return node;
+        }
+
+        /// <summary>
+        /// Traverse through the width of only those elements that are in the queue at the time the method is called.
+        /// </summary>
+        /// <param name="nodesQueue"></param>
+        /// <returns></returns>
+        protected IEnumerable<BSTNode<T>> WideCurrentItems(Queue<BSTNode<T>> nodesQueue)
+        {
+            for (int i = nodesQueue.Count; i > 0; i--)
+                yield return WideNextNode(nodesQueue);
+        }
+
+        protected static BSTNode<T> WideNextNode(Queue<BSTNode<T>> nodesQueue)
+        {
+            BSTNode<T> currentNode = nodesQueue.Dequeue();
+
+            if (currentNode.LeftChild != null)
+                nodesQueue.Enqueue(currentNode.LeftChild);
+
+            if (currentNode.RightChild != null)
+                nodesQueue.Enqueue(currentNode.RightChild);
+
+            return currentNode;
+        }
+
+        private List<BSTNode> DeepAllNodesInOrderIterative()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();
 
@@ -476,7 +483,7 @@ namespace AlgorithmsDataStructures2
             return ConvertToBstNode(nodes);
         }
 
-        private List<BSTNode> DeepAllNodesPostOrder()
+        private List<BSTNode> DeepAllNodesPostOrderIterative()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();
 
@@ -526,7 +533,7 @@ namespace AlgorithmsDataStructures2
             return ConvertToBstNode(nodes);
         }
 
-        private List<BSTNode> DeepAllNodesPreOrder()
+        private List<BSTNode> DeepAllNodesPreOrderIterative()
         {
             List<BSTNode<T>> nodes = new List<BSTNode<T>>();
 

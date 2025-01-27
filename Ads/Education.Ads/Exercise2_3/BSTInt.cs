@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AlgorithmsDataStructures2
@@ -121,39 +122,25 @@ namespace AlgorithmsDataStructures2
 
             nodesQueue.Enqueue(Root);
 
-            int sum = 0;
             int level = 0;
 
             int maxSum = Root.NodeValue;
             int maxLevel = 0;
 
-            int nodesLevelCount = 1;
-
             while (nodesQueue.Count != 0)
             {
-                BSTNode<int> currentNode = nodesQueue.Dequeue();
+                int sum = 0;
 
-                nodesLevelCount--;
-                sum += currentNode.NodeValue;
+                foreach (var bstNode in WideCurrentItems(nodesQueue))
+                    sum += bstNode.NodeValue;
 
-                if (currentNode.LeftChild != null)
-                    nodesQueue.Enqueue(currentNode.LeftChild);
-
-                if (currentNode.RightChild != null)
-                    nodesQueue.Enqueue(currentNode.RightChild);
-
-                if (nodesLevelCount == 0)
+                if (maxSum < sum)
                 {
-                    if (maxSum < sum)
-                    {
-                        maxSum = sum;
-                        maxLevel = level;
-                    }
-
-                    sum = 0;
-                    level++;
-                    nodesLevelCount = nodesQueue.Count;
+                    maxSum = sum;
+                    maxLevel = level;
                 }
+
+                level++;
             }
 
             return maxLevel;

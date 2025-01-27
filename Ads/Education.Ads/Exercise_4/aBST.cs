@@ -11,34 +11,12 @@ namespace AlgorithmsDataStructures2
         {
             int tree_size = GetTreeSize(depth);
             Tree = new int?[tree_size];
-            for (int i = 0; i<tree_size; i++) Tree[i] = null;
+            for (int i = 0; i < tree_size; i++) Tree[i] = null;
         }
 
         public int? FindKeyIndex(int key)
         {
-            int index = 0;
-
-            while (index < Tree.Length)
-            {
-                if (Tree[index] == key)
-                {
-                    return index;
-                }
-                if (Tree[index] == null)
-                {
-                    return -index;
-                }
-                else if (Tree[index] > key)
-                {
-                    index = GetLeftChildIndex(index);
-                }
-                else
-                {
-                    index = GetRightChildIndex(index);
-                }
-            }
-            
-            return null;
+            return FindKeyIndex(key, 0);
         }
 
         public int AddKey(int key)
@@ -66,6 +44,24 @@ namespace AlgorithmsDataStructures2
                 size += 1 << i;
 
             return size;
+        }
+
+        protected int? FindKeyIndex(int key, int startIndex)
+        {
+            if (startIndex >= Tree.Length)
+                return null;
+
+            if (Tree[startIndex] == key)
+                return startIndex;
+
+            if (Tree[startIndex] == null)
+                return -startIndex;
+
+            startIndex = Tree[startIndex] > key
+                ? GetLeftChildIndex(startIndex)
+                : GetRightChildIndex(startIndex);
+
+            return FindKeyIndex(key, startIndex);
         }
 
         private int GetLeftChildIndex(int index)

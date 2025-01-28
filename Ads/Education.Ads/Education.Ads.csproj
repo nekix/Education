@@ -46,6 +46,7 @@
     <Compile Include="Exercise2_3\BSTInt.cs" />
     <Compile Include="Exercise_3\TreeExtensions.cs" />
     <Compile Include="Exercise_4\aBST.cs" />
+    <Compile Include="Exercise_5\BalancedBST.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AlgorithmsDataStructures2;
 using Shouldly;
 using Xunit;
@@ -43,6 +40,20 @@ namespace Education.Ads.Tests.Exercise_4
         public void Should_FindKeyIndex(aBST tree, int key, int? index)
         {
             tree.FindKeyIndex(key).ShouldBe(index);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLcaIndexData))]
+        public void Should_GetLcaIndex(aBST tree, int firstIndex, int secondIndex, int? result)
+        {
+            tree.GetLcaIndex(firstIndex, secondIndex).ShouldBe(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetWideAllNodesData))]
+        public void Should_WideAllNodes(aBST tree, List<int> result)
+        {
+            tree.WideAllNodes().ShouldBe(result);
         }
 
         public static IEnumerable<object[]> GetInitData()
@@ -316,6 +327,83 @@ namespace Education.Ads.Tests.Exercise_4
             tree.Tree[13] = 77;
             tree.Tree[14] = 92;
             yield return new object[] { tree, 92, 14 };
+        }
+
+        public static IEnumerable<object[]> GetLcaIndexData()
+        {
+            // 1: Несуществующий узел
+            var tree = GetDefaultTree();
+            yield return new object[] { tree, 22, 13, null };
+
+            // 2: Root узел
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 0, 0, 0 };
+
+            // 3: На одной ветви (левой)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 4, 9, 4 };
+
+            // 4: На одной ветви (правой)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 10, 4, 4 };
+
+            // 5: На разных ветвях (соседние)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 9, 10, 4 };
+
+            // 6: На разных ветвях (средне)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 11, 14, 2 };
+
+            // 7: На разных ветвях (далеко)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 10, 11, 0 };
+
+            // 8: На разных ветвях (далеко)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 10, 14, 0 };
+        }
+
+        public static IEnumerable<object[]> GetWideAllNodesData()
+        {
+            // 1: Нулевая глубина, пустое, несуществующий узел
+            var tree = new aBST(0);
+            yield return new object[] { tree, new List<int>(0) };
+
+            // 2: Нулевая глубина, заполнено
+            tree = new aBST(0);
+            tree.Tree[0] = 2;
+            yield return new object[] { tree, new List<int> { 2 } };
+
+            // 3: Как на картинке в уроке
+            tree = GetDefaultTree();
+            yield return new object[] { tree, new List<int> { 50, 25, 75, 37, 62, 84, 31, 43, 55, 92 } };
+
+            // 4: Как на картинке в уроке
+            // но заполнено полностью
+            tree = GetDefaultTree();
+            tree.Tree[3] = 15;
+            tree.Tree[7] = 5;
+            tree.Tree[8] = 20;
+            tree.Tree[12] = 66;
+            tree.Tree[13] = 77;
+            yield return new object[] { tree, new List<int> { 50, 25, 75, 15, 37, 62, 84, 5, 20, 31, 43, 55, 66, 77, 92 } };
+        }
+
+        private static aBST GetDefaultTree()
+        {
+            var tree = new aBST(3);
+            tree.Tree[0] = 50;
+            tree.Tree[1] = 25;
+            tree.Tree[2] = 75;
+            tree.Tree[4] = 37;
+            tree.Tree[5] = 62;
+            tree.Tree[6] = 84;
+            tree.Tree[9] = 31;
+            tree.Tree[10] = 43;
+            tree.Tree[11] = 55;
+            tree.Tree[14] = 92;
+            return tree;
         }
     }
 }

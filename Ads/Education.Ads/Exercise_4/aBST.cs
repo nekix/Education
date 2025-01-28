@@ -23,7 +23,7 @@ namespace AlgorithmsDataStructures2
         {
             int? index = FindKeyIndex(key);
 
-            if (index == null)
+            if (!index.HasValue)
                 return -1;
 
             if (index > 0)
@@ -34,6 +34,33 @@ namespace AlgorithmsDataStructures2
 
             Tree[-index.Value] = key;
             return -index.Value;
+        }
+
+        public int? GetLcaIndex(int firstIndex, int secondIndex)
+        {
+            if (firstIndex >= Tree.Length || secondIndex >= Tree.Length)
+                return null;
+
+            while (firstIndex != secondIndex)
+            {
+                if (firstIndex < secondIndex)
+                    secondIndex = GetParentIndex(secondIndex);
+                else
+                    firstIndex = GetParentIndex(firstIndex);
+            }
+
+            return firstIndex;
+        }
+
+        public List<int> WideAllNodes()
+        {
+            var nodes = new List<int>();
+            
+            foreach (var node in Tree)
+                if (node.HasValue)
+                    nodes.Add(node.Value);
+
+            return nodes;
         }
 
         private int GetTreeSize(int depth)
@@ -63,6 +90,9 @@ namespace AlgorithmsDataStructures2
 
             return FindKeyIndex(key, startIndex);
         }
+
+        private int GetParentIndex(int index)
+            => (index - 1) / 2;
 
         private int GetLeftChildIndex(int index)
             => 2 * index + 1;

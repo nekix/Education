@@ -7,24 +7,37 @@ namespace AlgorithmsDataStructures2
     {
         public static int[] GenerateBBSTArray(int[] a)
         {
-            Array.Sort(a);
+            int[] sorted = new int[a.Length];
+            a.CopyTo(sorted, 0);
+            Array.Sort(sorted);
 
-            int size = GetArraySize();
+            int[] bbst = new int[a.Length];
 
-            int[] bbst = new int[size];
+            GenerateBBSTArray(sorted, bbst, 0, 0, sorted.Length - 1);
 
-            int rootIndex = (a.Length - 1) / 2;
-
-
-
-            return null;
+            return bbst;
         }
 
-        private static int[] GenerateBBSTArray(int[] a, )
-
-        private static int GetArraySize(int depth)
+        private static void GenerateBBSTArray(int[] sorted, int[] bbst, int root, int left, int right)
         {
-            return (int)Math.Pow(2, depth + 1) - 1;
+            if (root >= bbst.Length)
+                return;
+
+            if (left > right)
+                return;
+
+            int oldRoot = (right - left) / 2 + left;
+
+            bbst[root] = sorted[oldRoot];
+
+            GenerateBBSTArray(sorted, bbst, GetLeftChildIndex(root), left, oldRoot - 1);
+            GenerateBBSTArray(sorted, bbst, GetRightChildIndex(root), oldRoot + 1, right);
         }
+         
+        private static int GetLeftChildIndex(int index)
+            => 2 * index + 1;
+
+        private static int GetRightChildIndex(int index)
+            => 2 * index + 2;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AlgorithmsDataStructures2;
 using Shouldly;
@@ -43,10 +44,17 @@ namespace Education.Ads.Tests.Exercise_4
         }
 
         [Theory]
-        [MemberData(nameof(GetLcaIndexData))]
-        public void Should_GetLcaIndex(aBST tree, int firstIndex, int secondIndex, int? result)
+        [MemberData(nameof(GetLcaIndexByIndexesData))]
+        public void Should_GetLcaIndexByIndexes(aBST tree, int firstIndex, int secondIndex, int? result)
         {
-            tree.GetLcaIndex(firstIndex, secondIndex).ShouldBe(result);
+            tree.GetLcaIndexByIndexes(firstIndex, secondIndex).ShouldBe(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLcaIndexByKeysData))]
+        public void Should_GetLcaIndexByKeys(aBST tree, int firstKey, int secondKey, int? result)
+        {
+            tree.GetLcaIndexByKeys(firstKey, secondKey).ShouldBe(result);
         }
 
         [Theory]
@@ -329,7 +337,7 @@ namespace Education.Ads.Tests.Exercise_4
             yield return new object[] { tree, 92, 14 };
         }
 
-        public static IEnumerable<object[]> GetLcaIndexData()
+        public static IEnumerable<object[]> GetLcaIndexByIndexesData()
         {
             // 1: Несуществующий узел
             var tree = GetDefaultTree();
@@ -362,6 +370,41 @@ namespace Education.Ads.Tests.Exercise_4
             // 8: На разных ветвях (далеко)
             tree = GetDefaultTree();
             yield return new object[] { tree, 10, 14, 0 };
+        }
+
+        public static IEnumerable<object[]> GetLcaIndexByKeysData()
+        {
+            // 1: Несуществующий узел
+            var tree = GetDefaultTree();
+            yield return new object[] { tree, 22, 13, null };
+
+            // 2: Root узел
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 50, 50, 0 };
+
+            // 3: На одной ветви (левой)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 37, 31, 4 };
+
+            // 4: На одной ветви (правой)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 43, 37, 4 };
+
+            // 5: На разных ветвях (соседние)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 31, 43, 4 };
+
+            // 6: На разных ветвях (средне)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 55, 92, 2 };
+
+            // 7: На разных ветвях (далеко)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 43, 55, 0 };
+
+            // 8: На разных ветвях (далеко)
+            tree = GetDefaultTree();
+            yield return new object[] { tree, 43, 92, 0 };
         }
 
         public static IEnumerable<object[]> GetWideAllNodesData()

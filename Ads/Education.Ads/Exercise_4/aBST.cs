@@ -36,7 +36,7 @@ namespace AlgorithmsDataStructures2
             return -index.Value;
         }
 
-        public int? GetLcaIndex(int firstIndex, int secondIndex)
+        public int? GetLcaIndexByIndexes(int firstIndex, int secondIndex)
         {
             if (firstIndex >= Tree.Length || secondIndex >= Tree.Length)
                 return null;
@@ -50,6 +50,42 @@ namespace AlgorithmsDataStructures2
             }
 
             return firstIndex;
+        }
+
+        public int? GetLcaIndexByKeys(int firstKey, int secondKey)
+        {
+            int currentIndex = 0;
+
+            while (true)
+            {
+                if (currentIndex >= Tree.Length || Tree[currentIndex] == null)
+                    return null;
+
+                if (Tree[currentIndex] == firstKey || Tree[currentIndex] == secondKey)
+                    return currentIndex;
+
+                int leftChild = GetLeftChildIndex(currentIndex);
+                int rightChild = GetRightChildIndex(currentIndex);
+
+                if (leftChild >= Tree.Length && rightChild >= Tree.Length)
+                    return null;
+
+                if (Tree[leftChild] <= firstKey && Tree[leftChild] <= secondKey)
+                    currentIndex = leftChild;
+                else if (Tree[rightChild] >= firstKey && Tree[rightChild] >= secondKey)
+                    currentIndex = rightChild;
+                else
+                {
+                    if (FindKeyIndex(firstKey, currentIndex) != null && FindKeyIndex(secondKey, currentIndex) != null)
+                    {
+                        return currentIndex;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
         }
 
         public List<int> WideAllNodes()

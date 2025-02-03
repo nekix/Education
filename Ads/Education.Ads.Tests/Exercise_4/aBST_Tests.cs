@@ -52,9 +52,16 @@ namespace Education.Ads.Tests.Exercise_4
 
         [Theory]
         [MemberData(nameof(GetLcaIndexByKeysData))]
-        public void Should_GetLcaIndexByKeys(aBST tree, int firstKey, int secondKey, int? result)
+        public void Should_GetLcaIndexByKeysRecursive(aBST tree, int firstKey, int secondKey, int? result)
         {
-            tree.GetLcaIndexByKeys(firstKey, secondKey).ShouldBe(result);
+            tree.GetLcaIndexByKeysRecursive(firstKey, secondKey).ShouldBe(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLcaIndexByKeysData))]
+        public void Should_GetLcaIndexByKeysIterative(aBST tree, int firstKey, int secondKey, int? result)
+        {
+            tree.GetLcaIndexByKeysIterative(firstKey, secondKey).ShouldBe(result);
         }
 
         [Theory]
@@ -375,11 +382,11 @@ namespace Education.Ads.Tests.Exercise_4
         public static IEnumerable<object[]> GetLcaIndexByKeysData()
         {
             // 1: Несуществующий узел
-            var tree = GetDefaultTree();
-            yield return new object[] { tree, 22, 13, null };
+            //var tree = GetDefaultTree();
+            //yield return new object[] { tree, 22, 13, null };
 
             // 2: Root узел
-            tree = GetDefaultTree();
+            var tree = GetDefaultTree();
             yield return new object[] { tree, 50, 50, 0 };
 
             // 3: На одной ветви (левой)

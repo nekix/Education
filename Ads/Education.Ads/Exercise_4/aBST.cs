@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 
 namespace AlgorithmsDataStructures2
 {
@@ -52,41 +53,67 @@ namespace AlgorithmsDataStructures2
             return firstIndex;
         }
 
-        public int? GetLcaIndexByKeys(int firstKey, int secondKey)
+        public int? GetLcaIndexByKeysRecursive(int firstKey, int secondKey)
         {
+            int? firstIndex = FindKeyIndex(firstKey);
+            if (firstIndex == null || firstIndex < 0)
+                return null;
+
+            int? secondIndex = FindKeyIndex(secondKey);
+            if (secondIndex == null || secondIndex < 0)
+                return null;
+
+            return GetLcaIndexByIndexes(firstIndex.Value, secondIndex.Value);
+        }
+
+        public int? GetLcaIndexByKeysIterative(int firstKey, int secondKey)
+        {
+            if (Tree.Length == 0)
+                return null;
+
+            if (Tree[0] == firstKey || Tree[0] == secondKey)
+                return 0;
+
             int currentIndex = 0;
 
             while (true)
             {
-                if (currentIndex >= Tree.Length || Tree[currentIndex] == null)
+                if (currentIndex >= Tree.Length)
                     return null;
 
-                if (Tree[currentIndex] == firstKey || Tree[currentIndex] == secondKey)
-                    return currentIndex;
-
-                int leftChild = GetLeftChildIndex(currentIndex);
-                int rightChild = GetRightChildIndex(currentIndex);
-
-                if (leftChild >= Tree.Length && rightChild >= Tree.Length)
+                if (Tree[currentIndex] == null)
                     return null;
 
-                if (Tree[leftChild] <= firstKey && Tree[leftChild] <= secondKey)
-                    currentIndex = leftChild;
-                else if (Tree[rightChild] >= firstKey && Tree[rightChild] >= secondKey)
-                    currentIndex = rightChild;
-                else
+                if (Tree[currentIndex] == firstKey)
                 {
-                    if (FindKeyIndex(firstKey, currentIndex) != null && FindKeyIndex(secondKey, currentIndex) != null)
-                    {
+                    if (IsExistKey(secondKey, currentIndex))
                         return currentIndex;
-                    }
-                    else
-                    {
-                        return null;
-                    }
+
+                    return null;
                 }
+                
+                if (Tree[currentIndex] == secondKey)
+                {
+                    if (IsExistKey(firstKey, currentIndex))
+                        return currentIndex;
+
+                    return null;
+                }
+
+                // Two left
+                if (Tree[currentIndex] > firstKey && Tree[currentIndex] > secondKey)
+                    currentIndex = GetLeftChildIndex(currentIndex);
+                // Two right
+                else if (Tree[currentIndex] < firstKey && Tree[currentIndex] < secondKey)
+                    currentIndex = GetRightChildIndex(currentIndex);
+                // One left, one right
+                else
+                    return currentIndex;
             }
         }
+
+        private bool IsExistKey(int key, int startNode)
+            => FindKeyIndex(key, startNode) > 0;
 
         public List<int> WideAllNodes()
         {

@@ -55,15 +55,47 @@ namespace AlgorithmsDataStructures2
 
         public int? GetLcaIndexByKeysRecursive(int firstKey, int secondKey)
         {
-            int? firstIndex = FindKeyIndex(firstKey);
-            if (firstIndex == null || firstIndex < 0)
+            if (Tree.Length == 0 || Tree[0] == null)
                 return null;
 
-            int? secondIndex = FindKeyIndex(secondKey);
-            if (secondIndex == null || secondIndex < 0)
+            return GetLcaIndexByKeysRecursive(firstKey, secondKey, 0);
+        }
+
+        private int? GetLcaIndexByKeysRecursive(int firstKey, int secondKey, int index)
+        {
+            if (index >= Tree.Length)
                 return null;
 
-            return GetLcaIndexByIndexes(firstIndex.Value, secondIndex.Value);
+            if (Tree[index] == null)
+                return null;
+
+            if (Tree[index] == firstKey)
+            {
+                if (IsExistKey(secondKey, index))
+                    return index;
+
+                return null;
+            }
+
+            if (Tree[index] == secondKey)
+            {
+                if (IsExistKey(firstKey, index))
+                    return index;
+
+                return null;
+            }
+
+            if (Tree[index] > firstKey && Tree[index] < secondKey)
+                return index;
+
+            if (Tree[index] < firstKey && Tree[index] > secondKey)
+                return index;
+
+            index = Tree[index] > firstKey
+                ? GetLeftChildIndex(index)
+                : GetRightChildIndex(index);
+
+            return GetLcaIndexByKeysRecursive(firstKey, secondKey, index);
         }
 
         public int? GetLcaIndexByKeysIterative(int firstKey, int secondKey)
@@ -113,7 +145,11 @@ namespace AlgorithmsDataStructures2
         }
 
         private bool IsExistKey(int key, int startNode)
-            => FindKeyIndex(key, startNode) > 0;
+        {
+            int? index = FindKeyIndex(key, startNode);
+
+            return index >= 0 && Tree[index.Value] != null;
+        }
 
         public List<int> WideAllNodes()
         {

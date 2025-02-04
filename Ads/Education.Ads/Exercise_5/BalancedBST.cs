@@ -19,15 +19,17 @@ namespace AlgorithmsDataStructures2
             return bbst;
         }
 
-        public static int[] RemoveNodeByKey(int[] a, int nodeIndex)
+        public static int[] RemoveNodeByIndex(int[] a, int nodeIndex)
         {
+            if (a.Length == 0)
+                return new int[0];
+
             int[] sorted = new int[a.Length - 1];
 
             // Copy in sorted order without 'nodeIndex' element
-            int i = 0;
-            foreach (int index in GetInorderIndexes(a, 0))
-                if (i != index)
-                    sorted[i++] = a[index];
+            int j = 0;
+            foreach (int index in GetInorderIndexes(a, 0).Where(i => i != nodeIndex))
+                sorted[j++] = a[index];
 
             int[] bbst = new int[a.Length - 1];
             GenerateBBSTArray(sorted, bbst, 0, 0, bbst.Length - 1);
@@ -59,6 +61,9 @@ namespace AlgorithmsDataStructures2
                 return;
 
             int oldRoot = (right - left) / 2 + left;
+
+            if (oldRoot % 2 == 0 && oldRoot + 1 <= right)
+                oldRoot = oldRoot + 1;
 
             bbst[root] = sorted[oldRoot];
 

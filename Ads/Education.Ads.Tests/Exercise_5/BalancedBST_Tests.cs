@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Management.Instrumentation;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using AlgorithmsDataStructures2;
 using Shouldly;
 using Xunit;
@@ -17,6 +12,56 @@ namespace Education.Ads.Tests.Exercise_5
         public void Should_GenerateBBSTArray(int[] a, int[] res)
         {
             BalancedBST.GenerateBBSTArray(a).ShouldBe(res);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetRemoveNodeByKeyData))]
+        public void Should_RemoveNodeByKey(int[] a, int nodeIndex, int[] res)
+        {
+            BalancedBST.RemoveNodeByIndex(a, nodeIndex).ShouldBe(res);
+        }
+
+        public static IEnumerable<object[]> GetRemoveNodeByKeyData()
+        {
+            // 1: Пустой массив
+            int[] a = new int[] { };
+            int[] res = new int[] { };
+            yield return new object[] { a, 1, res };
+
+            // 2: Один элемент
+            a = new int[] { 7 };
+            res = new int[] { };
+            yield return new object[] { a, 0, res };
+
+            // 3: Древо глубины 1, root
+            a = new int[] { 7, 1, 12 };
+            res = new int[] { 12, 1 };
+            yield return new object[] { a, 0, res };
+
+            // 4: Древо глубины 1, левый
+            a = new int[] { 7, 1, 12 };
+            res = new int[] { 12, 7 };
+            yield return new object[] { a, 1, res };
+
+            // 5: Древо глубины 1, правый
+            a = new int[] { 7, 1, 12 };
+            res = new int[] { 7, 1 };
+            yield return new object[] { a, 2, res };
+
+            // 6: Дерево из массива картинки предыдущего урока (условно средний узел)
+            a = new int[] { 50, 25, 75, 10, 30, 60, 90, 5, 15, 27, 35, 55, 65, 85, 95 };
+            res = new int[] { 55, 25, 85, 10, 35, 65, 95, 5, 15, 27, 50, 60, 75, 90 };
+            yield return new object[] { a, 4, res };
+
+            // 7: Дерево из массива картинки предыдущего урока (root)
+            a = new int[] { 50, 25, 75, 10, 30, 60, 90, 5, 15, 27, 35, 55, 65, 85, 95 };
+            res = new int[] { 55, 25, 85, 10, 35, 65, 95, 5, 15, 27, 50, 60, 75, 90 };
+            yield return new object[] { a, 0, res };
+
+            // 8: Дерево из массива картинки предыдущего урока (root)
+            a = new int[] { 50, 25, 75, 10, 30, 60, 90, 5, 15, 27, 35, 55, 65, 85, 95 };
+            res = new int[] { 55, 25, 85, 10, 35, 65, 95, 5, 15, 27, 50, 60, 75, 90 };
+            yield return new object[] { a, 0, res };
         }
 
         public static IEnumerable<object[]> GetGenerateBBSTArrayData()

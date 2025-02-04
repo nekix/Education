@@ -382,11 +382,11 @@ namespace Education.Ads.Tests.Exercise_4
         public static IEnumerable<object[]> GetLcaIndexByKeysData()
         {
             // 1: Несуществующий узел
-            //var tree = GetDefaultTree();
-            //yield return new object[] { tree, 22, 13, null };
+            var tree = GetDefaultTree();
+            yield return new object[] { tree, 22, 13, null };
 
             // 2: Root узел
-            var tree = GetDefaultTree();
+            tree = GetDefaultTree();
             yield return new object[] { tree, 50, 50, 0 };
 
             // 3: На одной ветви (левой)

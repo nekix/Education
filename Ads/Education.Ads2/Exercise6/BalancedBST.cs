@@ -20,7 +20,6 @@ namespace AlgorithmsDataStructures2
         }
     }
 
-
     public class BalancedBST
     {
         public BSTNode Root; // корень дерева
@@ -39,20 +38,48 @@ namespace AlgorithmsDataStructures2
             Root = GenerateBBSTArray(sorted, null, 0, 0, 0, sorted.Length - 1);
         }
 
-        public bool IsBalanced(BSTNode root_node)
+        public bool IsSearchTree()
         {
-            if (root_node == null)
+            if (Root == null)
                 return true;
 
-            if (root_node.LeftChild != null)
-                if (root_node.NodeKey <= root_node.LeftChild.NodeKey)
+            if (Root.LeftChild != null)
+                if (Root.NodeKey <= Root.LeftChild.NodeKey)
                     return false;
 
-            if (root_node.RightChild != null)
-                if (root_node.NodeKey > root_node.RightChild.NodeKey)
+            if (Root.RightChild != null)
+                if (Root.NodeKey > Root.RightChild.NodeKey)
                     return false;
 
-            return IsBalanced(root_node.LeftChild) && IsBalanced(root_node.RightChild);
+            return IsSearchTree(Root.LeftChild) && IsSearchTree(Root.RightChild);
+        }
+
+        public bool IsBalanced(BSTNode root_node)
+        {
+            int min = 0;
+            int max = 0;
+
+            GetMinMaxLevels(root_node, ref min, ref max);
+
+            return max - min <= 1;
+        }
+
+        private void GetMinMaxLevels(BSTNode root, ref int minLevel, ref int maxLevel)
+        {
+            if (root == null)
+                return;
+
+            GetMinMaxLevels(root.LeftChild, ref minLevel, ref maxLevel);
+            GetMinMaxLevels(root.RightChild, ref minLevel, ref maxLevel);
+
+            if (root.RightChild != null && root.LeftChild != null)
+                return;
+
+            if (root.Level > maxLevel)
+                maxLevel = root.Level;
+
+            if (root.Level < minLevel)
+                minLevel = root.Level;
         }
 
         private BSTNode GenerateBBSTArray(int[] sorted, BSTNode parent, int level, int root, int left, int right)
@@ -80,6 +107,21 @@ namespace AlgorithmsDataStructures2
         private static int GetRightChildIndex(int index)
             => 2 * index + 2;
 
+        private bool IsSearchTree(BSTNode root_node)
+        {
+            if (root_node == null)
+                return true;
+
+            if (root_node.LeftChild != null)
+                if (root_node.NodeKey <= root_node.LeftChild.NodeKey)
+                    return false;
+
+            if (root_node.RightChild != null)
+                if (root_node.NodeKey > root_node.RightChild.NodeKey)
+                    return false;
+
+            return IsSearchTree(root_node.LeftChild) && IsSearchTree(root_node.RightChild);
+        }
 
 
     }

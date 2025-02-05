@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -18,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <ProjectReference Include="..\Education.Ads2\Education.Ads2.csproj">
+		  <Aliases>Exercise6</Aliases>
+	  </ProjectReference>
     <ProjectReference Include="..\Education.Ads\Education.Ads.csproj" />
   </ItemGroup>
 

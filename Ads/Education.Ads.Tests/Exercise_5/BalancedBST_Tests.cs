@@ -125,6 +125,15 @@ namespace Education.Ads.Tests.Exercise_5
 
         public static IEnumerable<object[]> GetComplexRemoveNodeByKeyData()
         {
+            /*   		   ________50________
+             *            /                  \
+             *        ___25___            ___75___
+             *       /        \          /        \
+             *      10        30        60        90
+             *     /  \      /  \      /  \      /  \
+             *    5   15    27  35    55  65    85  95
+             */
+
             // 1: Серия операций удаления и проверка итогов
             int[] a = new int[] { 50, 25, 75, 10, 30, 60, 90, 5, 15, 27, 35, 55, 65, 85, 95 };
             int[] indexes = new int[] { 8, 12, 2, 3, 6, 0, 2 };

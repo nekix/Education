@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AlgorithmsDataStructures2
 {
@@ -28,8 +27,9 @@ namespace AlgorithmsDataStructures2
 
             // Copy in sorted order without 'nodeIndex' element
             int j = 0;
-            foreach (int index in GetInorderIndexes(a, 0).Where(i => i != nodeIndex))
-                sorted[j++] = a[index];
+            foreach (int index in GetInorderIndexes(a, 0))
+                if (index != nodeIndex)
+                    sorted[j++] = a[index];
 
             int[] bbst = new int[a.Length - 1];
             
@@ -61,48 +61,47 @@ namespace AlgorithmsDataStructures2
             if (left > right)
                 return;
 
-            int size = (right - left + 1);
-            double deep = (int)Math.Ceiling(Math.Log(right - left + 2, 2) - 1);
-            var fullSize = (((int)Math.Pow(2, deep + 1) - 1));
-            int lastLevelFullSize = (int)Math.Pow(2, deep);
+            // Support fully filled trees,
+            // but not support partially filled trees.
+            // int oldRoot = (right - left) / 2 + left;
 
-            int preLastBranchSize = (fullSize - 1 - lastLevelFullSize) / 2;
-
-            int t = left + preLastBranchSize;
-            t = t + lastLevelFullSize / 2;
-
-            // Кол-во отсутсвующих узлов последнего уровня
-            int t1 = fullSize - size;
-            // Половина от максимального числа узлов последнего уровня
-            int t2 = lastLevelFullSize / 2;
-            
-            bool t3 = t1 < t2;
-
-            int oldRoot;
-            // Если число отсутсвющих узлов меньше или равно половине последнего уровня
-            if (t1 <= t2)
-            {
-                oldRoot = lastLevelFullSize / 2 + left + preLastBranchSize;
-            }
-            else
-            {
-                oldRoot = (lastLevelFullSize - t1) + left + preLastBranchSize;
-            }
-
-            //int preFullSize = fullSize - lastLevelFullSize;
-            //int lastLevelSize = fullSize - lastLevelFullSize;
-            //int oldRoot = preFullSize / 2;
-            //int oldRoot = (fullSize - 1) / 2 - 1;
-            //int oldRoot = left + size / 2;
+            // Support fully and partially filled trees.
+            int oldRoot = ComputeMiddleIndex(left, right);
 
             bbst[root] = sorted[oldRoot];
 
-            int leftChild = GetLeftChildIndex(root);
-            int rigthChild = GetRightChildIndex(root);
-
-
             GenerateBBSTArray(sorted, bbst, GetLeftChildIndex(root), left, oldRoot - 1);
             GenerateBBSTArray(sorted, bbst, GetRightChildIndex(root), oldRoot + 1, right);
+        }
+
+        private static int ComputeMiddleIndex(int left, int right)
+        {
+            // Subtree.
+            int size = right - left + 1;
+            double deep = (int)Math.Ceiling(Math.Log(right - left + 2, 2) - 1);
+            var maxSize = (((int)Math.Pow(2, deep + 1) - 1));
+
+            // Simple for fully filled tree.
+            if (size == maxSize)
+                return (right - left) / 2 + left;
+
+            // Bottom level.
+            int bottomLevelNodesMaxCount = (int)Math.Pow(2, deep);
+            int bottomLevelHolesCount = maxSize - size;
+            int leftBranchBottomNodesCount = bottomLevelNodesMaxCount / 2;
+
+            // Above the bottom level without subtree root node.
+            int middleLevelsNodesCount = (maxSize - 1 - bottomLevelNodesMaxCount) / 2;
+
+            int oldRoot = left + middleLevelsNodesCount;
+
+            // Check if the bottom nodes are in the right subtree only
+            // or in both the right and left subtree.
+            // Shift by the number of elements of the bottom level of the left tree.
+            if (bottomLevelHolesCount <= leftBranchBottomNodesCount)
+                oldRoot += leftBranchBottomNodesCount;
+            else oldRoot += (bottomLevelNodesMaxCount - bottomLevelHolesCount);
+            return oldRoot;
         }
 
         private static int GetLeftChildIndex(int index)

@@ -92,8 +92,8 @@ namespace AlgorithmsDataStructures2
 
         public bool IsBalanced(BSTNode root_node)
         {
-            int min = 0;
-            int max = 0;
+            int min = int.MaxValue;
+            int max = int.MinValue;
 
             GetMinMaxLevels(root_node, ref min, ref max);
 

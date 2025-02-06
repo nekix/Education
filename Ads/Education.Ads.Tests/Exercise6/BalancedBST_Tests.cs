@@ -52,6 +52,17 @@ namespace Education.Ads.Tests.Exercise6
             tree.IsBalanced(tree.Root).ShouldBe(result);
         }
 
+        [Theory]
+        [MemberData(nameof(GetIsBalanceIntData))]
+        public void Should_IsBalancedInt(int[] a)
+        {
+            var tree = new BalancedBST();
+
+            tree.GenerateTree(a);
+
+            tree.IsBalanced(tree.Root).ShouldBe(true);
+        }
+
         public static IEnumerable<object[]> GetGenerateBBSTArrayData()
         {
             // 1: Пустой массив
@@ -165,6 +176,10 @@ namespace Education.Ads.Tests.Exercise6
             node = GetDefaultTree();
             node.RightChild.LeftChild.RightChild.NodeKey = 60;
             yield return new object[] { node, true };
+        }
+        public static IEnumerable<object[]> GetIsBalanceIntData()
+        {
+            return GetGenerateBBSTArrayData().Select(d => new object[] { d[0] });
         }
 
         public static IEnumerable<object[]> GetIsBalancedData()

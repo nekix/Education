@@ -20,7 +20,8 @@ namespace AlgorithmsDataStructures2
             HeapArray = new int[size];
 
             foreach (int key in a)
-                Add(key);
+                if (_count != size)
+                    Add(key);
 
             for (int i = _count; i < size; i++)
                 HeapArray[i] = EmptyKey;
@@ -37,6 +38,9 @@ namespace AlgorithmsDataStructures2
             HeapArray[_count - 1] = EmptyKey;
 
             _count--;
+
+            if (_count == 0)
+                return maxKey;
 
             GetMax(lastKey, 0);
 
@@ -74,8 +78,6 @@ namespace AlgorithmsDataStructures2
             if (HeapArray.Length == _count)
                 return false;
 
-            HeapArray[_count] = key;
-
             Add(key, _count);
 
             _count++;
@@ -101,11 +103,11 @@ namespace AlgorithmsDataStructures2
 
             HeapArray[index] = HeapArray[parent];
 
-            GetMax(key, parent);
+            Add(key, parent);
         }
 
         private int GetSizeByDepth(int depth)
-            => 2 << depth - 1;
+            => (int)Math.Pow(2, depth + 1) - 1;
 
         private int GetLeftChildIndex(int index)
             => 2 * index + 1;
@@ -114,6 +116,6 @@ namespace AlgorithmsDataStructures2
             => 2 * index + 2;
 
         private int GetParentIndex(int index)
-            => index / 2;
+            => (index - 1) / 2;
     }
 }

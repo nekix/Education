@@ -48,7 +48,7 @@ namespace AlgorithmsDataStructures2
 
             int oldRoot = (right - left) / 2 + left;
 
-            var node = new BSTNode(sorted[oldRoot], parent);
+            BSTNode node = new BSTNode(sorted[oldRoot], parent);
             node.Level = level;
 
             node.LeftChild = GenerateTree(sorted, node, level + 1, GetLeftChildIndex(root), left, oldRoot - 1);

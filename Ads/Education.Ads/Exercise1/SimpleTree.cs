@@ -187,7 +187,7 @@ namespace AlgorithmsDataStructures2
             if (node.Children == null)
                 return;
 
-            foreach (var child in node.Children)
+            foreach (SimpleTreeNode<T> child in node.Children)
                 UpdateNodesLevelsRecursive(child, nodeLevel + 1);
         }
 

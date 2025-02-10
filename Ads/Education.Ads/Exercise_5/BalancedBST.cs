@@ -79,7 +79,7 @@ namespace AlgorithmsDataStructures2
             // Subtree.
             int size = right - left + 1;
             double deep = (int)Math.Ceiling(Math.Log(right - left + 2, 2) - 1);
-            var maxSize = (((int)Math.Pow(2, deep + 1) - 1));
+            int maxSize = (((int)Math.Pow(2, deep + 1) - 1));
 
             // Simple for fully filled tree.
             if (size == maxSize)

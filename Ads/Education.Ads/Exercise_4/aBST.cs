@@ -153,9 +153,9 @@ namespace AlgorithmsDataStructures2
 
         public List<int> WideAllNodes()
         {
-            var nodes = new List<int>();
+            List<int> nodes = new List<int>();
             
-            foreach (var node in Tree)
+            foreach (int? node in Tree)
                 if (node.HasValue)
                     nodes.Add(node.Value);
 

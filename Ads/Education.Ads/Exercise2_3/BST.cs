@@ -366,7 +366,7 @@ namespace AlgorithmsDataStructures2
             if (Root == null)
                 return new List<BSTNode>();
 
-            foreach (var node in WideAllNodes(Root))
+            foreach (BSTNode<T> node in WideAllNodes(Root))
                 nodesResult.Add(node);
 
             return ConvertToBstNode(nodesResult);
@@ -407,7 +407,7 @@ namespace AlgorithmsDataStructures2
             if (Root == null)
                 return;
 
-            foreach (var node in WideAllNodes(Root))
+            foreach (BSTNode<T> node in WideAllNodes(Root))
                 SwapChildren(node);
         }
 
@@ -426,7 +426,7 @@ namespace AlgorithmsDataStructures2
             nodesQueue.Enqueue(Root);
 
             while (nodesQueue.Count != 0)
-                foreach (var node in WideCurrentItems(nodesQueue))
+                foreach (BSTNode<T> node in WideCurrentItems(nodesQueue))
                     yield return node;
         }
 

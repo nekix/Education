@@ -131,7 +131,7 @@ namespace AlgorithmsDataStructures2
             {
                 int sum = 0;
 
-                foreach (var bstNode in WideCurrentItems(nodesQueue))
+                foreach (BSTNode<int> bstNode in WideCurrentItems(nodesQueue))
                     sum += bstNode.NodeValue;
 
                 if (maxSum < sum)

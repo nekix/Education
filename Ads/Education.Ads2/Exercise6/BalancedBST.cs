@@ -92,33 +92,27 @@ namespace AlgorithmsDataStructures2
 
         public bool IsBalanced(BSTNode root_node)
         {
-            int min = int.MaxValue;
-            int max = int.MinValue;
-
-            GetMinMaxLevels(root_node, ref min, ref max);
-
-            return max - min <= 1;
+            return GetBalancedHeight(Root) != -1;
         }
 
-        private void GetMinMaxLevels(BSTNode root, ref int minLevel, ref int maxLevel)
+        private int GetBalancedHeight(BSTNode root)
         {
             if (root == null)
-                return;
+                return 0;
 
-            GetMinMaxLevels(root.LeftChild, ref minLevel, ref maxLevel);
-            GetMinMaxLevels(root.RightChild, ref minLevel, ref maxLevel);
+            int leftMax = GetBalancedHeight(root.LeftChild);
+            if (leftMax == -1)
+                return -1;
 
-            if (root.RightChild != null && root.LeftChild != null)
-                return;
+            int rightMax = GetBalancedHeight(root.RightChild);
+            if (rightMax == -1)
+                return -1;
 
-            if (root.Level > maxLevel)
-                maxLevel = root.Level;
+            if (Math.Abs(leftMax - rightMax) > 1)
+                return -1;
 
-            if (root.Level < minLevel)
-                minLevel = root.Level;
+            return Math.Max(leftMax, rightMax) + 1;
         }
-
-
     }
 }
 

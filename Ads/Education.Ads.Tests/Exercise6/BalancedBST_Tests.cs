@@ -186,7 +186,7 @@ namespace Education.Ads.Tests.Exercise6
         {
             // 1: Один уровень
             BSTNode node = new BSTNode(50, null);
-            yield return new object[] {node, true };
+            yield return new object[] { node, true };
 
             // 2: Сбалансированный Двухуровневый полностью заполненный
             node = new BSTNode(50, null);
@@ -203,7 +203,7 @@ namespace Education.Ads.Tests.Exercise6
             node = new BSTNode(50, null);
             node.LeftChild = new BSTNode(25, node);
             node.LeftChild.LeftChild = new BSTNode(5, node);
-            yield return new object[] { node, true };
+            yield return new object[] { node, false };
 
             // 5: Сбалансированный полностью заполненный 4-х уровневый
             node = GetDefaultTree();
@@ -221,7 +221,7 @@ namespace Education.Ads.Tests.Exercise6
             DetachFromParent(node.RightChild.RightChild);
             DetachFromParent(node.LeftChild.LeftChild.LeftChild);
             DetachFromParent(node.RightChild.LeftChild.LeftChild);
-            yield return new object[] { node, true };
+            yield return new object[] { node, false };
         }
 
         private List<BSTNode> WideAllNodes(BSTNode root)

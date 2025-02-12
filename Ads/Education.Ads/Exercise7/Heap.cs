@@ -42,12 +42,12 @@ namespace AlgorithmsDataStructures2
             if (_count == 0)
                 return maxKey;
 
-            GetMax(lastKey, 0);
+            GetMaxRebalance(lastKey, 0);
 
             return maxKey;
         }
 
-        private void GetMax(int key, int index)
+        private void GetMaxRebalance(int key, int index)
         {
             int leftChild = GetLeftChildIndex(index);
             int rightChild = GetRightChildIndex(index);
@@ -70,7 +70,7 @@ namespace AlgorithmsDataStructures2
 
             HeapArray[index] = HeapArray[maxChild];
 
-            GetMax(key, maxChild);
+            GetMaxRebalance(key, maxChild);
         }
 
         public bool Add(int key)
@@ -78,14 +78,14 @@ namespace AlgorithmsDataStructures2
             if (HeapArray.Length == _count)
                 return false;
 
-            Add(key, _count);
+            AddRebalance(key, _count);
 
             _count++;
 
             return true;
         }
 
-        private void Add(int key, int index)
+        private void AddRebalance(int key, int index)
         {
             if (index == 0)
             {
@@ -103,8 +103,16 @@ namespace AlgorithmsDataStructures2
 
             HeapArray[index] = HeapArray[parent];
 
-            Add(key, parent);
+            AddRebalance(key, parent);
         }
+
+        //public bool IsCorrect(int[] heapArray)
+        //{
+        //    if (heapArray.Length == 0)
+        //        return true;
+
+        //    return IsCorrect(heapArray, 0);
+        //}
 
         private int GetSizeByDepth(int depth)
             => (int)Math.Pow(2, depth + 1) - 1;

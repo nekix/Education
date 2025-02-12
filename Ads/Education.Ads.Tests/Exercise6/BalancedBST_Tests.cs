@@ -1,5 +1,6 @@
 ﻿extern alias Exercise6;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Exercise6.AlgorithmsDataStructures2;
 using Shouldly;
@@ -34,22 +35,22 @@ namespace Education.Ads.Tests.Exercise6
 
         [Theory]
         [MemberData(nameof(GetIsSearchTreeData))]
-        public void Should_IsSearchTree(BSTNode node, bool result)
+        public void Should_IsSearchTree(BSTNode node, BSTNode checkedNode, bool result)
         {
             var tree = new BalancedBST();
             tree.Root = node;
 
-            tree.IsSearchTree(tree.Root).ShouldBe(result);
+            tree.IsSearchTree(checkedNode).ShouldBe(result);
         }
 
         [Theory]
         [MemberData(nameof(GetIsBalancedData))]
-        public void Should_IsBalanced(BSTNode node, bool result)
+        public void Should_IsBalanced(BSTNode rootNode, BSTNode checkedNode, bool result)
         {
             var tree = new BalancedBST();
-            tree.Root = node;
+            tree.Root = rootNode;
 
-            tree.IsBalanced(tree.Root).ShouldBe(result);
+            tree.IsBalanced(checkedNode).ShouldBe(result);
         }
 
         [Theory]
@@ -112,70 +113,97 @@ namespace Education.Ads.Tests.Exercise6
         {
             // 1: Один уровень, правильное
             BSTNode node = new BSTNode(50, null);
-            yield return new object[] { node, true };
+            BSTNode checkedNode = node;
+            yield return new object[] { node, checkedNode, true };
 
             // 2: Двухуровневое правильное
             node = new BSTNode(50, null);
             node.LeftChild = new BSTNode(25, node);
             node.RightChild = new BSTNode(75, node);
-            yield return new object[] { node, true };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, true };
 
             // 3: Двухуровневое правильное
             node = new BSTNode(50, null);
             node.LeftChild = new BSTNode(25, node);
             node.RightChild = new BSTNode(50, node);
-            yield return new object[] { node, true };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, true };
 
             // 4: Двухуровневое правильное
             node = new BSTNode(50, null);
             node.LeftChild = new BSTNode(50, node);
             node.RightChild = new BSTNode(75, node);
-            yield return new object[] { node, false };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, false };
 
             // 5: Двухуровневое неправильное (левая равна родительской)
             node = new BSTNode(50, null);
             node.LeftChild = new BSTNode(50, node);
             node.RightChild = new BSTNode(75, node);
-            yield return new object[] { node, false };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, false };
 
-            // 6: Двухуровневое неправильное (правая меньше родительской)
+            // 6: Двухуровневое неправильное (левая равна родительской)
+            // но проверяется правильное поддерево
+            node = new BSTNode(50, null);
+            node.LeftChild = new BSTNode(50, node);
+            node.RightChild = new BSTNode(75, node);
+            checkedNode = node.LeftChild;
+            yield return new object[] { node, checkedNode, true };
+
+            // 7: Двухуровневое неправильное (правая меньше родительской)
             node = new BSTNode(50, null);
             node.LeftChild = new BSTNode(25, node);
             node.RightChild = new BSTNode(30, node);
-            yield return new object[] { node, false };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, false };
             
-            // 7: Четырёхуровневый правильный (только правая ветвь)
+            // 8: Четырёхуровневый правильный (только правая ветвь)
             node = new BSTNode(50, null);
             node.RightChild = new BSTNode(75, node);
             node.RightChild.RightChild = new BSTNode(85, node.RightChild);
             node.RightChild.RightChild.RightChild = new BSTNode(90, node.RightChild.RightChild);
-            yield return new object[] { node, true };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, true };
 
-            // 8: Четырёхуровневый неправильный (нижний левый меньше остальных)
+            // 9: Четырёхуровневый неправильный (нижний левый меньше остальных)
             node = new BSTNode(50, null);
             node.RightChild = new BSTNode(75, node);
             node.RightChild.RightChild = new BSTNode(85, node.RightChild);
             node.RightChild.RightChild.LeftChild = new BSTNode(25, node.RightChild.RightChild);
-            yield return new object[] { node, false };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, false };
 
             // 10: Четырёхуровневое правильное
             node = GetDefaultTree();
-            yield return new object[] { node, true };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, true };
 
             // 11: Четырёхуровневое неправильное
             node = GetDefaultTree();
             node.LeftChild.RightChild.RightChild.NodeKey = 64;
-            yield return new object[] { node, false };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, false };
 
             // 12: Четырёхуровневое неправильное
+            // но проверяется правильное поддерево
+            node = GetDefaultTree();
+            node.LeftChild.RightChild.RightChild.NodeKey = 64;
+            checkedNode = node.RightChild;
+            yield return new object[] { node, checkedNode, true };
+
+            // 13: Четырёхуровневое неправильное
             node = GetDefaultTree();
             node.RightChild.LeftChild.LeftChild.NodeKey = 45;
-            yield return new object[] { node, false };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, false };
 
-            // 13: Четырёхуровневое правильное
+            // 14: Четырёхуровневое правильное
             node = GetDefaultTree();
             node.RightChild.LeftChild.RightChild.NodeKey = 60;
-            yield return new object[] { node, true };
+            checkedNode = node;
+            yield return new object[] { node, checkedNode, true };
         }
         public static IEnumerable<object[]> GetIsBalanceIntData()
         {
@@ -185,43 +213,82 @@ namespace Education.Ads.Tests.Exercise6
         public static IEnumerable<object[]> GetIsBalancedData()
         {
             // 1: Один уровень
-            BSTNode node = new BSTNode(50, null);
-            yield return new object[] { node, true };
+            BSTNode rootNode = new BSTNode(50, null);
+            BSTNode checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, true };
 
             // 2: Сбалансированный Двухуровневый полностью заполненный
-            node = new BSTNode(50, null);
-            node.LeftChild = new BSTNode(25, node);
-            node.RightChild = new BSTNode(75, node);
-            yield return new object[] { node, true };
+            rootNode = new BSTNode(50, null);
+            rootNode.LeftChild = new BSTNode(25, rootNode);
+            rootNode.RightChild = new BSTNode(75, rootNode);
+            checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, true };
 
             // 3: Сбалансированный двухуровневый не полностью заполненный
-            node = new BSTNode(50, null);
-            node.LeftChild = new BSTNode(25, node);
-            yield return new object[] { node, true };
+            rootNode = new BSTNode(50, null);
+            rootNode.LeftChild = new BSTNode(25, rootNode);
+            checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, true };
 
             // 4: Не сбалансированный трёхуровневый
-            node = new BSTNode(50, null);
-            node.LeftChild = new BSTNode(25, node);
-            node.LeftChild.LeftChild = new BSTNode(5, node);
-            yield return new object[] { node, false };
+            rootNode = new BSTNode(50, null);
+            rootNode.LeftChild = new BSTNode(25, rootNode);
+            rootNode.LeftChild.LeftChild = new BSTNode(5, rootNode);
+            checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, false };
 
-            // 5: Сбалансированный полностью заполненный 4-х уровневый
-            node = GetDefaultTree();
-            yield return new object[] { node, true };
+            // 5: Не сбалансированный трёхуровневый
+            // но проверяется сбалансированное поддерево
+            rootNode = new BSTNode(50, null);
+            rootNode.LeftChild = new BSTNode(25, rootNode);
+            rootNode.LeftChild.LeftChild = new BSTNode(5, rootNode);
+            checkNode = rootNode.LeftChild;
+            yield return new object[] { rootNode, checkNode, true };
 
-            // 6: Сбалансированный не полностью заполненный 4-х уровневый
-            node = GetDefaultTree();
-            DetachFromParent(node.RightChild.RightChild.LeftChild);
-            DetachFromParent(node.LeftChild.LeftChild.LeftChild);
-            DetachFromParent(node.RightChild.LeftChild.LeftChild);
-            yield return new object[] { node, true };
+            // 6: Сбалансированный полностью заполненный 4-х уровневый
+            rootNode = GetDefaultTree();
+            checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, true };
 
-            // 7: Не Сбалансированный 4-х уровневый массив
-            node = GetDefaultTree();
-            DetachFromParent(node.RightChild.RightChild);
-            DetachFromParent(node.LeftChild.LeftChild.LeftChild);
-            DetachFromParent(node.RightChild.LeftChild.LeftChild);
-            yield return new object[] { node, false };
+            // 7: Сбалансированный полностью заполненный 4-х уровневый
+            // и проверяется сбалансированное поддерево
+            rootNode = GetDefaultTree();
+            checkNode = rootNode.RightChild.RightChild;
+            yield return new object[] { rootNode, checkNode, true };
+
+            // 8: Сбалансированный не полностью заполненный 4-х уровневый
+            rootNode = GetDefaultTree();
+            DetachFromParent(rootNode.RightChild.RightChild.LeftChild);
+            DetachFromParent(rootNode.LeftChild.LeftChild.LeftChild);
+            DetachFromParent(rootNode.RightChild.LeftChild.LeftChild);
+            checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, true };
+
+            // 9: Не Сбалансированный 4-х уровневый массив
+            rootNode = GetDefaultTree();
+            DetachFromParent(rootNode.RightChild.RightChild);
+            DetachFromParent(rootNode.LeftChild.LeftChild.LeftChild);
+            DetachFromParent(rootNode.RightChild.LeftChild.LeftChild);
+            checkNode = rootNode;
+            yield return new object[] { rootNode, checkNode, false };
+
+            // 10: Не Сбалансированный 4-х уровневый массив,
+            // и проверяется сбалансированное поддерево
+            rootNode = GetDefaultTree();
+            DetachFromParent(rootNode.RightChild.RightChild);
+            DetachFromParent(rootNode.LeftChild.LeftChild.LeftChild);
+            DetachFromParent(rootNode.RightChild.LeftChild.LeftChild);
+            checkNode = rootNode.LeftChild;
+            yield return new object[] { rootNode, checkNode, true };
+
+            // 11: Не Сбалансированный 4-х уровневый массив,
+            // но проверяется не сбалансированное поддерево
+            rootNode = GetDefaultTree();
+            DetachFromParent(rootNode.RightChild.RightChild);
+            DetachFromParent(rootNode.LeftChild.LeftChild.LeftChild);
+            DetachFromParent(rootNode.RightChild.LeftChild.LeftChild);
+            checkNode = rootNode.RightChild;
+            yield return new object[] { rootNode, checkNode, false };
         }
 
         private List<BSTNode> WideAllNodes(BSTNode root)

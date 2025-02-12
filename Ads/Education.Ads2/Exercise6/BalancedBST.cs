@@ -92,7 +92,7 @@ namespace AlgorithmsDataStructures2
 
         public bool IsBalanced(BSTNode root_node)
         {
-            return GetBalancedHeight(Root) != -1;
+            return GetBalancedHeight(root_node) != -1;
         }
 
         private int GetBalancedHeight(BSTNode root)

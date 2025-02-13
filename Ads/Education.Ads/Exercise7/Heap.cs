@@ -106,9 +106,13 @@ namespace AlgorithmsDataStructures2
             AddRebalance(key, parent);
         }
 
-        public bool IsCorrect(int[] heapArray)
+        public static bool IsHeap(int[] heapArray)
         {
             if (heapArray.Length == 0)
+                return false;
+
+            double deep = Math.Log(heapArray.Length + 1, 2) - 1;
+            if (deep != Math.Truncate(deep))
                 return false;
 
             int last = heapArray.Length - 1;
@@ -130,16 +134,49 @@ namespace AlgorithmsDataStructures2
             return true;
         }
 
-        private int GetSizeByDepth(int depth)
+        public int GetMaxInRange(int minValue, int maxValue)
+        {
+            if (HeapArray.Length == 0)
+                return EmptyKey;
+
+            if (minValue > maxValue)
+                return EmptyKey;
+
+            return GetMaxInRange(minValue, maxValue, 0);
+        }
+
+        private int GetMaxInRange(int minValue, int maxValue, int index)
+        {
+            if (index >= HeapArray.Length)
+                return EmptyKey;
+
+            int key = HeapArray[index];
+
+            if (key <= maxValue && key >= minValue)
+                return key;
+
+            if (key < maxValue)
+                return EmptyKey;
+
+            int left = GetLeftChildIndex(index);
+            int right = GetRightChildIndex(index);
+
+            int leftMax = GetMaxInRange(minValue, maxValue, left);
+            int rightMax = GetMaxInRange(minValue, maxValue, right);
+
+            return Math.Max(leftMax, rightMax);
+        }
+
+        private static int GetSizeByDepth(int depth)
             => (int)Math.Pow(2, depth + 1) - 1;
 
-        private int GetLeftChildIndex(int index)
+        private static int GetLeftChildIndex(int index)
             => 2 * index + 1;
 
-        private int GetRightChildIndex(int index)
+        private static int GetRightChildIndex(int index)
             => 2 * index + 2;
 
-        private int GetParentIndex(int index)
+        private static int GetParentIndex(int index)
             => (index - 1) / 2;
     }
 }

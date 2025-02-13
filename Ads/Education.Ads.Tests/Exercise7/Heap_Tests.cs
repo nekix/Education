@@ -44,6 +44,88 @@ namespace Education.Ads.Tests.Exercise7
             heap.HeapArray.ShouldBe(heapArray);
         }
 
+        [Theory]
+        [MemberData(nameof(GetIsHeapData))]
+        public void Should_IsHeap(int[] a, bool result)
+        {
+            Heap.IsHeap(a).ShouldBe(result);
+        }
+
+        public static IEnumerable<object[]> GetIsHeapData()
+        {
+            // 1: Empty array
+            int[] a = new int[] { };
+            yield return new object[] { a, false };
+
+            // 2: One level empty array
+            a = new int[] { -1 };
+            yield return new object[] { a, true };
+
+            // 3: One level full array
+            a = new int[] { 10 };
+            yield return new object[] { a, true };
+
+            // 4: Empty array deep 4
+            a = new int[]
+            {
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1
+            };
+            yield return new object[] { a, true };
+
+            // 5: Not valid heap array deep 4
+            a = new int[]
+            {
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, 10, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1
+            };
+            yield return new object[] { a, false };
+
+            // 6: Two levels, not valid
+            a = new int[] { 9, 11, -1 };
+            yield return new object[] { a, false };
+
+            // 7: Two levels, valid
+            a = new int[] { 11, 9, -1 };
+            yield return new object[] { a, true };
+
+            // 8: From lesson, 4 levels, not valid
+            a = new int[] { 11, 9, 4, 7, 8, 3, 1, 2, 5, 6 };
+            yield return new object[] { a, false };
+
+            // 9: From lesson, 3 not full levels, not valid
+            a = new int[] { 11, 9, 4, 7, 8, 3, 1 };
+            yield return new object[] { a, true };
+
+            // 10: From lesson, 3 levels, not full
+            a = new int[] { 11, 9, 4, 7, 8, 3, 1, 2, 5, 6 };
+            yield return new object[] { a, false };
+
+            // 11: From lesson, 4 levels, full
+            a = new int[] { 11, 9, 4, 7, 8, 3, 1, 2, 5, 6, -1, -1, -1, -1, -1 };
+            yield return new object[] { a, true };
+
+            // 12: From lesson, three levels, full
+            a = new int[] { 11, 9, 4, 7, 8, 3, 1, 2, 5, 6, 7, 2, 1, 0, 0 };
+            yield return new object[] { a, true };
+
+            // 13: From lesson, three levels, full, not valid
+            a = new int[] { 11, 9, 4, 7, 8, 3, 14, 2, 5, 6, 7, 2, 1, 0, 0 };
+            yield return new object[] { a, false };
+        }
+
         public static IEnumerable<object[]> GetMakeHeapData()
         {
             // 1: Empty array
@@ -172,7 +254,6 @@ namespace Education.Ads.Tests.Exercise7
             heapArray = new int[] { 9, 8, 4, 7, 6, 3, 1, 2, 5, -1, -1, -1, -1, -1, -1 };
             yield return new object[] { a, depth, max, heapArray };
 
-            // 11, 8, 9, 7, 5, 4, 6, 1, 2, 3, -1, -1, -1, -1, -1
             // 8: From lesson, other order, three levels, not full
             a = new int[] { 6, 1, 8, 3, 11, 4, 9, 2, 7, 5 };
             depth = 3;

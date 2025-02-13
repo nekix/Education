@@ -106,13 +106,29 @@ namespace AlgorithmsDataStructures2
             AddRebalance(key, parent);
         }
 
-        //public bool IsCorrect(int[] heapArray)
-        //{
-        //    if (heapArray.Length == 0)
-        //        return true;
+        public bool IsCorrect(int[] heapArray)
+        {
+            if (heapArray.Length == 0)
+                return false;
 
-        //    return IsCorrect(heapArray, 0);
-        //}
+            int last = heapArray.Length - 1;
+            for (;last >= 0; last--)
+                if (heapArray[last] != EmptyKey)
+                    break;
+
+            for (int i = last; i > 0; i--)
+            {
+                if (heapArray[i] <= EmptyKey)
+                    return false;
+
+                int parent = GetParentIndex(i);
+
+                if (heapArray[i] > heapArray[parent])
+                    return false;
+            }
+
+            return true;
+        }
 
         private int GetSizeByDepth(int depth)
             => (int)Math.Pow(2, depth + 1) - 1;

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Education.Ads2\Education.Ads2.csproj" >
+    <ProjectReference Include="..\Education.Ads2\Education.Ads2.csproj">
       <Aliases>Exercise6</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\Education.Ads\Education.Ads.csproj" />

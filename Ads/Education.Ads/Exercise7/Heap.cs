@@ -155,7 +155,7 @@ namespace AlgorithmsDataStructures2
             if (key <= maxValue && key >= minValue)
                 return key;
 
-            if (key < maxValue)
+            if (key < minValue)
                 return EmptyKey;
 
             int left = GetLeftChildIndex(index);
@@ -171,6 +171,7 @@ namespace AlgorithmsDataStructures2
         {
             int firstCount = GetCount();
             int secondCount = secondHeap.GetCount();
+
             int size = firstCount + secondCount;
 
             int depth = GetMinDepthBySize(size);
@@ -205,7 +206,10 @@ namespace AlgorithmsDataStructures2
 
         private static int GetMinDepthBySize(int size)
         {
-            return (int)Math.Round(Math.Log(size + 1, 2) - 1, MidpointRounding.AwayFromZero);
+            if (size == 0)
+                return 0;
+
+            return (int)Math.Ceiling(Math.Log(size + 1, 2) - 1);
         }
 
         private static int GetSizeByDepth(int depth)

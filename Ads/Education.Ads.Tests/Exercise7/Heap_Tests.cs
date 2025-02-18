@@ -211,15 +211,15 @@ namespace Education.Ads.Tests.Exercise7
             a = new int[] { 11, 9, -1 };
             yield return new object[] { a, true };
 
-            // 8: From lesson, 4 levels, not valid
-            a = new int[] { 11, 9, 4, 7, 8, 3, 1, 2, 5, 6 };
+            // 8: From lesson, 3 levels, not valid
+            a = new int[] { 11, 9, 4, 7, 8, 5, 1, 2, 5, 6 };
             yield return new object[] { a, false };
 
             // 9: From lesson, 3 not full levels, not valid
             a = new int[] { 11, 9, 4, 7, 8, 3, 1 };
             yield return new object[] { a, true };
 
-            // 10: From lesson, 3 levels, not full
+            // 10: From lesson, 3 levels, not full, not valid
             a = new int[] { 11, 9, 4, 7, 8, 3, 1, 2, 5, 6 };
             yield return new object[] { a, false };
 

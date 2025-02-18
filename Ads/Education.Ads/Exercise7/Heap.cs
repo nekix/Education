@@ -167,6 +167,47 @@ namespace AlgorithmsDataStructures2
             return Math.Max(leftMax, rightMax);
         }
 
+        public Heap Union(Heap secondHeap)
+        {
+            int firstCount = GetCount();
+            int secondCount = secondHeap.GetCount();
+            int size = firstCount + secondCount;
+
+            int depth = GetMinDepthBySize(size);
+
+            Heap heap = new Heap();
+            heap.MakeHeap(Array.Empty<int>(), depth);
+
+            int firstKey = GetMax();
+            int secondKey = secondHeap.GetMax();
+
+            for (int i = 0; i < size; i++)
+            {
+                if (firstKey > secondKey)
+                {
+                    heap.Add(firstKey);
+                    firstKey = GetMax();
+                }
+                else
+                {
+                    heap.Add(secondKey);
+                    secondKey = secondHeap.GetMax();
+                }
+            }
+
+            return heap;
+        }
+
+        public int GetCount()
+        {
+            return _count;
+        }
+
+        private static int GetMinDepthBySize(int size)
+        {
+            return (int)Math.Round(Math.Log(size + 1, 2) - 1, MidpointRounding.AwayFromZero);
+        }
+
         private static int GetSizeByDepth(int depth)
             => (int)Math.Pow(2, depth + 1) - 1;
 

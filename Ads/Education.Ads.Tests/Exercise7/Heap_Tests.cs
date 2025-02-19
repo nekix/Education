@@ -72,7 +72,7 @@ namespace Education.Ads.Tests.Exercise7
         }
 
         [Theory]
-        [MemberData(nameof(GetUnionV2Data))]
+        [MemberData(nameof(GetUnionData))]
         public void Should_UnionV2(int[] first, int firstDepth, int[] second, int secondDepth, int[] unionHeap)
         {
             Heap firstHeap = new Heap();
@@ -85,43 +85,6 @@ namespace Education.Ads.Tests.Exercise7
             newHeap.HeapArray.ShouldBe(unionHeap);
             first.ShouldBeSubsetOf(firstHeap.HeapArray);
             second.ShouldBeSubsetOf(secondHeap.HeapArray);
-        }
-
-        public static IEnumerable<object[]> GetUnionV2Data()
-        {
-            // 1: Empty
-            int[] first = new int[] { };
-            int firstDepth = 2;
-            int[] second = new int[] { };
-            int secondDepth = 3;
-            int[] unionHeap = new int[] { -1, -1, -1, -1, -1, -1, -1 };
-            yield return new object[] { first, firstDepth, second, secondDepth, unionHeap };
-
-            // 2: Two heaps with equal depth
-            first = new int[] { 6, 1, 8, 3, 11, 4, 9, 2, 7, 5 };
-            firstDepth = 3;
-            second = new int[] { 17, 13, 16, 3, 10, 2, 12 };
-            secondDepth = 3;
-            unionHeap = new int[]
-            { 17, 11, 16, 7, 8, 13, 12, 1, 2, 3, 5, 4, 9, 6, 10 };
-            yield return new object[] { first, firstDepth, second, secondDepth, unionHeap };
-
-            // 3: Two heaps with diff depth
-            first = new int[] { 6, 1, 8, 3, 11, 4, 9, 2, 7, 5 };
-            firstDepth = 3;
-            second = new int[] { 17, 13, 16 };
-            secondDepth = 2;
-            unionHeap = new int[] { 17, 11, 16, 7, 8, 13, 6, 1, 2, 3, 5, 4, 9, -1, -1 };
-            yield return new object[] { first, firstDepth, second, secondDepth, unionHeap };
-
-            // 4: Two heap, one empty
-            first = new int[] { };
-            firstDepth = 3;
-            second = new int[] { 17, 13, 16 };
-            secondDepth = 2;
-            unionHeap = new int[]
-                { 17, 16, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-            yield return new object[] { first, firstDepth, second, secondDepth, unionHeap };
         }
 
         public static IEnumerable<object[]> GetUnionData()

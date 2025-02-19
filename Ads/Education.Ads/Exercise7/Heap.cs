@@ -204,15 +204,31 @@ namespace AlgorithmsDataStructures2
             Heap firstCopy = Copy();
             Heap secondCopy = secondHeap.Copy();
 
-            int key = secondCopy.GetMax();
-            while (key != EmptyKey)
-            {
-                firstCopy.Add(key);
+            List<int> keys = new List<int>();
 
-                key = secondCopy.GetMax();
+            int firstKey = firstCopy.GetMax();
+            int secondKey = secondCopy.GetMax();
+
+            while (firstKey != EmptyKey || secondKey != EmptyKey)
+            {
+                if (firstKey > secondKey)
+                {
+                    keys.Add(firstKey);
+                    firstKey = firstCopy.GetMax();
+                }
+                else
+                {
+                    keys.Add(secondKey);
+                    secondKey = secondCopy.GetMax();
+                }
             }
 
-            return firstCopy;
+            int depth = GetMinDepthBySize(keys.Count);
+
+            Heap heap = new Heap();
+            heap.MakeHeap(keys.ToArray(), depth);
+            
+            return heap;
         }
 
         public Heap Copy()

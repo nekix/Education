@@ -58,7 +58,7 @@ namespace AlgorithmsDataStructures2
             return m_adjacency[v1, v2] == 1;
         }
 
-        public void AddEdge(int v1, int v2)
+        public virtual void AddEdge(int v1, int v2)
         {
             if (!(IsInRange(v1) && IsInRange(v2)))
                 return;
@@ -70,7 +70,7 @@ namespace AlgorithmsDataStructures2
             m_adjacency[v2, v1] = 1;
         }
 
-        public void RemoveEdge(int v1, int v2)
+        public virtual void RemoveEdge(int v1, int v2)
         {
             if (!(IsInRange(v1) && IsInRange(v2)))
                 return;
@@ -79,7 +79,7 @@ namespace AlgorithmsDataStructures2
             m_adjacency[v2, v1] = 0;
         }
 
-        private bool IsInRange(int index)
+        protected bool IsInRange(int index)
         {
             if (index < 0 || index >= m_adjacency.Length)
                 return false;

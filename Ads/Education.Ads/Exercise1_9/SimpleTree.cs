@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ads.Exercise6;
 
 namespace AlgorithmsDataStructures2
 {
@@ -23,7 +22,7 @@ namespace AlgorithmsDataStructures2
         }
     }
 
-    public class SimpleTree<T>
+    public partial class SimpleTree<T>
     {
         public SimpleTreeNode<T> Root; // корень, может быть null
 
@@ -279,42 +278,42 @@ namespace AlgorithmsDataStructures2
             return true;
         }
 
-        public bool IsSymmetricallyIterative()
+        public List<T> EvenTrees()
         {
             if (Root == null)
-                return true;
+                return new List<T>(0);
 
-            // Т.к. по умолчанию в C# нет реализации деки, я использовал свою из первой части курса АСД
-            ImprovedDeque<SimpleTreeNode<T>> nodesDeque = new ImprovedDeque<SimpleTreeNode<T>>();
-            nodesDeque.AddFront(Root);
+            List<T> vertices = new List<T>();
 
-            while (nodesDeque.Size() > 0)
+            if (EvenTrees(Root, vertices) % 2 != 0)
+                return new List<T>(0);
+
+            return vertices;
+        }
+
+        private int EvenTrees(SimpleTreeNode<T> root, List<T> vertices)
+        {
+            int count = 1;
+
+            if (root.Children == null)
+                return count;
+            
+            foreach (SimpleTreeNode<T> child in root.Children)
             {
-                SimpleTreeNode<T> leftNode = nodesDeque.RemoveFront();
+                int childCount = EvenTrees(child, vertices);
 
-                if (nodesDeque.Size() != 0)
+                if (childCount % 2 == 0)
                 {
-                    SimpleTreeNode<T> rightNode = nodesDeque.RemoveTail();
-
-                    if (!leftNode.NodeValue.Equals(rightNode.NodeValue))
-                        return false;
-
-                    if (leftNode.Children == null && leftNode.Children == null)
-                        continue;
-
-                    if (leftNode.Children.Count != rightNode.Children.Count)
-                        return false;
-
-                    for (int i = rightNode.Children.Count - 1; i >= 0; i--)
-                        nodesDeque.AddTail(rightNode.Children[i]);
+                    vertices.Add(root.NodeValue);
+                    vertices.Add(child.NodeValue);
                 }
-
-                if (leftNode.Children != null)
-                    foreach (SimpleTreeNode<T> child in leftNode.Children)
-                        nodesDeque.AddFront(child);
+                else
+                {
+                    count += childCount;
+                }
             }
 
-            return true;
+            return count;
         }
     }
 

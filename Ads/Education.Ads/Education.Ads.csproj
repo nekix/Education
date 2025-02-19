@@ -41,7 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Exercise1\SimpleTree.cs" />
+    <Compile Include="Exercise1_9\SimpleTree.cs" />
+    <Compile Include="Exercise1_9\SimpleTreePartialLink.cs" />
     <Compile Include="Exercise2_3\BST.cs" />
     <Compile Include="Exercise2_3\BSTInt.cs" />
     <Compile Include="Exercise7\Heap.cs" />

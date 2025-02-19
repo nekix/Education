@@ -199,6 +199,33 @@ namespace AlgorithmsDataStructures2
             return heap;
         }
 
+        public Heap UnionV2(Heap secondHeap)
+        {
+            Heap firstCopy = Copy();
+            Heap secondCopy = secondHeap.Copy();
+
+            int key = secondCopy.GetMax();
+            while (key != EmptyKey)
+            {
+                firstCopy.Add(key);
+
+                key = secondCopy.GetMax();
+            }
+
+            return firstCopy;
+        }
+
+        public Heap Copy()
+        {
+            Heap heap = new Heap();
+            heap.HeapArray = new int[HeapArray.Length];
+
+            Array.Copy(HeapArray, heap.HeapArray, HeapArray.Length);
+            heap._count = _count;
+
+            return heap;
+        }
+
         public int GetCount()
         {
             return _count;

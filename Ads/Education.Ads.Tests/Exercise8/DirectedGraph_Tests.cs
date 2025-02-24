@@ -75,6 +75,60 @@ namespace Education.Ads.Tests.Exercise8
             graph.IsEdge(v1, v2).ShouldBe(res);
         }
 
+        [Theory]
+        [MemberData(nameof(GetIsCyclicalData))]
+        public void Should_IsCyclical(DirectedGraph graph, bool res)
+        {
+            graph.IsCyclical().ShouldBe(res);
+        }
+
+        public static IEnumerable<object[]> GetIsCyclicalData()
+        {
+            // 1: Пустой
+            DirectedGraph graph = new DirectedGraph(0);
+            yield return new object[] { graph, false };
+
+            // 2: Один элемент
+            graph = new DirectedGraph(1);
+            graph.AddVertex(10);
+            yield return new object[] { graph, false };
+
+            // 3: Один элемент, путь к самому себе
+            graph = new DirectedGraph(1);
+            graph.AddVertex(10);
+            graph.AddEdge(0, 0);
+            yield return new object[] { graph, true };
+
+            // 4: Пять элементов с циклом
+            graph = new DirectedGraph(6);
+            graph.AddVertex(2);
+            graph.AddVertex(3);
+            graph.AddVertex(4);
+            graph.AddVertex(5);
+            graph.AddVertex(6);
+            graph.AddEdge(1, 4);
+            graph.AddEdge(4, 2);
+            graph.AddEdge(2, 3);
+            graph.AddEdge(3, 1);
+            graph.AddEdge(3, 4);
+            yield return new object[] { graph, true };
+
+            // 5: Шесть элементов без цикла
+            graph = new DirectedGraph(6);
+            graph.AddVertex(10);
+            graph.AddVertex(20);
+            graph.AddVertex(30);
+            graph.AddVertex(40);
+            graph.AddVertex(50);
+            graph.AddVertex(60);
+            graph.AddEdge(0, 1);
+            graph.AddEdge(1, 2);
+            graph.AddEdge(2, 3);
+            graph.AddEdge(3, 4);
+            graph.AddEdge(4, 5); // Нет цикла
+            yield return new object[] { graph, false };
+        }
+
         public static IEnumerable<object[]> GetIsEdgeData()
         {
             // 1: Пустой

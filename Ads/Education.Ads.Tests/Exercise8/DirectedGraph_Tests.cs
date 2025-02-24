@@ -8,7 +8,7 @@ using Education.Ads.Exercise8;
 using Shouldly;
 using Xunit;
 
-namespace Education.Ads.Tests.Exercise8.DirectedGraph_Tests
+namespace Education.Ads.Tests.Exercise8
 {
     public class DirectedGraph_Tests
     {
@@ -265,13 +265,14 @@ namespace Education.Ads.Tests.Exercise8.DirectedGraph_Tests
             graph.AddVertex(10);
             graph.AddEdge(0, 2);
             graph.AddEdge(1, 2);
+            graph.AddEdge(3, 1);
             v = 1;
             m_vertex = new int?[] { 5, null, 10, null, null, null };
             m_adjacency = new int[,]
             {
                 { 0, 0, 1, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 },
-                { 1, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }
@@ -285,7 +286,7 @@ namespace Education.Ads.Tests.Exercise8.DirectedGraph_Tests
             graph.AddVertex(4);
             graph.AddVertex(5);
             graph.AddVertex(6);
-            graph.AddEdge(0, 4);
+            graph.AddEdge(4, 0);
             graph.AddEdge(1, 4);
             graph.AddEdge(3, 2);
             graph.AddEdge(2, 4);
@@ -294,11 +295,11 @@ namespace Education.Ads.Tests.Exercise8.DirectedGraph_Tests
             m_vertex = new int?[] { 2, 3, null, 5, 6, null };
             m_adjacency = new int[,]
             {
-                { 0, 0, 0, 0, 1, 0 },
+                { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 1, 0 },
                 { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 },
-                { 1, 1, 0, 0, 0, 0 },
+                { 1, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }
             };
             yield return new object[] { graph, v, m_vertex, m_adjacency };

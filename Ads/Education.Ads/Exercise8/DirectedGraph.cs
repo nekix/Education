@@ -51,7 +51,7 @@ namespace Education.Ads.Exercise8
 
             for (int v2 = 0; v2 < vertex.Length; v2++)
             {
-                if (m_adjacency[v1, v2] == Visited)
+                if (IsEdge(v1, v2))
                 {
                     if (vertexes[v2] == Visited)
                         return true;

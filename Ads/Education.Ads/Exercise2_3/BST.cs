@@ -41,7 +41,7 @@ namespace AlgorithmsDataStructures2
         public BSTFind() { Node = null; }
     }
 
-    public class BST<T>
+    public partial class BST<T>
     {
         protected BSTNode<T> Root;
 

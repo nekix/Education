@@ -18,6 +18,15 @@ namespace Education.Ads.Tests.Exercise10
             path.Select(x => x.Value).ShouldBe(resultPath);
         }
 
+        [Theory]
+        [MemberData(nameof(GetDepthFirstSearchData))]
+        public void Should_DepthFirstSearchRecursive(SimpleGraph<int> graph, int VFrom, int VTo, List<int> resultPath)
+        {
+            List<Vertex<int>> path = graph.DepthFirstSearchRecursive(VFrom, VTo);
+
+            path.Select(x => x.Value).ShouldBe(resultPath);
+        }
+
         public static IEnumerable<object[]> GetDepthFirstSearchData()
         {
             SimpleGraph<int> graph;

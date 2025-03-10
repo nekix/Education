@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace AlgorithmsDataStructures2
 {
     public partial class BST<T>
     {
+        // Оригинальная публичная версия метода DeepAllNodesRecursive(int order)
+        // возвращала BSTNode (не generic), поэтому сделал универсальную обёртку.
         public List<BSTNode<T>> DeepAllNodes(int order)
         {
             if (Root == null)
@@ -35,17 +36,15 @@ namespace AlgorithmsDataStructures2
             return true;
         }
 
-        public BSTNode<T> BalanceEvenTree(List<BSTNode<T>> nodes, int startIndex, int endIndex)
+        private BSTNode<T> BalanceEvenTree(List<BSTNode<T>> nodes, int startIndex, int endIndex)
         {
             if (startIndex > endIndex)
                 return null;
 
-            if (startIndex == endIndex)
-                return nodes[startIndex];
-
-            int middle =  (startIndex + endIndex) / 2;
+            int middle = (int)Math.Ceiling((startIndex + endIndex) / 2d);
 
             BSTNode<T> root = nodes[middle];
+            root.Parent = null;
 
             root.LeftChild = BalanceEvenTree(nodes, startIndex, middle - 1);
             if (root.LeftChild != null)

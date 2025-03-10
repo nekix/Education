@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace AlgorithmsDataStructures2
 {
@@ -103,7 +104,7 @@ namespace AlgorithmsDataStructures2
                 if (item != null)
                     item.Hit = false;
 
-            // 1: Select the current vertex
+            // 1: Select the VFrom vertex
             int current = VFrom;
             while (true)
             {
@@ -118,7 +119,7 @@ namespace AlgorithmsDataStructures2
                     if (path.Count == 0)
                         break;
 
-                    // 5.2 Take the new top node as the current one
+                    // 5.2 Take the new top node as the VFrom one
                     current = path.Peek();
                 }
                 else
@@ -143,7 +144,7 @@ namespace AlgorithmsDataStructures2
                 {
                     if (IsEdge(current, i) && vertex[i].Hit == false)
                     {
-                        // 4.2.1 Take this as the current
+                        // 4.2.1 Take this as the VFrom
                         // and go to step 2
                         current = i;
                         break;
@@ -154,6 +155,88 @@ namespace AlgorithmsDataStructures2
             List<Vertex<T>> vertexPath = StackPathToVertexList(path);
 
             return vertexPath;
+        }
+
+        public List<Vertex<T>> DepthFirstSearchRecursive(int VFrom, int VTo)
+        {
+            if (!IsInRange(VFrom) || !IsInRange(VTo))
+                return new List<Vertex<T>>(0);
+
+            if (vertex[VFrom] == null || vertex[VTo] == null)
+                return new List<Vertex<T>>(0);
+
+            // 0 Cleared
+            Stack<int> path = new Stack<int>();
+
+            foreach (Vertex<T> item in vertex)
+                if (item != null)
+                    item.Hit = false;
+
+            // 1: Select the VFrom vertex
+            if (TryDepthFirstSearchRecursive(VFrom, VTo, path))
+                return StackPathToVertexList(path);
+
+            return new List<Vertex<T>>(0);
+        }
+
+        protected bool TryDepthFirstSearchRecursive(int VFrom, int VTo, Stack<int> path)
+        {
+            // 2 Mark as visited
+            vertex[VFrom].Hit = true;
+
+            // 3 Put on the stack
+            path.Push(VFrom);
+
+            // 4 Check for the presence of the target vertex
+            if (IsEdge(VFrom, VTo))
+            {
+                // 4.1 Return the result
+                path.Push(VTo);
+                return true;
+            }
+
+            // 4.2 Find the next unvisited vertex
+            for (int i = 0; i < vertex.Length; i++)
+            {
+                if (IsEdge(VFrom, i) && !vertex[i].Hit)
+                {
+                    // 4.2.1 Take this as the VFrom
+                    // and go to step 2
+                    if (TryDepthFirstSearchRecursive(i, VTo, path))
+                        return true;
+                }
+            }
+
+            // 4.2.2 No unvisited vertices left
+            // 5. Remove the top node from the stack
+            path.Pop();
+
+            return false;
+        } 
+
+        public bool CheckIsConnected()
+        {
+            if (vertex.Length < 2)
+                return false;
+
+            foreach (Vertex<T> item in vertex)
+                if (item != null)
+                    item.Hit = false;
+
+            Stack<int> path = new Stack<int>();
+
+            for (int i = 0; i < vertex.Length; i++)
+            {
+                if (vertex[i].Hit == false)
+                {
+                    if (!TryDepthFirstSearchRecursive(0, i, path))
+                        return false;
+
+                    path.Clear();
+                }
+            }
+
+            return true;
         }
 
         protected bool IsInRange(int index)

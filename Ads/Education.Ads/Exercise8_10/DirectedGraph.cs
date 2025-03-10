@@ -1,5 +1,6 @@
 ﻿using AlgorithmsDataStructures2;
 using System;
+using System.Collections.Generic;
 
 namespace Education.Ads.Exercise8
 {
@@ -32,20 +33,20 @@ namespace Education.Ads.Exercise8
             m_adjacency[v1, v2] = 0;
         }
 
-        public bool IsCyclical()
+        public bool CheckIsCyclical()
         {
             byte[] vertexes = new byte[vertex.Length];
 
             for (int v1 = 0; v1 < vertex.Length; v1++)
             {
-                if (vertexes[v1] == NotVisisted && IsCyclical(v1, vertexes))
+                if (vertexes[v1] == NotVisisted && CheckIsCyclical(v1, vertexes))
                     return true;
             }
 
             return false;
         }
 
-        private bool IsCyclical(int v1, byte[] vertexes)
+        private bool CheckIsCyclical(int v1, byte[] vertexes)
         {
             vertexes[v1] = Visited;
 
@@ -55,7 +56,7 @@ namespace Education.Ads.Exercise8
                 {
                     if (vertexes[v2] == Visited)
                         return true;
-                    else if (vertexes[v2] == NotVisisted && IsCyclical(v2, vertexes))
+                    else if (vertexes[v2] == NotVisisted && CheckIsCyclical(v2, vertexes))
                         return true;
                 }
             }
@@ -63,6 +64,32 @@ namespace Education.Ads.Exercise8
             vertexes[v1] = Verified;
 
             return false;
+        }
+
+        public int GetMaxSimplePathLength()
+        {
+            int maxCount = 0;
+
+            Stack<int> path = new Stack<int>();
+
+            for (int v1 = 0; v1 < vertex.Length; v1++)
+            {
+                for (int v2 = 0; v2 < vertex.Length; v2++)
+                {
+                    if (v1 == v2)
+                        continue;
+
+                    if (TryDepthFirstSearchRecursive(v1, v2, path))
+                        if (path.Count >= maxCount)
+                            maxCount = path.Count;
+
+                    path.Clear();
+                }
+            }
+
+            return maxCount != 0
+                ? maxCount - 1
+                : 0;
         }
     }
 }

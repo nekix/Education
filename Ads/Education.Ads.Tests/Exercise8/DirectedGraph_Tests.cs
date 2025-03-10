@@ -79,7 +79,7 @@ namespace Education.Ads.Tests.Exercise8
         [MemberData(nameof(GetIsCyclicalData))]
         public void Should_IsCyclical(DirectedGraph graph, bool res)
         {
-            graph.IsCyclical().ShouldBe(res);
+            graph.CheckIsCyclical().ShouldBe(res);
         }
 
         public static IEnumerable<object[]> GetIsCyclicalData()

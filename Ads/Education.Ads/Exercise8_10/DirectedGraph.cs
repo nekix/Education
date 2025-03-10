@@ -68,28 +68,52 @@ namespace Education.Ads.Exercise8
 
         public int GetMaxSimplePathLength()
         {
-            int maxCount = 0;
+            int maxPathCount = 0;
 
             Stack<int> path = new Stack<int>();
 
-            for (int v1 = 0; v1 < vertex.Length; v1++)
+            for (int v = 0; v < vertex.Length; v++)
             {
-                for (int v2 = 0; v2 < vertex.Length; v2++)
-                {
-                    if (v1 == v2)
-                        continue;
+                if (vertex[v] == null)
+                    continue;
 
-                    if (TryDepthFirstSearchRecursive(v1, v2, path))
-                        if (path.Count >= maxCount)
-                            maxCount = path.Count;
-
-                    path.Clear();
-                }
+                int pathCount = GetMaxSimplePathLength(v, path);
+                if (pathCount > maxPathCount)
+                    maxPathCount = pathCount;
             }
 
-            return maxCount != 0
-                ? maxCount - 1
+            return maxPathCount != 0
+                ? maxPathCount - 1
                 : 0;
+        }
+
+        private int GetMaxSimplePathLength(int v1, Stack<int> path)
+        { 
+            path.Push(v1);
+            vertex[v1].Hit = true;
+
+            int maxPathCount = path.Count;
+
+            for (int v2 = 0; v2 < vertex.Length; v2++)
+            {
+                if (v1 == v2)
+                    continue;
+
+                if (vertex[v2] == null)
+                    continue;
+
+                if (IsEdge(v1, v2) && !vertex[v2].Hit)
+                {
+                    int pathCount = GetMaxSimplePathLength(v2, path);
+                    if (pathCount > maxPathCount)
+                        maxPathCount = pathCount;
+                }         
+            }
+
+            path.Pop();
+            vertex[v1].Hit = false;     
+
+            return maxPathCount;
         }
     }
 }

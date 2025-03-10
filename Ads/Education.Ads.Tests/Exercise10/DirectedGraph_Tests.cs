@@ -128,12 +128,12 @@ namespace Education.Ads.Tests.Exercise10
             // (альтернативный путь)
             graph.AddEdge(2, 6); 
             // (альтернативный путь)
-            graph.AddEdge(4, 8); // 4 → 8 
+            graph.AddEdge(4, 8);
 
             // (циклический путь)
-            graph.AddEdge(6, 2); // 6 → 2 
+            graph.AddEdge(6, 2);
             // (тупиковая путь)
-            graph.AddEdge(7, 10); // 7 → 10 
+            graph.AddEdge(7, 10);
             result = 9;
             yield return new object[] { graph, result };
         }

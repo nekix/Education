@@ -103,7 +103,7 @@ namespace AlgorithmsDataStructures2
 
             // 1: Select the VFrom vertex
             int current = VFrom;
-            while (true)
+            while (vertex.Length != 0)
             {
                 // 4.2.2 No unvisited vertices left
                 // Go to step 5.

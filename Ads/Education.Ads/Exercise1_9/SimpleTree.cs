@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AlgorithmsDataStructures2
 {
-    public class SimpleTreeNode<T>
+    public partial class SimpleTreeNode<T>
     {
         public T NodeValue; // значение в узле
         public SimpleTreeNode<T> Parent; // родитель или null для корня

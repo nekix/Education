@@ -21,7 +21,7 @@ namespace AlgorithmsDataStructures2
         }
     }
 
-    public class SimpleGraph<T>
+    public partial class SimpleGraph<T>
     {
         public Vertex<T>[] vertex;
         public int[,] m_adjacency;
@@ -99,9 +99,7 @@ namespace AlgorithmsDataStructures2
             // 0: Cleared
             Stack<int> path = new Stack<int>();
 
-            foreach (Vertex<T> item in vertex)
-                if (item != null)
-                    item.Hit = false;
+            ResetHits();
 
             // 1: Select the VFrom vertex
             int current = VFrom;
@@ -151,7 +149,7 @@ namespace AlgorithmsDataStructures2
                 }
             }
 
-            List<Vertex<T>> vertexPath = StackPathToVertexList(path);
+            List<Vertex<T>> vertexPath = StackReversePathToVertexList(path);
 
             return vertexPath;
         }
@@ -167,13 +165,11 @@ namespace AlgorithmsDataStructures2
             // 0 Cleared
             Stack<int> path = new Stack<int>();
 
-            foreach (Vertex<T> item in vertex)
-                if (item != null)
-                    item.Hit = false;
+            ResetHits();
 
             // 1: Select the VFrom vertex
             if (TryDepthFirstSearchRecursive(VFrom, VTo, path))
-                return StackPathToVertexList(path);
+                return StackReversePathToVertexList(path);
 
             return new List<Vertex<T>>(0);
         }
@@ -218,9 +214,7 @@ namespace AlgorithmsDataStructures2
             if (vertex.Length < 2)
                 return false;
 
-            foreach (Vertex<T> item in vertex)
-                if (item != null)
-                    item.Hit = false;
+            ResetHits();
 
             Stack<int> path = new Stack<int>();
 
@@ -246,7 +240,7 @@ namespace AlgorithmsDataStructures2
             return true;
         }
 
-        private List<Vertex<T>> StackPathToVertexList(Stack<int> path)
+        private List<Vertex<T>> StackReversePathToVertexList(Stack<int> path)
         {
             List<Vertex<T>> result = new List<Vertex<T>>(path.Count);
             while (path.Count != 0)
@@ -264,6 +258,73 @@ namespace AlgorithmsDataStructures2
         {
             for (int i = 0, j = result.Count - 1; i < j; i++, j--)
                 (result[i], result[j]) = (result[j], result[i]);
+        }
+
+        public List<Vertex<T>> BreadthFirstSearch(int VFrom, int VTo)
+        {
+            if (!IsInRange(VFrom) || !IsInRange(VTo))
+                return new List<Vertex<T>>(0);
+
+            if (vertex[VFrom] == null || vertex[VTo] == null)
+                return new List<Vertex<T>>(0);
+
+            ResetHits();
+
+            Queue<int> nextVertexes = new Queue<int>();
+            int[] preVertex = new int[vertex.Length];
+
+            preVertex[VFrom] = -1;
+            preVertex[VTo] = -1;
+
+            nextVertexes.Enqueue(VFrom);
+            vertex[VFrom].Hit = true;
+
+            while (nextVertexes.Count != 0)
+            {
+                int current = nextVertexes.Dequeue();
+
+                if (IsEdge(current, VTo))
+                {
+                    vertex[VTo].Hit = true;
+                    preVertex[VTo] = current;
+                    break;
+                }
+
+                for (int i = 0; i < vertex.Length; i++)
+                {
+                    if (current == i)
+                        continue;
+
+                    if (IsEdge(current, i) && !vertex[i].Hit)
+                    {
+                        nextVertexes.Enqueue(i);
+                        vertex[i].Hit = true;
+                        preVertex[i] = current;
+                    }
+                }
+            }
+
+            if (preVertex[VTo] == -1)
+                return new List<Vertex<T>>(0);
+
+            return RecoverBreadthFirstSearchPath(preVertex, VTo, VTo);
+        }
+
+        private void ResetHits()
+        {
+            foreach (Vertex<T> item in vertex)
+                if (item != null)
+                    item.Hit = false;
+        }
+
+        private List<Vertex<T>> RecoverBreadthFirstSearchPath(int[] preVertex, int VFrom, int VTo)
+        {
+            Stack<Vertex<T>> revertPath = new Stack<Vertex<T>>();
+
+            for (int i = VTo; i != -1; i = preVertex[i])
+                revertPath.Push(vertex[i]);
+
+            return new List<Vertex<T>>(revertPath);
         }
     }
 

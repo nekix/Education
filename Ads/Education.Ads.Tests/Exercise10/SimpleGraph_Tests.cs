@@ -40,7 +40,7 @@ namespace Education.Ads.Tests.Exercise10
             vTo = 0;
             resultPath = new List<int>
             {
-                
+
             };
             yield return new object[] { graph, vFrom, vTo, resultPath };
 

@@ -1,10 +1,9 @@
-﻿using AlgorithmsDataStructures2;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Education.Ads.Exercise8
+namespace AlgorithmsDataStructures2
 {
-    public class DirectedGraph : SimpleGraph
+    public partial class DirectedGraph : SimpleGraph
     {
         private const int NotVisisted = 0;
         private const int Visited = 1;
@@ -64,56 +63,6 @@ namespace Education.Ads.Exercise8
             vertexes[v1] = Verified;
 
             return false;
-        }
-
-        public int GetMaxSimplePathLength()
-        {
-            int maxPathCount = 0;
-
-            Stack<int> path = new Stack<int>();
-
-            for (int v = 0; v < vertex.Length; v++)
-            {
-                if (vertex[v] == null)
-                    continue;
-
-                int pathCount = GetMaxSimplePathLength(v, path);
-                if (pathCount > maxPathCount)
-                    maxPathCount = pathCount;
-            }
-
-            return maxPathCount != 0
-                ? maxPathCount - 1
-                : 0;
-        }
-
-        private int GetMaxSimplePathLength(int v1, Stack<int> path)
-        { 
-            path.Push(v1);
-            vertex[v1].Hit = true;
-
-            int maxPathCount = path.Count;
-
-            for (int v2 = 0; v2 < vertex.Length; v2++)
-            {
-                if (v1 == v2)
-                    continue;
-
-                if (vertex[v2] == null)
-                    continue;
-
-                if (IsEdge(v1, v2) && !vertex[v2].Hit)
-                {
-                    int pathCount = GetMaxSimplePathLength(v2, path);
-                    if (pathCount > maxPathCount)
-                        maxPathCount = pathCount;
-                }         
-            }
-
-            path.Pop();
-            vertex[v1].Hit = false;     
-
-            return maxPathCount;
         }
     }
 }

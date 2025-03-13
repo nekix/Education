@@ -3,8 +3,114 @@ using System.Collections.Generic;
 
 namespace AlgorithmsDataStructures2
 {
-    // Урок 11
+    // Урок 10
 
+    // Задание 1*.
+    // Проверить, является ли текущий граф связным (CheckIsConnected).
+    // Сложность временная: O (N^2), где N - число узлов.
+    // Сложность пространственная: O, где N - число узлов.
+    // Пытаемся найти путь от первого узла до остальных,
+    // если хоть один не найден, то граф не связный.
+    public partial class SimpleGraph<T>
+    {
+        public bool CheckIsConnected()
+        {
+            if (vertex.Length < 2)
+                return false;
+
+            ResetHits();
+
+            Stack<int> path = new Stack<int>();
+
+            int firstV = -1;
+            for (int i = 0; i < vertex.Length; i++)
+            {
+                if (vertex[i] == null)
+                    continue;
+
+                firstV = i;
+                break;
+            }
+
+            for (int i = firstV; i < vertex.Length; i++)
+            {
+                if (vertex[i] != null && vertex[i].Hit == false)
+                {
+                    if (!TryDepthFirstSearchRecursive(firstV, i, path))
+                        return false;
+
+                    path.Clear();
+                }
+            }
+
+            return true;
+        }
+    }
+
+    // Задание 2*.
+    // Найти длину самого длинного простого пути
+    // в ориентированном графе.
+    // Сложность временная: O (N^2), где N - число узлов.
+    // Сложность пространственная: O, где N - число узлов.
+    // Пытаемся найти путь от первого узла до остальных,
+    // если хоть один не найден, то граф не связный.
+    public partial class DirectedGraph
+    {
+
+        public int GetMaxSimplePathLength()
+        {
+            int maxPathCount = 0;
+
+            Stack<int> path = new Stack<int>();
+
+            for (int v = 0; v < vertex.Length; v++)
+            {
+                if (vertex[v] == null)
+                    continue;
+
+                int pathCount = GetMaxSimplePathLength(v, path);
+                if (pathCount > maxPathCount)
+                    maxPathCount = pathCount;
+            }
+
+            return maxPathCount != 0
+                ? maxPathCount - 1
+                : 0;
+        }
+
+        private int GetMaxSimplePathLength(int v1, Stack<int> path)
+        {
+            path.Push(v1);
+            vertex[v1].Hit = true;
+
+            int maxPathCount = path.Count;
+
+            for (int v2 = 0; v2 < vertex.Length; v2++)
+            {
+                if (v1 == v2)
+                    continue;
+
+                if (vertex[v2] == null)
+                    continue;
+
+                if (IsEdge(v1, v2) && !vertex[v2].Hit)
+                {
+                    int pathCount = GetMaxSimplePathLength(v2, path);
+                    if (pathCount > maxPathCount)
+                        maxPathCount = pathCount;
+                }
+            }
+
+            path.Pop();
+            vertex[v1].Hit = false;
+
+            return maxPathCount;
+        }
+    }
+
+
+    // ========================================================================
+    // Урок 11
     public partial class SimpleTreeNode<T>
     {
         public bool Hit;

@@ -315,33 +315,6 @@ namespace AlgorithmsDataStructures2
 
             return count;
         }
-
-        public int CountEventTrees(SimpleTreeNode<T> root)
-        {
-            return CountEventTrees(root, out int _);
-        }
-
-        private int CountEventTrees(SimpleTreeNode<T> root, out int treeSize)
-        {
-            treeSize = 1;
-
-            int evenCount = 0;
-
-            if (root.Children != null)
-            {
-                foreach (SimpleTreeNode<T> child in root.Children)
-                {
-                    evenCount += CountEventTrees(child, out int subTreeSize);
-                    
-                    treeSize += subTreeSize;
-                }
-            }
-
-            if (treeSize % 2 == 0)
-                evenCount++;
-
-            return evenCount;
-        }
     }
 
 }

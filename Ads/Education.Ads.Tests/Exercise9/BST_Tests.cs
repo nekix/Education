@@ -1,10 +1,7 @@
 ﻿using AlgorithmsDataStructures2;
 using Shouldly;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Education.Ads.Tests.Exercise9

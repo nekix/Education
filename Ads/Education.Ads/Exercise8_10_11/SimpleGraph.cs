@@ -209,29 +209,6 @@ namespace AlgorithmsDataStructures2
             return false;
         } 
 
-        public bool CheckIsConnected()
-        {
-            if (vertex.Length < 2)
-                return false;
-
-            ResetHits();
-
-            Stack<int> path = new Stack<int>();
-
-            for (int i = 0; i < vertex.Length; i++)
-            {
-                if (vertex[i].Hit == false)
-                {
-                    if (!TryDepthFirstSearchRecursive(0, i, path))
-                        return false;
-
-                    path.Clear();
-                }
-            }
-
-            return true;
-        }
-
         protected bool IsInRange(int index)
         {
             if (index < 0 || index >= vertex.Length)

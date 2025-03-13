@@ -18,7 +18,7 @@ namespace Education.Ads.Tests.Exercise9
         [MemberData(nameof(GetCountEvenTreesData))]
         public void Should_CountEvenTrees(SimpleTree<int> tree, SimpleTreeNode<int> node, int result)
         {
-            tree.CountEventTrees(node).ShouldBe(result);
+            tree.CountEvenTrees(node).ShouldBe(result);
         }
 
         public static IEnumerable<object[]> GetCountEvenTreesData()

@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Education.Ads.Exercise8;
 using Shouldly;
 using Xunit;
 

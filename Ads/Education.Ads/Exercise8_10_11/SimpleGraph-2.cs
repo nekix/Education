@@ -68,7 +68,7 @@ namespace AlgorithmsDataStructures2
                 if (vertex[v] == null)
                     continue;
 
-                int pathCount = GetMaxSimplePathLength(v, path);
+                int pathCount = GetMaxSimplePathLength(v, 0);
                 if (pathCount > maxPathCount)
                     maxPathCount = pathCount;
             }
@@ -78,12 +78,11 @@ namespace AlgorithmsDataStructures2
                 : 0;
         }
 
-        private int GetMaxSimplePathLength(int v1, Stack<int> path)
+        private int GetMaxSimplePathLength(int v1, int pathCount)
         {
-            path.Push(v1);
             vertex[v1].Hit = true;
 
-            int maxPathCount = path.Count;
+            int maxPathCount = pathCount + 1;
 
             for (int v2 = 0; v2 < vertex.Length; v2++)
             {
@@ -95,21 +94,20 @@ namespace AlgorithmsDataStructures2
 
                 if (IsEdge(v1, v2) && !vertex[v2].Hit)
                 {
-                    int pathCount = GetMaxSimplePathLength(v2, path);
-                    if (pathCount > maxPathCount)
-                        maxPathCount = pathCount;
+                    int childPath = GetMaxSimplePathLength(v2, pathCount + 1);
+                    if (childPath > maxPathCount)
+                        maxPathCount = childPath;
                 }
             }
 
-            path.Pop();
             vertex[v1].Hit = false;
 
             return maxPathCount;
         }
     }
 
-
     // ========================================================================
+
     // Урок 11
     public partial class SimpleTreeNode<T>
     {
@@ -360,4 +358,30 @@ namespace AlgorithmsDataStructures2
                 preVertex[i] = -1;
         }
     }
+
+    // ========================================================================
+
+    // Рефлексия по уроку 9.
+
+    // Задание 1. Лес из чётных деревьев, из которого удалено максимально возможное количество рёбер.
+    // Моя реализация совпала с описанной. Как и для многих рекурсивных алгоритмов
+    // при необходимости этот можно было бы превратить в итеративный. Но для этого
+    // нужно задействовать стек, т.к. у нас post order обход и нужно хранить текущий путь.
+
+
+    // https://github.com/nekix/Education/blob/main/Ads/Education.Ads/Exercise1_9/SimpleTree-2.cs
+    // Задание 2*. Метод, балансирующий чётное двоичное дерево.
+    // В моей реализации есть небольщое отличие, я брал в качестве центрального элемента
+    // именно правый центральный, т.к. это позволяет мне смещать узлы на последнем уровне
+    // влево (справа всегда меньше узлов получается).
+
+
+    // Задание 3*. Метод, определяющий кол-во чётных поддеревьев для заданного узла.
+    // По началу возникло желание использовать ref параметр, но вспомнив запрет
+    // на его использование и попадавшуюся в коде других разработчиков из-за его
+    // использования путанницу, я отверг эту идею.
+    // Долго думал над выбором между out параметром или чем-то вроде кортежа для
+    // возвращаемого значения, но пришел к выводу, что читаемость с out в данном
+    // случае будет выше, да и кортежи по моему мнению помимо быстрых набросков
+    // на LINQ для проверки данных в дебаге вносят только сложность.
 }

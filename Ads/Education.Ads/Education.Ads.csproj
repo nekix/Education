@@ -47,9 +47,9 @@
     <Compile Include="Exercise2_3\BST.cs" />
     <Compile Include="Exercise2_3\BSTInt.cs" />
     <Compile Include="Exercise7\Heap.cs" />
-    <Compile Include="Exercise8_10_11\DirectedGraph.cs" />
-    <Compile Include="Exercise8_10_11\SimpleGraph-2.cs" />
-    <Compile Include="Exercise8_10_11\SimpleGraph.cs" />
+    <Compile Include="Exercise8_10_11_12\DirectedGraph.cs" />
+    <Compile Include="Exercise8_10_11_12\SimpleGraph-2.cs" />
+    <Compile Include="Exercise8_10_11_12\SimpleGraph.cs" />
     <Compile Include="Exercise_3\TreeExtensions.cs" />
     <Compile Include="Exercise_4\aBST.cs" />
     <Compile Include="Exercise_5\BalancedBST.cs" />

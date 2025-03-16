@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 
 namespace AlgorithmsDataStructures2
 {
@@ -103,7 +104,7 @@ namespace AlgorithmsDataStructures2
 
             // 1: Select the VFrom vertex
             int current = VFrom;
-            while (vertex.Length != 0)
+            while (path.Count != 0 || !vertex[current].Hit)
             {
                 // 4.2.2 No unvisited vertices left
                 // Go to step 5.
@@ -302,6 +303,56 @@ namespace AlgorithmsDataStructures2
                 revertPath.Push(vertex[i]);
 
             return new List<Vertex<T>>(revertPath);
+        }
+
+        public List<Vertex<T>> WeakVertices()
+        {
+            List<Vertex<T>> weakVertices = new List<Vertex<T>>(vertex.Length);
+
+            ResetHits();
+
+            for (int i = 0; i < vertex.Length; i++)
+            {
+                if (vertex[i] == null)
+                    continue;
+
+                if (vertex[i].Hit)
+                    continue;
+
+                if (CheckIsWeak(i))
+                    weakVertices.Add(vertex[i]);
+            }
+
+            return weakVertices;
+        }
+
+        private bool CheckIsWeak(int v)
+        {
+            bool isWeak = true;
+
+            for (int i = v + 1; i < vertex.Length; i++)
+            {
+                if (vertex[i] == null)
+                    continue;
+
+                if (!IsEdge(v, i))
+                    continue;
+
+                for (int j = i + 1; j < vertex.Length; j++)
+                {
+                    if (vertex[j] == null)
+                        continue;
+
+                    if (IsEdge(v, j) && IsEdge(i, j))
+                    {
+                        vertex[i].Hit = true;
+                        vertex[j].Hit = true;
+                        isWeak = false;
+                    }
+                }
+            }
+
+            return isWeak;
         }
     }
 

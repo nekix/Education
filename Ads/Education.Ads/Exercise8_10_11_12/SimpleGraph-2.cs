@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AlgorithmsDataStructures2
 {
-    // Урок 10
+    // ========= Урок 10 ===========
 
     // Задание 1*.
     // Проверить, является ли текущий граф связным (CheckIsConnected).
@@ -54,7 +54,7 @@ namespace AlgorithmsDataStructures2
     // Сложность пространственная: O, где N - число узлов.
     // Пытаемся найти путь от первого узла до остальных,
     // если хоть один не найден, то граф не связный.
-    public partial class DirectedGraph
+    public partial class DirectedGraph : SimpleGraph
     {
 
         public int GetMaxSimplePathLength()
@@ -106,9 +106,8 @@ namespace AlgorithmsDataStructures2
         }
     }
 
-    // ========================================================================
+    // ========= Урок 11 ===========
 
-    // Урок 11
     public partial class SimpleTreeNode<T>
     {
         public bool Hit;
@@ -131,8 +130,8 @@ namespace AlgorithmsDataStructures2
             if (Root == null)
                 return 0;
 
-            SimpleTreeNode<T> firstNode = GetMaxPathNode(Root, true, out int pathLength1);
-            var test = GetMaxPathNode(firstNode, false, out int pathLength);
+            SimpleTreeNode<T> firstNode = GetMaxPathNode(Root, true, out int _);
+            _ = GetMaxPathNode(firstNode, false, out int pathLength);
 
             return pathLength;
         }
@@ -163,11 +162,11 @@ namespace AlgorithmsDataStructures2
                 {
                     for (int i = 0; i < current.Children.Count; i++)
                     {
-                        if (current.Children[i].Hit == !hitValue)
-                        {
-                            current.Children[i].Hit = hitValue;
-                            nextVertexes.Enqueue(current.Children[i]);
-                        }
+                        if (current.Children[i].Hit != !hitValue)
+                            continue;
+
+                        current.Children[i].Hit = hitValue;
+                        nextVertexes.Enqueue(current.Children[i]);
                     }
                 }
 
@@ -384,4 +383,276 @@ namespace AlgorithmsDataStructures2
     // возвращаемого значения, но пришел к выводу, что читаемость с out в данном
     // случае будет выше, да и кортежи по моему мнению помимо быстрых набросков
     // на LINQ для проверки данных в дебаге вносят только сложность.
+
+
+    // ========= Урок 12 ===========
+
+
+    // Задание 1*. Добавить метод, подсчитывающий число треугольников в графе.
+    // Сложность временная: O (N^3), где N - число вершин (три цикла).
+    // Сложность пространственная: O (1).
+    // (на такой порядок увеличивается максимальное число треугольников
+    // от размра графа при больших значениях N).
+    // Обходим все узлы в цикле, проверяем каждую пару соседей,
+    // если треугольник, то добавляем в список треугольников.
+
+    // Небольшие оптимизиации за счёт двух внутренних циклов,
+    // которые начинаются не с 0, а с позиции внешнего цикла + 1.
+    // Также небольшая оптимизация по памяти за счёт возврата IEnumerable
+    // в GetTriangles(int startV). Это позволяет не создавать список
+    // треугольников (List<List<Vertex<T>>>). Также это позволяет
+    // избежать дубликатов треугольников.
+
+    // Этот алгоритм подойдет только для неориентированного графа.
+    // В ориентированном графе нужно каждый цикл начинать с нуля, чтобы
+    // проверить оба направления. К тому же нужно будет учитывать дубликаты
+    // треугольников, которые могут появиться.
+
+    public partial class SimpleGraph<T>
+    {
+        public virtual int CountTriangles()
+        {
+            int count = 0;
+
+            for (int startV = 0; startV < vertex.Length; startV++)
+            {
+                if (vertex[startV] == null)
+                    continue;
+
+                count += CountTriangles(startV);
+            }
+
+            return count;
+        }
+
+        private int CountTriangles(int startV)
+        {
+            int count = 0;
+
+            for (int middleV = startV + 1; middleV < vertex.Length; middleV++)
+            {
+                if (vertex[middleV] == null)
+                    continue;
+
+
+                if (!IsEdge(startV, middleV))
+                    continue;
+
+                for (int endV = middleV + 1; endV < vertex.Length; endV++)
+                {
+
+                    if (vertex[endV] == null)
+                        continue;
+
+                    if (!IsEdge(startV, endV) || !IsEdge(middleV, endV))
+                        continue;
+
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        // Это неудачная версия, была идея через Dfs,
+        // в котором я бы на каждой итерации цикла хранил предыдущую,
+        // текущую и следующую вершины, и проверял бы, что они составляют
+        // треугольник. Но концептуалньая проблема идеи (выявленная на тестах
+        // на полный граф размера 5 и 6. Для размера 5 например не учитывал треугольник 0, 2, 4)
+        // была в том, что при обходе не закрывались все варианты предыдущих вершин
+        // для текущей, что приводило к пропусканию некоторых треугольников.
+        // После анализа возможностей исправления этого недостатка стало понятно,
+        // что обход в три цикла в таком случае будет работать проще и лучше,
+        // чем усложненная версия этого подхода.
+
+        // Также рассматривался вариант в Bfs, но для данной задачи он тоже не подходит
+        // из-за сложностей учета особых случаев для него и сравнительной простоты
+        // обхода в циклах.
+
+        //public int CountTriangles()
+        //{
+        //    int count = 0;
+
+        //    ResetHits();
+
+        //    List<List<int>> trin = new List<List<int>>();
+
+        //    for (int i = 0; i < vertex.Length; i++)
+        //    {
+        //        if (vertex[i] == null)
+        //            continue;
+
+        //        if (vertex[i].Hit)
+        //            continue;
+
+        //        foreach (List<int> triangle in DfsTriangles(i, -1))
+        //        {
+        //            count++;
+        //            trin.Add(triangle);
+        //        }
+
+        //    }
+
+        //    return count;
+        //}
+
+        //private IEnumerable<List<int>> DfsTriangles(int vCurrent, int vPrev)
+        //{
+        //    vertex[vCurrent].Hit = true;
+
+        //    for (int vNext = 0; vNext < vertex.Length; vNext++)
+        //    {
+        //        if (vNext == vCurrent || vNext == vPrev)
+        //            continue;
+
+        //        if (vertex[vNext] == null)
+        //            continue;
+
+        //        if (!IsEdge(vCurrent, vNext))
+        //            continue;
+
+        //        if (vertex[vNext].Hit && IsEdge(vNext, vPrev))
+        //        {
+        //            yield return new List<int>(3) { vPrev, vCurrent, vNext };
+        //        }
+        //        else if (!vertex[vNext].Hit)
+        //        {
+        //            foreach (List<int> triangle in DfsTriangles(vNext, vCurrent))
+        //                yield return triangle;
+        //        }
+        //    }
+        //}
+    }
+
+    // Задание 2*. Метод поиска узлов, не входящих в треугольники только через интерфейс класса.
+    // Сложность временная: O (N^3), где N - число вершин (три цикла при поиске треугольников).
+    // Сложность пространственная: O (N^3), где N - число вершин
+    // (на такой порядок увеличивается максимальное число треугольников
+    // от размра графа при больших значениях N).
+    // Обходим граф и получаем список всех вершин (выбрал dfs). После ищем все треугольники и
+    // из списка всех вершин вычитаем список треугольников.
+    // Для получения списка всех вершин реализовал DepthFirstSearch() метод.
+    // Для поиска треугольников сделал метод GetTriangles() как в задании 1* CountTriangles()
+    // только возвращающий список треугольников.
+
+    public static class SimpleGraphExtensions
+    {
+        public static List<Vertex<T>> WeakVerticesV2<T>(this SimpleGraph<T> graph)
+        {
+            List<Vertex<T>> vertices = graph.DepthFirstSearch();
+            List<List<Vertex<T>>> triangles = graph.GetTriangles();
+
+            foreach (List<Vertex<T>> triangle in triangles)
+                foreach (Vertex<T> vertex in triangle)
+                    vertices.Remove(vertex);
+
+            return vertices;
+        }
+    }
+
+    public partial class SimpleGraph<T>
+    {
+        public List<List<Vertex<T>>> GetTriangles()
+        {
+            List<List<Vertex<T>>> triangles = new List<List<Vertex<T>>>();
+
+            for (int startV = 0; startV < vertex.Length; startV++)
+            {
+                if (vertex[startV] == null)
+                    continue;
+
+                foreach (List<Vertex<T>> triangle in GetTriangles(startV))
+                    triangles.Add(triangle);
+            }
+
+            return triangles;
+        }
+
+        private IEnumerable<List<Vertex<T>>> GetTriangles(int startV)
+        {
+            for (int middleV = startV + 1; middleV < vertex.Length; middleV++)
+            {
+                if (vertex[middleV] == null)
+                    continue;
+
+
+                if (!IsEdge(startV, middleV))
+                    continue;
+
+                for (int endV = middleV + 1; endV < vertex.Length; endV++)
+                {
+
+                    if (vertex[endV] == null)
+                        continue;
+
+                    if (!IsEdge(startV, endV) || !IsEdge(middleV, endV))
+                        continue;
+
+                    yield return new List<Vertex<T>>() { vertex[startV], vertex[middleV], vertex[endV] };
+                }
+            }
+        }
+
+        public List<Vertex<T>> DepthFirstSearch()
+        {
+            List<Vertex<T>> dfsVertex = new List<Vertex<T>>();
+
+            for (int i = 0; i < vertex.Length; i++)
+            {
+                if (vertex[i] == null)
+                    continue;
+
+                if (vertex[i].Hit)
+                    continue;
+
+                foreach (Vertex<T> vert in DepthFirstSearch(i))
+                    dfsVertex.Add(vert);
+            }
+
+            return dfsVertex;
+        }
+
+        private IEnumerable<Vertex<T>> DepthFirstSearch(int vFrom)
+        {
+            vertex[vFrom].Hit = true;
+
+            yield return vertex[vFrom];
+
+            for (int vTo = 0; vTo < vertex.Length; vTo++)
+            {
+                if (vertex[vTo] == null)
+                    continue;
+
+                if (vertex[vTo].Hit)
+                    continue;
+
+                if (IsEdge(vFrom, vTo) && !vertex[vTo].Hit)
+                {
+                    foreach (Vertex<T> childV in DepthFirstSearch(vTo))
+                        yield return childV;
+                }
+            }
+        }
+    }
+
+    // ========================================================================
+
+    // Рефлексия по уроку 10.
+
+    // Задание 1. Проверить связанный ли неориентированный граф.
+    // Моя реализация могла быть улучшена, если бы я вынес Dfs в отдельный метод
+    // (как сделал при решении задания 2 урока 12) и использовал его для пометки
+    // всех пройденных узлов и в конце просто проверил бы, помечены ли все.
+    // А не пытался искать с помощью существующего dfs метода путь от каждого узла
+    // до каждого отдельно.
+    // Выросла-бы читаемость, производительносьть (мне не пришлось бы очищать стек
+    // каждый раз как я начиную обход и вприницпе сложность по времени уменьшилась бы
+    // с O(N^2) -> O(N)).
+
+
+    // Задание 2*. Найти длину самого длинного простого пути в оринетированном графе.
+    // Моя реализация по большей части совпадает с рекомендованной, но я для хранение 
+    // информации о том, что вершина включена в путь использовать поле Hit вершины.
+    // Это позволило без поиска по списку (если бы он хранил путь) сразу проверить
+    // для вершины, была ли она посещена.
 }

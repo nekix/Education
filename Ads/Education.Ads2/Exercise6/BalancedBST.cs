@@ -20,7 +20,7 @@ namespace AlgorithmsDataStructures2
         }
     }
 
-    public class BalancedBST
+    public partial class BalancedBST
     {
         public BSTNode Root;
 
@@ -57,39 +57,6 @@ namespace AlgorithmsDataStructures2
             return node;
         }
 
-        private static int GetLeftChildIndex(int index)
-            => 2 * index + 1;
-
-        private static int GetRightChildIndex(int index)
-            => 2 * index + 2;
-
-        public bool IsSearchTree(BSTNode root_node)
-        {
-            if (root_node == null)
-                return true;
-
-            return IsSearchTree(root_node.LeftChild, int.MinValue, root_node.NodeKey, false) 
-                && IsSearchTree(root_node.RightChild, root_node.NodeKey, int.MaxValue, true);
-        }
-
-        private bool IsSearchTree(BSTNode root_node, int min, int max, bool isRight)
-        {
-            if (root_node == null)
-                return true;
-
-            if (root_node.NodeKey < min)
-                return false;
-
-            if (!isRight && root_node.NodeKey == min)
-                return false;
-
-            if (root_node.NodeKey >= max)
-                return false;
-
-            return IsSearchTree(root_node.LeftChild, min, root_node.NodeKey, false) 
-                && IsSearchTree(root_node.RightChild, root_node.NodeKey, max, true);
-        }
-
         public bool IsBalanced(BSTNode root_node)
         {
             return GetBalancedHeight(root_node) != -1;
@@ -113,6 +80,12 @@ namespace AlgorithmsDataStructures2
 
             return Math.Max(leftMax, rightMax) + 1;
         }
+
+        private static int GetLeftChildIndex(int index)
+            => 2 * index + 1;
+
+        private static int GetRightChildIndex(int index)
+            => 2 * index + 2;
     }
 }
 

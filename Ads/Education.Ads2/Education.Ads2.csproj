@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exercise6\BalancedBST-2.cs" />
     <Compile Include="Exercise6\BalancedBST.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

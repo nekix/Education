@@ -4,7 +4,7 @@ using System.Diagnostics.Eventing.Reader;
 
 namespace AlgorithmsDataStructures2
 {
-    public class aBST
+    public partial class aBST
     {
         public int?[] Tree;
 
@@ -35,131 +35,6 @@ namespace AlgorithmsDataStructures2
 
             Tree[-index.Value] = key;
             return -index.Value;
-        }
-
-        public int? GetLcaIndexByIndexes(int firstIndex, int secondIndex)
-        {
-            if (firstIndex >= Tree.Length || secondIndex >= Tree.Length)
-                return null;
-
-            while (firstIndex != secondIndex)
-            {
-                if (firstIndex < secondIndex)
-                    secondIndex = GetParentIndex(secondIndex);
-                else
-                    firstIndex = GetParentIndex(firstIndex);
-            }
-
-            return firstIndex;
-        }
-
-        public int? GetLcaIndexByKeysRecursive(int firstKey, int secondKey)
-        {
-            if (Tree.Length == 0 || Tree[0] == null)
-                return null;
-
-            return GetLcaIndexByKeysRecursive(firstKey, secondKey, 0);
-        }
-
-        private int? GetLcaIndexByKeysRecursive(int firstKey, int secondKey, int index)
-        {
-            if (index >= Tree.Length)
-                return null;
-
-            if (Tree[index] == null)
-                return null;
-
-            if (Tree[index] == firstKey)
-            {
-                if (IsExistKey(secondKey, index))
-                    return index;
-
-                return null;
-            }
-
-            if (Tree[index] == secondKey)
-            {
-                if (IsExistKey(firstKey, index))
-                    return index;
-
-                return null;
-            }
-
-            if (Tree[index] > firstKey && Tree[index] < secondKey)
-                return index;
-
-            if (Tree[index] < firstKey && Tree[index] > secondKey)
-                return index;
-
-            index = Tree[index] > firstKey
-                ? GetLeftChildIndex(index)
-                : GetRightChildIndex(index);
-
-            return GetLcaIndexByKeysRecursive(firstKey, secondKey, index);
-        }
-
-        public int? GetLcaIndexByKeysIterative(int firstKey, int secondKey)
-        {
-            if (Tree.Length == 0)
-                return null;
-
-            if (Tree[0] == firstKey || Tree[0] == secondKey)
-                return 0;
-
-            int currentIndex = 0;
-
-            while (true)
-            {
-                if (currentIndex >= Tree.Length)
-                    return null;
-
-                if (Tree[currentIndex] == null)
-                    return null;
-
-                if (Tree[currentIndex] == firstKey)
-                {
-                    if (IsExistKey(secondKey, currentIndex))
-                        return currentIndex;
-
-                    return null;
-                }
-                
-                if (Tree[currentIndex] == secondKey)
-                {
-                    if (IsExistKey(firstKey, currentIndex))
-                        return currentIndex;
-
-                    return null;
-                }
-
-                // Two left
-                if (Tree[currentIndex] > firstKey && Tree[currentIndex] > secondKey)
-                    currentIndex = GetLeftChildIndex(currentIndex);
-                // Two right
-                else if (Tree[currentIndex] < firstKey && Tree[currentIndex] < secondKey)
-                    currentIndex = GetRightChildIndex(currentIndex);
-                // One left, one right
-                else
-                    return currentIndex;
-            }
-        }
-
-        private bool IsExistKey(int key, int startNode)
-        {
-            int? index = FindKeyIndex(key, startNode);
-
-            return index >= 0 && Tree[index.Value] != null;
-        }
-
-        public List<int> WideAllNodes()
-        {
-            List<int> nodes = new List<int>();
-            
-            foreach (int? node in Tree)
-                if (node.HasValue)
-                    nodes.Add(node.Value);
-
-            return nodes;
         }
 
         private int GetTreeSize(int depth)

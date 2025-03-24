@@ -1,5 +1,4 @@
 ﻿using AlgorithmsDataStructures2;
-using Education.Ads.Exercise_3;
 using Shouldly;
 using System;
 using System.Collections.Generic;

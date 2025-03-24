@@ -1,9 +1,190 @@
 ﻿using System.Collections.Generic;
 using System;
+using Ads.Exercise6;
 
 namespace AlgorithmsDataStructures2
 {
-    // Урок 9
+    // ========= Урок 1 ===========
+
+    // Задание 1.
+    // Метод, который перебирает дерево и прописывает узлам их уровни.
+    // Реализовал как рекурсивную, так итеративную версию:
+    // Сложность временная составляет O(N), где N - число узлов дерева.
+    public partial class SimpleTree<T>
+    {
+        public SimpleTree<T> UpdateNodesLevelsRecursive()
+        {
+            if (Root != null)
+                UpdateNodesLevelsRecursive(Root, 0);
+
+            return this;
+        }
+
+        private void UpdateNodesLevelsRecursive(SimpleTreeNode<T> node, int nodeLevel)
+        {
+            node.Level = nodeLevel;
+
+            if (node.Children == null)
+                return;
+
+            foreach (SimpleTreeNode<T> child in node.Children)
+                UpdateNodesLevelsRecursive(child, nodeLevel + 1);
+        }
+
+        public SimpleTree<T> UpdateNodesLevelsIterative()
+        {
+            Queue<SimpleTreeNode<T>> nodesQueue = new Queue<SimpleTreeNode<T>>();
+
+            nodesQueue.Enqueue(Root);
+
+            int level = 0;
+            int nodesLevelCount = 1;
+
+            while (nodesQueue.Count != 0)
+            {
+                SimpleTreeNode<T> currentNode = nodesQueue.Dequeue();
+
+                currentNode.Level = level;
+
+                nodesLevelCount--;
+
+                if (currentNode.Children != null)
+                {
+                    foreach (SimpleTreeNode<T> child in currentNode.Children)
+                    {
+                        nodesQueue.Enqueue(child);
+                    }
+                }
+
+                if (nodesLevelCount == 0)
+                {
+                    level++;
+                    nodesLevelCount = nodesQueue.Count;
+                }
+            }
+
+            return this;
+        }
+    }
+
+
+    // Задание 2.
+    // Придумать способ поддержки уровня узлов без анализа всего дерева.
+    // Можно организовать присвоение уровней узлам при операциях, которые могут
+    // привести к изменению уровня узлов в дереве.В нашем случае это методы AddChild,
+    // MoveNode, а также сам конструктор дерева.В методах AddChild и MoveNode можно
+    // вызывать метод из задания 1, в качестве параметра передавать добавляемый узел
+    // и перемещаемый узел соответственно (т.к.могут добавить/переместить узел, которые
+    // уже может содержать дочерние узлы). В конструкторе также вызывается метод
+    // задания 1, которому передается root node(на случай, если у root node есть дети).
+    // В таком случае происходит перебор в лучшем случае одного узла.
+    // Реализовано в файле Exercise1/SimpleTree.cs (чтобы проходили тесты на сервере).
+
+    // Сложность при операции добавления узла без потомков или создании дерева с Root узлом без потомков: O(1).
+    // При добавлении узла с потомками или переносе узла с потомками в новое место: O(N),
+    // где N - число дочерних узлов добавляемого/переносимого узла (т.к. нужно обновить
+    // уровень узла всем потомкам узла). 
+
+
+    // Задание 3.
+    // Метод проверки симметричности дерева относительно корня. Реализовал как рекурсивную,
+    // так итеративную версию. В итеративной версии использовал деку из первого курса АСД.
+    // Сложность: O(N), где N - число узлов дерева.
+    public partial class SimpleTree<T>
+    {
+        public bool IsSymmetricallyIterative()
+        {
+            if (Root == null)
+                return true;
+
+            // Т.к. по умолчанию в C# нет реализации деки, я использовал свою из первой части курса АСД
+            ImprovedDeque<SimpleTreeNode<T>> nodesDeque = new ImprovedDeque<SimpleTreeNode<T>>();
+            nodesDeque.AddFront(Root);
+
+            while (nodesDeque.Size() > 0)
+            {
+                SimpleTreeNode<T> leftNode = nodesDeque.RemoveFront();
+
+                if (nodesDeque.Size() != 0)
+                {
+                    SimpleTreeNode<T> rightNode = nodesDeque.RemoveTail();
+
+                    if (!leftNode.NodeValue.Equals(rightNode.NodeValue))
+                        return false;
+
+                    if (leftNode.Children == null && leftNode.Children == null)
+                        continue;
+
+                    if (leftNode.Children.Count != rightNode.Children.Count)
+                        return false;
+
+                    for (int i = rightNode.Children.Count - 1; i >= 0; i--)
+                        nodesDeque.AddTail(rightNode.Children[i]);
+                }
+
+                if (leftNode.Children != null)
+                    foreach (SimpleTreeNode<T> child in leftNode.Children)
+                        nodesDeque.AddFront(child);
+            }
+
+            return true;
+        }
+
+        public bool IsSymmetricallyRecursive()
+        {
+            if (Root == null)
+                return true;
+
+            return IsSymmetricallyRecursive(Root.Children);
+        }
+
+        private bool IsSymmetricallyRecursive(List<SimpleTreeNode<T>> children)
+        {
+            if (children == null || children.Count == 0)
+                return true;
+
+            for (int i = 0, j = children.Count - 1; i < j; i++, j--)
+            {
+                if (!children[i].NodeValue.Equals(children[j].NodeValue))
+                    return false;
+
+                // Ветви зеркально расходятся
+                if (!IsSymmetricallyRecursive(children[i].Children, children[j].Children))
+                    return false;
+            }
+
+            // Средний ветвь (если есть)
+            if (children.Count % 2 != 0)
+                return IsSymmetricallyRecursive(children[children.Count / 2].Children);
+
+            return true;
+        }
+
+        private bool IsSymmetricallyRecursive(List<SimpleTreeNode<T>> leftChildren, List<SimpleTreeNode<T>> rightChildren)
+        {
+            if (leftChildren == null && rightChildren == null)
+                return true;
+
+            if (leftChildren == null || rightChildren == null)
+                return false;
+
+            if (leftChildren.Count != rightChildren.Count)
+                return false;
+
+            for (int i = 0, j = leftChildren.Count - 1; i < leftChildren.Count; i++, j--)
+            {
+                if (!leftChildren[i].NodeValue.Equals(rightChildren[j].NodeValue))
+                    return false;
+
+                if (!IsSymmetricallyRecursive(leftChildren[i].Children, rightChildren[j].Children))
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
+    // ========= Урок 9 ===========
 
     // Задание 2*.
     // Метод, балансирующий чётное двоичное дерево (TryBalanceEvenTree).

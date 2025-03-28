@@ -6,6 +6,7 @@ namespace Practice.Recursion;
 
 public static class RecursionFuncs
 {
+    // Задание 1.
     public static double Pow(double num, int power, double startPowValue = 1d)
     {
         switch (power)
@@ -27,6 +28,7 @@ public static class RecursionFuncs
         return Pow(num, power, startPowValue);
     }
 
+    // Задание 2.
     public static int SumOfDigits(int num, int startSum = 0)
     {
         if (num < 0) num = -num;
@@ -34,6 +36,13 @@ public static class RecursionFuncs
         return num == 0 ? startSum : SumOfDigits(num / 10, startSum + num % 10);
     }
 
+    // Задание 2. Рефлексия. Сделал рекурсивный вызов последним в функции.
+    // Вообще, лучше стараться, чтобы рекурсивный вызов был последним
+    // единственным в функции и без дополнительных вычислений, тогда
+    // компилятор хорошо её оптимизирует (не во всех языках, к сожалению),
+    // можно вообще без стека вызовов обойтись (т.н. элиминация хвостовой рекурсии). 
+
+    // Задание 3.
     public static int GetStackLength(Stack<int> stack, int startLength = 0)
     {
         if (!stack.TryPop(out var _))
@@ -42,6 +51,14 @@ public static class RecursionFuncs
         return GetStackLength(stack, startLength + 1);
     }
 
+    // Задание 3. Рефлексия.
+    // Сделал одной функцией, но использовал
+    // дефолтные параметры, которые лучше вообще не использовать
+    // (можно сделать одной функцией, просто без
+    // хвостовой рекурсии).
+
+
+    // Задание 4.
     public static bool IsPalindrom(string str)
     {
         return IsPalindrom(str, 0);
@@ -60,6 +77,11 @@ public static class RecursionFuncs
         return IsPalindrom(str, charOffset + 1);
     }
 
+    // Задание 4. Рефлексия.
+    // Изначально сделал с вырезанием подстроки,
+    // что приводило к постоянному созданию её копий.
+
+    // Задание 5.
     public static void PrintEvenNumberValues(List<int> numbers)
     {
         PrintEvenNumberValues(numbers, 0);
@@ -76,6 +98,7 @@ public static class RecursionFuncs
         PrintEvenNumberValues(numbers, index + 1);
     }
 
+    // Задание 6.
     public static void PrintValuesWithEvenNumberIndex(List<int> numbers)
     {
         PrintValuesWithEvenNumberIndex(numbers, 0);
@@ -91,6 +114,12 @@ public static class RecursionFuncs
         PrintValuesWithEvenNumberIndex(numbers, index + 2);
     }
 
+    // Задание 4,5,6. Рефлексия.
+    // Изначально сделал через одну функцию с лишними параметреми,
+    // переделал на несколько. Также в ней были дефолтные параметры,
+    // которые лучше вообще не использовать.
+
+    // Задание 7.
     public static int? GetSecondMaxValue(List<int> numbers)
     {
         if (numbers.Count < 2)
@@ -131,6 +160,15 @@ public static class RecursionFuncs
         return GetSecondMaxValue(numbers, index + 1, max, secondMax);
     }
 
+    // Задание 7. Рефлексия.
+    // Лучше исходно проверять сколько элементов в списке,
+    // и сразу прекращать если меньше двух.А дальше
+    // использовать первый и второй элементы начальными
+    // параметрами с учётом их отношений.
+    // Внес проверку на наличие двух элементов в списке и
+    // передачу первого и второго в качестве параметров.
+
+    // Задание 8.
     public static List<string> GetFilesPathsFromDirectory(string directoryPath)
     {
         List<string> files = Directory.GetFiles(directoryPath).ToList();
@@ -147,6 +185,11 @@ public static class RecursionFuncs
         return files;
     }
 
+    // Задание 8. Рефлексия.
+    // Изначально сделал двумя функциями, позже переделал
+    // через одну рекурсивную и лишился элиминации.
+
+    // Доп. задание повышенной сложности
     public static List<string> GetAllBalancedParentheses(int openParenthesesCount)
     {
         List<string> parentheses = new List<string>();

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{469CA957-C6D5-414E-9307-786FF6686D03}</ProjectGuid>
+    <ProjectGuid>{E4E34C91-620A-49B5-B096-886CD75C4F5C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Ads.Exercise12</RootNamespace>
-    <AssemblyName>Ads.Exercise12</AssemblyName>
+    <RootNamespace>Ads.Exercise9</RootNamespace>
+    <AssemblyName>Ads.Exercise9</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,7 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NativeCache.cs" />
+    <Compile Include="BitArrayDictionary.cs" />
+    <Compile Include="NativeDictionary.cs" />
+    <Compile Include="OrderedListBasedDictionary.cs" />
+    <None Include="C#_DictionaryAnalysis.md" />
+    <None Include="OrderedListBasedDictionaryComplexityAnalysis.md" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

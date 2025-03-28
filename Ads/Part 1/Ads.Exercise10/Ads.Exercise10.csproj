@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B16AE76E-0ACA-43B1-B5A0-1F1D9CECC411}</ProjectGuid>
+    <ProjectGuid>{698A4A1D-C9BF-4855-8738-4BEF0BA802B2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Ads.Exercise11</RootNamespace>
-    <AssemblyName>Ads.Exercise11</AssemblyName>
+    <RootNamespace>Ads.Exercise10</RootNamespace>
+    <AssemblyName>Ads.Exercise10</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,14 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BloomFilter.cs" />
-    <Compile Include="BloomFilterReverser.cs" />
+    <Compile Include="Bag.cs" />
+    <Compile Include="PowerSet.cs" />
+    <Compile Include="PowerSetExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RemovableBloomFilter.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="BloomFilterReverser.md" />
-    <None Include="UnionMethodAnalysis.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

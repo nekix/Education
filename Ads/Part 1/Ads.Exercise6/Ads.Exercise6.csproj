@@ -51,5 +51,8 @@
   <ItemGroup>
     <None Include="DequeСomplexityReduction.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Рефлексия.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

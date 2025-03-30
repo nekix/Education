@@ -48,5 +48,8 @@
   <ItemGroup>
     <None Include="OrderedListFindComplexityAnalysis.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Рефлексия.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

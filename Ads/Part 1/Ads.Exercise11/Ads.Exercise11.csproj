@@ -50,5 +50,8 @@
     <None Include="BloomFilterReverser.md" />
     <None Include="UnionMethodAnalysis.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Рефлексия.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

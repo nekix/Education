@@ -1,0 +1,47 @@
+Глава 1. Начало работы с ASP.NET Core
+Варианты использования:
+1) Минимальные API (для мелочи);
+2) web-api (классика)
+3) gRPC API (для внутренних сервисов);
+4) MVC (классика);
+5) Razor Pages (отрисовка на стороне сервера, модная замена MVC);
+6) Blazor WebAssembly.
+Выполнение на клиенте (WebAssembly, WASM), в т.ч. автономно; UI на C# в браузере.
+7) Blazor Server
+Выполнение на сервере, WebSockets для взаимодействия.
+8) Blazor гибрид (предыдущих двух режимов);
+9) API с классическим фронтом Angular, React, Vue.
+
+К сожалению (легко скрыть бардак) построен вокруг DI,
+стараюсь как минимум для контроллеров и их
+зависимостей уходить от этого и собирать их явно.
+
+Основные принципы работы:
+1) Конвеер;
+2) Kestrel или аналог.
+3) HttpContext;
+
+Глава 2. Что такое ASP.NET Core
+Зачем? Динамика (изменение). Для статики хватит статического сайта.
+
+Kestrel убрал жесткую зависимость от IIS.
+Можно использовать аналоги Kestrel (IIS in process, HTTP.sys), можно (и чаще всего) используется вместе с обратным прокси сервером (nginx, IIS).
+
+Глава 3. Наше первое приложение
+Kestrel получая низкоуровневый запрос преобразует его в HttpContext.
+Этот HttpContext дальше путешествует по конвееру и обратно уже с готовым ответом.
+Ответ передается Kestrel и отдается наружу (на обратный прокси/сервер и т.д.)
+
+Для командной строки:
+Создать решение: dotnet new sln -n WebApplication1
+Создать проект (--use-program-main для явной функции Main): dotnet new web -o WebApplication1
+Добавить проект в решение: dotnet sln add WebApplication1
+
+Внутри проекта:
+Восстановить зависимости: dotnet restore;
+Сборка (неяно запускает dotnet restore, чтобы скипнуть --no-restore): dotnet build;
+Запуск (неявно запускает dotnet restore, dotnet build, чтобы скипнуть --no-restore --bo-build): dotnet run.
+Добавить nuget пакет: dotnet add package <packagename>
+
+ИЗУЧИТЬ. CreateSlimBuilder и CreateEmptyBuilder аналоги.
+https://andrewlock.net/exploring-the-dotnet-8-preview-comparing-createbuilder-to-the-new-createslimbuilder-method/

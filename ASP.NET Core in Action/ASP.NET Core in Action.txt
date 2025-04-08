@@ -43,5 +43,10 @@ Kestrel получая низкоуровневый запрос преобра�
 Запуск (неявно запускает dotnet restore, dotnet build, чтобы скипнуть --no-restore --bo-build): dotnet run.
 Добавить nuget пакет: dotnet add package <packagename>
 
-ИЗУЧИТЬ. CreateSlimBuilder и CreateEmptyBuilder аналоги.
+ИЗУЧИТЬ. CreateSlimBuilder и CreateEmptyBuilder.
 https://andrewlock.net/exploring-the-dotnet-8-preview-comparing-createbuilder-to-the-new-createslimbuilder-method/
+
+Для тестов по ходу изучения книги будет полезно:
+https://khalidabuhakmeh.com/hosting-two-aspnet-core-apps-in-one-host
+
+Также в главе 30 настройка приложения через универсальный IHost с большим контролем, нежели WebApplication.

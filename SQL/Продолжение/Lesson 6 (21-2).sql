@@ -89,7 +89,7 @@ SELECT
 			WHERE proj.workshop_id = w.workshop_id
 			-- Если статус показывает, текущий это проект или нет,
 			-- то, это нужно учитывать, что-то вроде:
-			AND status != 'Сompleted'
+			    AND status != 'Сompleted'
 		)
 		'input_аmaterial_ids', (
 		    SELECT JSON_ARRAYAGG(m.material_id)

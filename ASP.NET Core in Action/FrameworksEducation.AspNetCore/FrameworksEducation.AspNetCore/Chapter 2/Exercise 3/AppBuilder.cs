@@ -60,6 +60,8 @@ public static class AppBuilder
 
         app.MapReverseProxy();
 
+        app.Run();
+
         app.Map("/{*catch-all}", () => Task.FromResult("Modern function execute!"));
 
         return app;

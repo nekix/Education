@@ -1,16 +1,20 @@
+using FrameworksEducation.AspNetCore.Chapter_2.Exercise_3;
 using Microsoft.Extensions.Logging;
 
 namespace FrameworksEducation.AspNetCore;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
+        WebApplication appModern = AppBuilder.BuildAndConfigureModernApp(args);
+        WebApplication appLegacy = AppBuilder.BuildAndConfigureLegacyApp(args);
+
         //WebApplication app = ConfigureFromDefaultBuilder(args);
         //WebApplication app = ConfigureFromSlimBuilder(args);
-        WebApplication app = ConfigureFromEmptyBuilder(args);
+        //WebApplication app = ConfigureFromEmptyBuilder(args);
 
-        app.Run();
+        await Task.WhenAny(appModern.RunAsync(), appLegacy.RunAsync());
     }
 
     private static WebApplication ConfigureFromDefaultBuilder(string[] args)

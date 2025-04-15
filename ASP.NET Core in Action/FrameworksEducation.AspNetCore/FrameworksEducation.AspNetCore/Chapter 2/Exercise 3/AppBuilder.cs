@@ -4,11 +4,13 @@ namespace FrameworksEducation.AspNetCore.Chapter_2.Exercise_3;
 
 public static class AppBuilder
 {
-    public static WebApplication BuildAndConfigureLegacyApp()
-    {
-
-    }
-
+    /// <summary>
+    /// Настраивает WebApplicationBuilder для условно 'нового приложения',
+    /// которое проксирует запросы по относительному пути 'legacy/*' на localhost:5006.
+    /// При этом остальные запросы поступают на Endpoint в этом проекте.
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     public static WebApplication BuildAndConfigureModernApp(string[] args)
     {
         WebApplicationOptions options = new WebApplicationOptions
@@ -31,22 +33,23 @@ public static class AppBuilder
         {
             new RouteConfig
             {
-                RouteId = "route1",
-                ClusterId = "cluster1",
+                RouteId = "legacyActionRoute",
+                ClusterId = "legacyCluster",
                 Match = new RouteMatch
                 {
-                    Path = "{**catch-all}"
+                    Path = "legacy/{*catch-all}"
                 }
             }
         };
+
         List<ClusterConfig> clusters = new List<ClusterConfig>()
         {
             new ClusterConfig
             {
-                ClusterId = "cluster1",
+                ClusterId = "legacyCluster",
                 Destinations = new Dictionary<string, DestinationConfig>
                 {
-
+                    { "legacyDestination", new DestinationConfig { Address = "http://localhost:5006" }}
                 }
             }
         };
@@ -55,10 +58,44 @@ public static class AppBuilder
 
         WebApplication app = builder.Build();
 
-        app.Use(async (context, next) =>
+        app.MapReverseProxy();
+
+        app.Map("/{*catch-all}", () => Task.FromResult("Modern function execute!"));
+
+        return app;
+    }
+
+    /// <summary>
+    /// Настраивает WebApplicationBuilder для условно 'старого приложения',
+    /// которое обрабатывает запросы, приходящие к нему как на прямую, так и проксируемые.
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
+    public static WebApplication BuildAndConfigureLegacyApp(string[] args)
+    {
+        WebApplicationOptions options = new WebApplicationOptions
         {
-            await context.Response.WriteAsync("Hello World!");
-            await next(context);
+            Args = args
+        };
+
+        WebApplicationBuilder builder = WebApplication.CreateEmptyBuilder(options);
+
+        builder.WebHost.UseKestrelCore();
+        builder.WebHost.UseUrls("http://localhost:5006");
+
+        // Configure logging
+        builder.Logging.AddConsole();
+        builder.Services.AddHttpLogging(opts =>
+            opts.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestProperties);
+        builder.Logging.AddFilter("Microsoft.AspNetCore.HttpLogging", LogLevel.Information);
+
+        WebApplication app = builder.Build();
+
+        app.Run(async context =>
+        {
+            await context.Response.WriteAsync("Legacy function execute!");
         });
+
+        return app;
     }
 }

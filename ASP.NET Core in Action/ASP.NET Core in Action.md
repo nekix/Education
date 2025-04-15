@@ -164,9 +164,41 @@ Middleware может:
 
 3. Создайте приложение, которое будет возвращать состав и порядок текущего конвеера промежуточного ПО. Другая конечная точка пусть возвращает информацию о структуре приложения (папки, файлы), третье пусть отображает зависимости приложения. Четвертая конечная точка будет выбрасывать исключение которое должно перехватываться и обрабатываться.
 
-## Глава 5
+## Глава 5. Создание JSON API с помощью минимальных API
 
+> Для изучения Blazor рекомендутеся книга "Blazor in action" Криса Сейнта.
 
+HTTP API, JSON API, REST API.
+
+gRPC, GraphQL.
+> * Для изучения gRPC рекомендуется `https://docs.microsoft.com/aspnet/core/grpc`.
+> * Для изучения GraphQL рекомендуется книга "Создание веб-API с помощью ASP.NET Core" Валерио Де Санктис.
+
+**Параметризированные маршруты**
+
+`app.MapGet("person/{name}", (string name) => ...);`
+
+По умолчанию ответ десериализуется в JSON.
+
+* GET - `MapGet(path, handler)`. Только получение данных. Можно кешировать.
+* POST - `MapPost(path, handler)`. Создание нового ресурса.
+* PUT - `MapPut(path, handler)`. Создание или замена существующего ресурса.
+* DELETE - `MapDelete(path, handler)`. Удаление данного ресурса.
+* PATCH - `MapPatch(path, handler)`. Изменение данного ресурса.
+* Несколько методов - `MapMethods(path, methods, handler)`. Несколько операций.
+* Все методы - `Map(path, handler)`. Несколько операций.
+* Все методы - `MapFollback(handler)`. Для резервных маршрутов. Вызывается при отсутсвии совпадений по другим конечным точкам. Подробнее `https://weblog.west-wind.com/posts/2020/Jul/12/Handling-SPA-Fallback-Paths-in-a-Generic-ASPNET-Core-Server`.
+
+Если определена например только `app.MapGet("person/{name}, string name => ...);`, а мы стучимся POST методом, то обработчик не запуститься, а вернётся `405 Method Not Allowed`.
+
+Если определена конечная точка напр. `app.MapPost("person/{id}", AddPerson);` и `void AddPerson(int id, Person person)`, то `person` будет создан из десериализованного JSON-объекта из `Body` запроса, что работает для сложных типов (их невозможно извлечь из URL запроса). **В minimal-api данные могут быть привязаны к телу запроса только в формате JSON.**
+
+### Задания
+1) Изучить разницу между HTTP API, JSON API, REST API.
+
+2) Изучить (обзорно) gRPC, GraphQL
+
+3) Ознакомиться с введением в HTTP от Firefox `https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview`.
 
 
 ## Планы на потом.

@@ -19,6 +19,7 @@ namespace FrameworksEducation.AspNetCore.Chapter_4.Exercise_1
             builder.WebHost.UseUrls("http://localhost:5005");
 
             builder.Services.AddRoutingCore();
+            builder.Services.AddProblemDetails();
 
             WebApplication app = builder.Build();
 
@@ -47,6 +48,9 @@ namespace FrameworksEducation.AspNetCore.Chapter_4.Exercise_1
             {
                 errBuilder.Run(async (context) =>
                 {
+                    if (DateTime.Now.Ticks % 2 == 0)
+                        throw new Exception("Total exception");
+
                     context.Response.ContentType = MediaTypeNames.Text.Plain;
 
                     IProblemDetailsService? problemDetailsService =
@@ -70,7 +74,7 @@ namespace FrameworksEducation.AspNetCore.Chapter_4.Exercise_1
                         ProblemDetails = new ProblemDetails
                         {
                             Title = "Some exception handled in endpoint!",
-                            Detail = $"Exception type: {error}"
+                            Detail = $"Exception type: {error?.Message}"
                         }
                     });
                 });

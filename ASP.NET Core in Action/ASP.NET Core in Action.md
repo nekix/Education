@@ -192,6 +192,11 @@ Middleware может:
 1. Изучить статью. Попробовать повторить подходы в ней (стандартный и через отдельный middleware) комбинируя их так, чтобы исключение в любом случае было обработано.
 `https://andrewlock.net/creating-a-custom-error-handler-middleware-function/`
 
+	**Решение:**
+    Выполнил задание. Все заработало так, как и ожидалось. По пути немного поизучал и поработал с более низкоуровневым `HttpContext`, обнаружил полезный сервис для формирования ответов с ошибками `IProblemDetailsService`, до этого напрямую его не использовал.
+    
+    Ссылка на код: `https://github.com/nekix/Education/blob/main/ASP.NET%20Core%20in%20Action/FrameworksEducation.AspNetCore/FrameworksEducation.AspNetCore/Chapter%203/Exercise%201/AppBuilder.cs`
+
 ## Глава 5. Создание JSON API с помощью минимальных API
 
 > Для изучения Blazor рекомендутеся книга "Blazor in action" Криса Сейнта.

@@ -1,4 +1,6 @@
-﻿namespace FrameworksEducation.AspNetCore.Chapter_3.Exercise_1;
+﻿using System.Reflection;
+
+namespace FrameworksEducation.AspNetCore.Chapter_3.Exercise_1;
 
 public static class AppBuilder
 {
@@ -11,6 +13,8 @@ public static class AppBuilder
         WebApplication app = builder.Build();
 
         app.MapGet("/", () => "Hello Default World!");
+
+        PrintMiddlewarePipeline(app);
 
         return app;
     }
@@ -58,5 +62,29 @@ public static class AppBuilder
         });
 
         return app;
+    }
+
+    public static void PrintMiddlewarePipeline(WebApplication app)
+    {
+        var appBuilder = typeof(WebApplication).GetProperty("ApplicationBuilder", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.GetValue(app);
+
+        var componentsField = appBuilder?.GetType().GetField("_components", BindingFlags.NonPublic | BindingFlags.Instance);
+        var components = componentsField?.GetValue(appBuilder) as List<Func<RequestDelegate, RequestDelegate>>;
+
+        if (components == null)
+        {
+            Console.WriteLine("Не удалось получить список middleware.");
+            return;
+        }
+
+        Console.WriteLine("Middleware pipeline:");
+        foreach (var component in components)
+        {
+            var targetType = component.Target?.GetType();
+            var methodInfo = component.Method;
+
+            Console.WriteLine($"- {targetType?.FullName}.{methodInfo?.Name}");
+        }
     }
 }

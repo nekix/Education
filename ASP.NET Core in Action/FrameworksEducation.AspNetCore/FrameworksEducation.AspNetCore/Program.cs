@@ -1,6 +1,7 @@
 using FrameworksEducation.AspNetCore.Chapter_2.Exercise_3;
 using AppBuilder3_1 = FrameworksEducation.AspNetCore.Chapter_3.Exercise_1.AppBuilder;
 using AppBuilder4_1 = FrameworksEducation.AspNetCore.Chapter_4.Exercise_1.AppBuilder;
+using AppBuilder5_2 = FrameworksEducation.AspNetCore.Chapter_5.Exercise_2.AppBuilder;
 
 namespace FrameworksEducation.AspNetCore;
 
@@ -22,7 +23,10 @@ public class Program
         //await Task.WhenAny(appDefault.RunAsync(), appSlim.RunAsync(), appEmpty.RunAsync());
 
         // Chapter 4. Exercise 1.
-        WebApplication app = AppBuilder4_1.Configure(args);
+        //WebApplication app = AppBuilder4_1.Configure(args);
+        //await app.RunAsync();
+
+        WebApplication app = AppBuilder5_2.Configure(args);
         await app.RunAsync();
     }
 

@@ -391,7 +391,11 @@ gRPC, GraphQL.
 1. Создать небольшое приложения "конвертации" валют. Пусть основная конечная точка будут как в примере из книги для универсальных параметров конечной точки курсов валют. Но при этом добавь ещё одну точку для просмотра курсов валют по пути `{from}/rate/{to}`, но при этом они должны перенаправляться на `http://sberbank.ru/ru/quotes/currencies?tab=sbol&currency={currency}&currency={newCurrency}`.
 
     **Решение**
-    Реализовал по сслыке: ``. В процессе чтения и реализации ещё раз напомнил себе систему маршрутизации ASP.NET Core.
+    Реализовал по сслыке: `https://github.com/nekix/Education/blob/main/ASP.NET%20Core%20in%20Action/FrameworksEducation.AspNetCore/FrameworksEducation.AspNetCore/Chapter%206/Exercise%201/AppBuilder.cs`. В процессе чтения и реализации ещё раз напомнил себе систему маршрутизации ASP.NET Core.
+
+## Глава 7. Привязка модели и валидация в минимальных API.
+
+
 
 
 

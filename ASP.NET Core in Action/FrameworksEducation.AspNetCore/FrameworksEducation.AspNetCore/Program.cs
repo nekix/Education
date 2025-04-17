@@ -2,6 +2,7 @@ using FrameworksEducation.AspNetCore.Chapter_2.Exercise_3;
 using AppBuilder3_1 = FrameworksEducation.AspNetCore.Chapter_3.Exercise_1.AppBuilder;
 using AppBuilder4_1 = FrameworksEducation.AspNetCore.Chapter_4.Exercise_1.AppBuilder;
 using AppBuilder5_2 = FrameworksEducation.AspNetCore.Chapter_5.Exercise_2.AppBuilder;
+using AppBuilder6_1 = FrameworksEducation.AspNetCore.Chapter_6.Exercise_1.AppBuilder;
 
 namespace FrameworksEducation.AspNetCore;
 
@@ -26,7 +27,11 @@ public class Program
         //WebApplication app = AppBuilder4_1.Configure(args);
         //await app.RunAsync();
 
-        WebApplication app = AppBuilder5_2.Configure(args);
+        // Chapter 5. Exercise 2.
+        //WebApplication app = AppBuilder5_2.Configure(args);
+        //await app.RunAsync();
+
+        WebApplication app = AppBuilder6_1.Configure(args);
         await app.RunAsync();
     }
 

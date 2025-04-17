@@ -1,6 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 
 namespace FrameworksEducation.AspNetCore.Chapter_5.Exercise_2;
 

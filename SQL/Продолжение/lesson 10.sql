@@ -204,7 +204,7 @@ SELECT
             FROM workshop_materials wm
             WHERE wm.workshop_id = w.workshop_id
         ),
-        'project_ids' (
+        'project_ids', (
             SELECT JSON_ARRAYAGG(pr.project_id)
             FROM projects pr
             WHERE pr.workshop_id = w.workshop_id

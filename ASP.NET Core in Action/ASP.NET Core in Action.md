@@ -571,6 +571,10 @@ ASP.NET Core автоматически должен проверять в runti
 
 1). Проверить, что будет, если зарегистрировать для одного и того-же сервиса реализации с разным жизненным циклом. То-же самое для `TryAdd...` и `Replace` методов. Изучить ValidateScopes, ValidateOnBuild поведения при данной ситуации.
 
+    **Решение**
+    Реализовал по сслыке: `https://github.com/nekix/Education/blob/main/ASP.NET%20Core%20in%20Action/FrameworksEducation.AspNetCore/FrameworksEducation.AspNetCore/Chapter%209/Exercise%201/AppBuilder.cs`.
+    В ходе экспериментов выяснил, что срабатывает последняя добавленная реализация сервиса НЕЗАВИСИМО от жизненного цикла предыдущей реализации. `Replace` добавляет новую реализацию с указанным `ServiceLifetime` если её не было ранее, и добавляет в конец списка реализация сервиса (т.е. она будет вызвана). `TryAdd` напротив, при попытке добавить с любым `ServiceLifetime`, если уже есть какая-либо (не важен `ServiceLifetime`) реализация не добавит (т.е. уже есть с `ServiceLifetime.Scoped`, пытаемся добавить новую с `ServiceLifetime.Singleton` и она не будет добавлена).
+
 ## Планы на потом.
 1. Вернуться к `HostFilteringMiddleware` `https://andrewlock.net/adding-host-filtering-to-kestrel-in-aspnetcore/` и атакам, от которых он защищает. Хотелось бы опробовать воспоизвести эти атаки.
 

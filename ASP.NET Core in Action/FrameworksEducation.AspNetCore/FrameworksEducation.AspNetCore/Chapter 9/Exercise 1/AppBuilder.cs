@@ -34,7 +34,7 @@ public class AppBuilder
         //builder.Services.Replace(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter),
         //    ServiceLifetime.Singleton));
 
-        // 4. Отработал ColoredConsoleWriter Scoped (неожиданно, получается просто добавил раз не было такого)
+        // 4. Отработал ColoredConsoleWriter Scoped
         //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
         //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
         //builder.Services.Replace(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter),

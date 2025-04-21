@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FrameworksEducation.AspNetCore.Chapter_9.Exercise_1;
 
@@ -20,8 +21,42 @@ public class AppBuilder
         builder.Services.AddProblemDetails();
 
         // 1. Отработал ColoredConsoleWriter Singleton
-        builder.Services.AddScoped<IConsoleWriter, SimpleConsoleWriter>();
-        builder.Services.AddSingleton<IConsoleWriter, ColoredConsoleWriter>();
+        //builder.Services.AddScoped<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.AddSingleton<IConsoleWriter, ColoredConsoleWriter>();
+
+        // 2. Отработал ColoredConsoleWriter Scoped
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.AddScoped<IConsoleWriter, ColoredConsoleWriter>();
+
+        // 3. Отработал ColoredConsoleWriter Singleton
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.Replace(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter),
+        //    ServiceLifetime.Singleton));
+
+        // 4. Отработал ColoredConsoleWriter Scoped (неожиданно, получается просто добавил раз не было такого)
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.Replace(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter),
+        //    ServiceLifetime.Scoped));
+
+        // 5. Отработал SimpleConsoleWriter Scoped
+        //builder.Services.AddScoped<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.Replace(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter),
+        //    ServiceLifetime.Scoped));
+
+        // 6. Отработал SimpleConsoleWriter Singleton
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.TryAdd(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter), ServiceLifetime.Singleton));
+
+        // 7. Отработал SimpleConsoleWriter Singleton
+        //builder.Services.AddSingleton<IConsoleWriter, SimpleConsoleWriter>();
+        //builder.Services.TryAdd(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter), ServiceLifetime.Scoped));
+
+        // 8. Отработал SimpleConsoleWriter Scoped
+        builder.Services.TryAdd(new ServiceDescriptor(typeof(IConsoleWriter), typeof(SimpleConsoleWriter), ServiceLifetime.Scoped));
+        builder.Services.TryAdd(new ServiceDescriptor(typeof(IConsoleWriter), typeof(ColoredConsoleWriter), ServiceLifetime.Singleton));
 
         WebApplication app = builder.Build();
 

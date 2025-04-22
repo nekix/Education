@@ -564,8 +564,7 @@ ASP.NET Core автоматически должен проверять в runti
 
 **Запрос сервисов scoped и transient напрямую из контейнера может привести к утечке памяти, посколько объекты остаются активными и не подвергаются сборке мусора до конца работы приложения.**
 
-Создание свое области применения: `await (using var scope = app.Services.CreateAsyncScope()) {var service = scope.ServiceProvider.GetRequiredService<DataContext>() }`.
-
+Создание своей области применения: `await (using var scope = app.Services.CreateAsyncScope()) {var service = scope.ServiceProvider.GetRequiredService<DataContext>() }`.
 
 ### Задания
 
@@ -574,6 +573,67 @@ ASP.NET Core автоматически должен проверять в runti
     **Решение**
     Реализовал по сслыке: `https://github.com/nekix/Education/blob/main/ASP.NET%20Core%20in%20Action/FrameworksEducation.AspNetCore/FrameworksEducation.AspNetCore/Chapter%209/Exercise%201/AppBuilder.cs`.
     В ходе экспериментов выяснил, что срабатывает последняя добавленная реализация сервиса НЕЗАВИСИМО от жизненного цикла предыдущей реализации. `Replace` добавляет новую реализацию с указанным `ServiceLifetime` если её не было ранее, и добавляет в конец списка реализация сервиса (т.е. она будет вызвана). `TryAdd` напротив, при попытке добавить с любым `ServiceLifetime`, если уже есть какая-либо (не важен `ServiceLifetime`) реализация не добавит (т.е. уже есть с `ServiceLifetime.Scoped`, пытаемся добавить новую с `ServiceLifetime.Singleton` и она не будет добавлена).
+
+## Глава 10. Конфигурация приложения ASP.Net Core
+
+ASP.NET Core использует поставщиков конфигурации для загрузки пар "ключ-значение" из множества источников.
+
+`IConfigurationBuilder` - для постройки представления конфигурации.
+
+`IConfigurationRoot` - представляет значения конфигурации. 
+
+`IConfigurationProvider` - является поставщиком конфигурации.
+
+Каждый новый поставщик может переопределить значения, заданные предыдущим.
+
+**Ключи конфигурации в приложении ASP.NET Core НЕ ЧУВСТВИТЕЛЬНЫ К РЕГИСТРУ**
+
+По умолчанию `WebApplicationBuilder` добавляет по умолчанию следущих поставщиков:
+
+* постащик файлов JSON (appsettings.json, appsettings.ENVIRONMENT.json);
+
+* пользовательсие секреты - загружает секреты;
+
+* переменные окружения - загружает переменные окружения в качестве переменных конфигурации;
+
+* аргументы командной строки - значения, переданные в качестве аргументов при запуске приложения.
+
+Очистка поставщиков конфигурации `builder.Configuration.Sources.Clear()`.
+
+**Значения конфигурации добавляются сразу, до вызода `Build`.**
+
+Для безопасного хранения конфиденциальных данных обычно используют `User Secrets` локально и переменные окружения на рабочем сервере.
+
+**Крайне не рекомендуется конфиденциальные данные в системе управления версиями.**
+
+Можно использовать префикс для переменных окружения, чтобы избежать коллизий. Для этого применяется `AddEnvironmentVariables("SomePrefix")`. Префикс удаляется из ключа перед его добавлением в `ConfigurationManager`.
+
+**Рекомендуется использовать пользовательские секреты только в окружении разработчика.**
+
+Предпочтительным способом использование настроек конифигурации является их отображение на модель (POCO). Для этого удобно внедрять в обработчик конечной точки `IOptions<AppDisplaySettings> options`. Связка: `builder.Services.Configure<AppDisplaySettings>(builder.Configuration.GetSection("AppDisplaySettings"));`.
+
+Каждый вызов `Configute<T>`:
+
+* Создает экземпляр `ConfigureOptions<T>`, который указывает способ настройки `IOptions<T>`. **Если вызываются несколько раз `Configure<T>`, то будут применяться несколько `ConfigureOptions<T>`, которые могут настроить разные части объекта например**.
+
+* Каждый экземпляр `ConfigureOptions<T>` привязывает секцию `IConfiguration` к экземпляру класса POCO.
+
+* Интерфейс `IOptions<T> регистрируется в контейнере DI как Singleton с последним связанным объектом POCO в свойстве Value **И БОЛЬШЕ НЕ ОБНОВЛЯЕТСЯ**.
+
+`IOptionsSnapshot<T>` - аналог `IOptions<T>`, который при необходимости создает новый экземпляр, если с момента создания базовая конфигурация изменилась. **Регистрируется как Scoped сервис.** Для использования в Singleton сервисах можно использовать `IOptionsMonitor<T>`: `https://andrewlock.net/creating-singleton-named-options-with-ioptionsmonitor/`.
+
+**Можно валидировать связку POCO объектов с конфигурацией. ** `https://andrewlock.net/adding-validation-to-strongly-typed-configuration-objects-in-dotnet-6/`.
+
+Можно использовать `Bind` для привязки и добавления в `DI`.
+
+Для проверки текущего окружения размещения и контекста запуска приложения используется `WebAppliction.Environmet`, что является `IHostEnvironment`.
+
+> Команда для запуска приложения с определенным профилем: `dotent run --launch-profile <Profile Name>` (по умполчанию первый профиль в `launchSettings.json`). 
+Если хотим без профиля, то `dotnet run --nu-lauch-pfofile`.
+
+### Задания
+
+1. Опробовать `IOptionsSnapshot`, `IOptionsMonitor` в сочетании с json конфигурацией. ВнедритьMap валидацию POCO модели опций.
 
 ## Планы на потом.
 1. Вернуться к `HostFilteringMiddleware` `https://andrewlock.net/adding-host-filtering-to-kestrel-in-aspnetcore/` и атакам, от которых он защищает. Хотелось бы опробовать воспоизвести эти атаки.
@@ -593,3 +653,7 @@ ASP.NET Core автоматически должен проверять в runti
 8) Глава 7. Задание 1. Выяснить, почему `OverflowException` возникает.
 
 9) Глава 8. Статья про DI 2004 г. `https://www.martinfowler.com/articles/injection.html`. Также изучить разницу внедрения зависимостей и инверсии зависимостей (пост Дерика Бейли "Внедрение зависимостей НЕ тоже самое что и принцип инверсии зависимостей").
+
+10) Глава 10. Продвинутые примеры использования `IOptions<T>`. `https://learn.microsoft.com/ru-ru/aspnet/core/fundamentals/configuration/options?view=aspnetcore-9.0`. Посты по связаной теме в блоге `https://anrewlock.net`.
+
+11). Изучить Azure Key Vault и Vault от Hashicorn `https://developer.hashicorp.com/vault`. (на машине без таких средств все ключи все равно храняться в открытом виде).

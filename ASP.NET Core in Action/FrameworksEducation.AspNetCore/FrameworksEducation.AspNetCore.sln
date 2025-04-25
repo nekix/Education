@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174 d17.12
+VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworksEducation.AspNetCore", "FrameworksEducation.AspNetCore\FrameworksEducation.AspNetCore.csproj", "{DD559970-8FEC-4682-B93B-792A7F162483}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworksEducation.AspNetCore.ConsoleClient", "FrameworksEducation.AspNetCore.ConsoleClient\FrameworksEducation.AspNetCore.ConsoleClient.csproj", "{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +17,15 @@ Global
 		{DD559970-8FEC-4682-B93B-792A7F162483}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD559970-8FEC-4682-B93B-792A7F162483}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD559970-8FEC-4682-B93B-792A7F162483}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {078B7BDA-8504-478F-A342-EC76E0F341DB}
 	EndGlobalSection
 EndGlobal

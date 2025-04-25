@@ -6,6 +6,7 @@ using AppBuilder6_1 = FrameworksEducation.AspNetCore.Chapter_6.Exercise_1.AppBui
 using AppBuilder7_1 = FrameworksEducation.AspNetCore.Chapter_7.Exercise_1.AppBuilder;
 using AppBuilder9_1 = FrameworksEducation.AspNetCore.Chapter_9.Exercise_1.AppBuilder;
 using AppBuilder10_1 = FrameworksEducation.AspNetCore.Chapter_10.Exercise_1.AppBuilder;
+using AppBuilder11_1 = FrameworksEducation.AspNetCore.Chapter_11.Exercise_1.AppBuilder;
 
 namespace FrameworksEducation.AspNetCore;
 
@@ -49,7 +50,11 @@ public class Program
         //await app.RunAsync();
 
         // Chapter 10. Exercise 1.
-        WebApplication app = AppBuilder10_1.Configure(args);
+        //WebApplication app = AppBuilder10_1.Configure(args);
+        //await app.RunAsync();
+
+        // Chapter 11. Exercise 1.
+        WebApplication app = AppBuilder11_1.Configure(args);
         await app.RunAsync();
     }
 

@@ -1,0 +1,27 @@
+﻿@page
+@model FrameworksEducation.AspNetCore.Chapter_13.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Приветсвую на моем тестовом сайтике</h1>
+    <p>Вот это <a href="https://learn.microsoft.com/aspnet/core">руководство</a>стоит почитать мне.</p>
+</div>
+
+<div>
+    <h2 class="display-5">Сервисы</h2>
+    <p>Тестируем систему маршрутизации, вот список сервисов для разогрева: </p>
+    <ul>
+        <li><a href="@Url.Page("Services/Index", new { serviceName = "First"})">Первый сервис</a></li>
+        <li><a href="@Url.Page("Services/Index", new { serviceName = "Second"})">Второй сервис</a></li>
+    </ul>
+</div>
+
+<div>
+    <h2 class="display-5">Продукты</h2>
+    <p>Тестируем систему маршрутизации, вот ссылка на страница поиска товаров: </p>
+    <ul>
+        <li><a href="@Url.Page("Products/Index")">Страница товаров</a></li>
+    </ul>
+</div>

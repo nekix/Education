@@ -1,0 +1,18 @@
+﻿@page "{handler?}"
+@using FrameworksEducation.AspNetCore.Chapter_13.Core.Products
+@model FrameworksEducation.AspNetCore.Chapter_13.Pages.Products.IndexModel
+@{
+}
+<div class="text-center">
+    <h1 class="display-4">Продукты</h1>
+</div>
+<div>
+    <ul>
+        @foreach (ProductDto product in Model.Products)
+        {
+            <li>@product.Title</li>
+        }
+        @*         <li><a href="@Url.Page("Product", new { handler = "Short", productName = "First" })">Первый продукт короткая форма</a></li>
+        <li><a href="@Url.Page("Product", new { handler = "Detailed", productName = "Second" })">Второй продукт детальная форма</a></li> *@
+    </ul>
+</div>

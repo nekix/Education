@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using FrameworksEducation.AspNetCore.Chapter_13.Core.Products;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace FrameworksEducation.AspNetCore.Chapter_13.Pages.Products
@@ -13,6 +12,8 @@ namespace FrameworksEducation.AspNetCore.Chapter_13.Pages.Products
         public IndexModel(ProductAppService productService)
         {
             _productService = productService;
+
+            Products = new List<ProductDto>(10);
         }
 
         [BindProperty(SupportsGet = true)]
@@ -24,7 +25,7 @@ namespace FrameworksEducation.AspNetCore.Chapter_13.Pages.Products
         {
             if (ModelState.IsValid)
             {
-                Products = _productService.GetList();
+                Products.AddRange(_productService.GetList());
 
                 return Page();
             }

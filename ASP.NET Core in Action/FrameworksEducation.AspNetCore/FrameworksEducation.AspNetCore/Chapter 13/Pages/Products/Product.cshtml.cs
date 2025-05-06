@@ -1,17 +1,21 @@
+using FrameworksEducation.AspNetCore.Chapter_13.Core.Products;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace FrameworksEducation.AspNetCore.Chapter_13.Pages.Products
+namespace FrameworksEducation.AspNetCore.Chapter_13.Pages.Products;
+
+public class ProductModel : PageModel
 {
-    public class ProductModel : PageModel
+    private readonly ProductAppService _productService;
+
+    public ProductModel(ProductAppService productService)
     {
-        public void OnDetailedGet(string productName)
-        {
+        _productService = productService;
+    }
 
-        }
+    public ProductDto? Product { get; set; }
 
-        public void OnGet(string productName)
-        {
-
-        }
+    public void OnGet(int id)
+    {
+        Product = _productService.FindById(id);
     }
 }

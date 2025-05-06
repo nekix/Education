@@ -1,7 +1,16 @@
-﻿@page "{handler}/{productName}"
+﻿@page "{id}"
 @model FrameworksEducation.AspNetCore.Chapter_13.Pages.Products.ProductModel
 @{
+    ViewData["Title"] = $"Product - {Model.Product?.Title ?? "undefined"}" ;
 }
 <div class="text-center">
-    <h1 class="display-4">Заполнитель для названия продукта</h1>
+    @if (Model.Product != null)
+    {
+        <h1 class="display-4">@Model.Product.Title</h1>
+        <p >@Model.Product.Description</p>
+    }
+    else
+    {
+        <h1 class="text-danger">Product not found!</h1>
+    }
 </div>

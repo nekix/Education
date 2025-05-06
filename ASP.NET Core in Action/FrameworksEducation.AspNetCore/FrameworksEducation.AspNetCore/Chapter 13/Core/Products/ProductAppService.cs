@@ -27,21 +27,35 @@ public class ProductAppService
         };
     }
 
-    public ProductDto GetById(int id)
+    public ProductDto? FindById(int id)
     {
-        if (id < 0 || id >= _products.Count)
+        if (id <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(id), "Invalid product ID.");
         }
 
-        Product? product = _products[id];
+        if (id >= _products.Count)
+        {
+            return null;
+        }
+
+        Product? product = _products[id - 1];
+
+        return product != null 
+            ? MapToDto(product)
+            : null;
+    }
+
+    public ProductDto GetById(int id)
+    {
+        ProductDto? product = FindById(id);
 
         if (product == null)
         {
-            throw new InvalidOperationException($"Product with ID {id} not found."); // Or a more appropriate exception
+            throw new InvalidOperationException($"Product with ID {id} not found.");
         }
 
-        return MapToDto(product);
+        return product;
     }
 
     public List<ProductDto> GetList()
@@ -77,8 +91,20 @@ public class ProductAppService
 
     public ProductDto EditProduct(EditProductCommand command)
     {
-        Product product = _products[command.Id] 
-            ?? throw new InvalidOperationException("Sequence contains no elements");
+        int id = command.Id;
+
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "Invalid product ID.");
+        }
+
+        if (id >= _products.Count)
+        {
+            throw new InvalidOperationException($"Product with ID {id} not found.");
+        }
+
+        Product product = _products[id] 
+            ?? throw new InvalidOperationException($"Product with ID {id} not found.");
 
         product.Title = command.Title;
         product.Description = command.Description;

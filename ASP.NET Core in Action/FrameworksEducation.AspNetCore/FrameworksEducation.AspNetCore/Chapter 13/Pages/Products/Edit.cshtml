@@ -1,0 +1,23 @@
+﻿@page "{id}"
+@model FrameworksEducation.AspNetCore.Chapter_13.Pages.Products.EditModel
+@{
+    ViewData["Title"] = "Edit product";
+}
+
+<form asp-page="Edit" method="post">
+    <div class="form-group">
+        <label asp-for="Input.Title"></label>
+        <input class="form-control" asp-for="Input.Title"/>
+        <span asp-validation-for="Input.Title"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Input.Description"></label>
+        <input class="form-control" asp-for="Input.Description" />
+        <span class="text-danger" asp-validation-for="Input.Description"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Подтвердить</button>
+</form>
+
+@section Scripts{
+    @Html.Partial("_ValidationScriptsPartial")
+}

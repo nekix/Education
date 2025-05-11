@@ -1,7 +1,7 @@
 using FrameworksEducation.AspNetCore.Chapter_13.Core.Products;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace FrameworksEducation.AspNetCore.Chapter_13.Pages.Products;
+namespace FrameworksEducation.AspNetCore.Chapter_13.RazorPages.Pages.Products;
 
 public class ProductModel : PageModel
 {

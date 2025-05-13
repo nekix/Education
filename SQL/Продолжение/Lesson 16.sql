@@ -1,4 +1,6 @@
-/*
+-- Задача 5*: Многофакторный анализ угроз и безопасности крепости
+
+/* Возвращаемый REST
 
 {
   "total_recorded_attacks": 183,
@@ -95,15 +97,15 @@
 
 */
 
--- пока не понимаю как привязать к замку...
+-- Запрос
+
 WITH creatures_stats AS (
     SELECT
-        c.type                          AS creature_type,
-        c.threat_level                  AS threat_level,
-        MAX(cs.date)                    AS last_sighting_date
-        ct.distance_to_fortress         AS territory_proximity,
-        c.estimated_population          AS estimated_numbers,
-        JSON_ARRAYAGG(c.creature_id)    AS creature_ids
+        c.type                                      AS creature_type,
+        ROUND(AVG(c.threat_level), 2)               AS threat_level,
+        MAX(cs.date)                                AS last_sighting_date
+        ROUND(AVG(ct.distance_to_fortress), 2)      AS territory_proximity,
+        SUM(c.estimated_population)                 AS estimated_numbers,
     FROM
         creatures c
     INNER JOIN
@@ -111,19 +113,20 @@ WITH creatures_stats AS (
     INNER JOIN
         creature_sightings cs ON cs.creature_id = c.creature_id
     GROUP BY
-        c.type, c.threat_level
+        c.type
 ), military_stats AS (
     SELECT
         ms.squad_id                                                                     AS squad_id,
         ms.name                                                                         AS squad_name,
         -- Принял, что 10 - максимальный уровень навыков
-        COALESCE(ROUND(0.5 * AVG(ds.level) / 10::DECIMAL +
+        COALESCE(ROUND(0.5 * AVG(ds.level) 
+            / 10::DECIMAL +
         + 0.5 * 1::DECIMAL 
             / NULLIF((1 + 0.1 * AVG(ca.military_response_time_minutes)), 0), 2), 0)     AS readiness_score,
         COUNT(DISTINCT(sm.dwarf_id))                                                    AS active_members,
         AVG(ds.level)                                                                   AS avg_combat_skill,
-        COALESCE(ROUND(0.5::DECIMAL * AVG(ca.enemy_casualties) 
-            / NULLIF(AVG(ca.casualties), 0)
+        0.5::DECIMAL * (1 - COALESCE(ROUND(0.5::DECIMAL * AVG(ca.casualties))
+            / NULLIF(AVG(ca.enemy_casualties), 1)
         + 0.5::DECIMAL * SUM(CASE WHEN ca.OUTCOME = 'Victory' THEN 1 END) 
             / NULLIF(COUNT(cf.OUTCOME), 0), 2), 0)                                      AS combat_effectiveness
     FROM
@@ -145,117 +148,172 @@ WITH creatures_stats AS (
         squad_battle_participation sbp ON sbp.squad_id = ms.squad_id
     LEFT OUTER JOIN
         creature_attacks ca ON ca.attack_id = sbp.attack_id
-    LEFT OUTER JOIN
-        locations l ON l.location_id = ca.location_id
     WHERE
         sm.exit_date IS NULL AND s.category IN ('Combat', 'Military')
     GROUP BY
         ms.squad_id, ms.name
-), locations_stats AS (
+), locations_zones_stats AS (
     SELECT
-        l.zone_id                                   AS zone_id,
-        l.name                                      AS zone_name, -- или l.zone_type
-        AS vulnerability_score,
-        SUM(CASE ca.outcome = 'Defeat' THEN 1 END)  AS historical_breaches,
-        AVG(l.fortification_level)                  AS fortification_level,
-        AVG(ca.military_response_time_minutes)      AS military_response_time
+        l.zone_id                                                   AS zone_id,
+        l.name                                                      AS zone_name, -- или l.zone_type    
+        1 - 
+        (
+            -- Предположил, что максимальный уровень 10
+            0.25 * AVG(l.fortification_level) / 10::DECIMAL
+            + 0.25 * AVG(l.wall_integrity) / 10::DECIMAL 
+            + 0.25 * AVG(l.trap_density) / 10::DECIMAL 
+            + 0.25 * GREATEST(1 - 
+                0.1 * AVG(ca.military_response_time_minutes), 0)
+        )                                                           AS vulnerability_score,
+        SUM(CASE WHEN ca.outcome = 'Defeat' THEN 1 END)             AS historical_breaches,
+        COALESCE(AVG(l.fortification_level), 2)                     AS fortification_level,
+        COALESCE(AVG(ca.military_response_time_minutes), 2)         AS military_response_time
     FROM
         locations l
     LEFT OUTER JOIN
         creature_attacks ca ON ca.location_id = l.location_id    
     GROUP BY
         l.zone_id, l.name
+), defense_types_stats AS (
+    SELECT
+        ds.defense_type                                                   AS defense_type,
+        ROUND(100 * GREATEST(1::DOUBLE - AVG(ca.casualties) 
+            / NULLIF(AVG(ca.enemy_casualties), 0::DOUBLE), 0), 2)         AS effectiveness_rate,
+        ROUND(AVG(ca.enemy_casualties) 
+            / NULLIF(AVG(JSON_LENGTH(ca.defense_structures_used)), 0), 2) AS avg_enemy_casualties
+    -- у меня в схеме БД нет структуры этой таблицы, 
+    -- только текстовое упоминание, поэтому предполагаю что так...
+    FROM
+        defense_structures ds
+    LEFT OUTER JOIN
+        creature_attacks ca ON JSON_CONTAINS(ca.defense_structures_used, ds.structure_id, '$')
+    GROUP BY
+        ds.defense_type
+), year_security_stats AS (
+    SELECT
+        EXTRACT(YEAR FROM ca.date)                                      AS year,
+        ROUND(100::DOUBLE * SUM(CASE ca.outcome = 'Victory' THEN 1 END) 
+            / NULLIF(COUNT(DISTINCT(ca.attack_id)), 0), 2)              AS defense_success_rate,
+        COUNT(ca.attack_id)                                             AS total_attacks,
+        SUM(ca.casualties)                                              AS casualties,
+        ROUND(SUM(ca.casualties)::DOUBLE 
+            / NULLIF(SUM(ca.enemy_casualties), 0), 2)                   AS casualties_rate
+    FROM
+        creature_attacks ca
+    GROUP BY
+        EXTRACT(YEAR FROM ca.date)
 )
 
-
-
-
-
-
-
 SELECT
-    AS total_recorded_attacks,
-    AS unique_attackers,
-    AS overall_defense_success_rate,
+    (SELECT SUM(total_attacks) FROM year_security_stats)            AS total_recorded_attacks,
+    (SELECT COUNT(DISTINCT(creature_id)) FROM creature_attacks)     AS unique_attackers,
+    (SELECT SUM(defense_success_rate) FROM year_security_stats)     AS overall_defense_success_rate,
     JSON_OBJECT(
         'threat_assessment', JSON_OBJECT(
-            'current_threat_level',
+            'current_threat_level', (
+                SELECT AVG(all_cs.threat_level)
+                FROM creatures_stats all_cs
+            ),
             'active_threats', (
                 SELECT JSON_ARRAYAGG(
                     JSON_OBJECT(
-                        'creature_type',
-                        'threat_level',
-                        'last_sighting_date',
-                        'territory_proximity',
-                        'estimated_numbers',
-                        'creature_ids'
+                        'creature_type', cs.creature_type,
+                        'threat_level', cs.threat_level,
+                        'last_sighting_date', cs.last_sighting_date,
+                        'territory_proximity', cs.territory_proximity,
+                        'estimated_numbers', cs.estimated_numbers,
+                        'creature_ids', (
+                            SELECT JSON_ARRAYAGG(c.creature_id)
+                            FROM creatures c
+                            WHERE c.type = cs.creature_type
+                        )
                     )
-                ) FROM
+                ) FROM creatures_stats cs
             )
         ),
         'vulnerability_analysis', (
             SELECT JSON_ARRAYAGG(
                 JSON_OBJECT(
-                    'zone_id',
-                    'zone_name',
-                    'vulnerability_score',
-                    'historical_breaches',
-                    'fortification_level',
-                    'military_response_time',
+                    'zone_id', lzs.zone_id,
+                    'zone_name', lzs.zone_name,
+                    'vulnerability_score', lzs.vulnerability_score,
+                    'historical_breaches', lzs.historical_breaches,
+                    'fortification_level', lzs.fortification_level,
+                    'military_response_time', lzs.military_response_time,
                     'defense_coverage', JSON_OBJECT(
-                        'structure_ids',
-                        'squad_ids'
+                        'structure_ids', (
+                            SELECT JSON_ARRAYAGG(ds.structure_id)
+                            -- у меня в схеме БД нет структуры этой таблицы, 
+                            -- только текстовое упоминание, поэтому предполагаю что так...
+                            FROM defense_structures ds
+                            INNER JOIN locations l ON l.location_id = ds.location_id
+                            WHERE l.zone_id = lzs.zone_id
+                        ),
+                        'squad_ids', (
+                            SELECT JSON_ARRAYAGG(ms.squad_id)
+                            -- у меня в схеме БД нет структуры этой таблицы, 
+                            -- только текстовое упоминание, поэтому предполагаю что так...
+                            FROM military_stations ms
+                            INNER JOIN locations l ON l.location_id = ms.location_id
+                            WHERE l.zone_id = lzs.zone_id
+                        )
                     )
                 )
-            ) FROM 
+            ) FROM locations_zones_stats lzs
         ),
         'defense_effectiveness', (
             SELECT JSON_ARRAYAGG(
-                'defense_type',
-                'effectiveness_rate',
-                'avg_enemy_casualties',
-                'structure_ids'
-            ) FROM
+                'defense_type', dts.defense_type,
+                'effectiveness_rate', dts.effectiveness_rate,
+                'avg_enemy_casualties', dts.avg_enemy_casualties
+                'structure_ids', (
+                    SELECT JSON_ARRAYAGG(ds.structure_id)
+                    -- у меня в схеме БД нет структуры этой таблицы, 
+                    -- только текстовое упоминание, поэтому предполагаю что так...
+                    FROM defense_structures ds
+                    WHERE ds.defense_type = dts.defense_type
+                )
+            ) FROM defense_types_stats dts
         ),
         'military_readiness_assessment', (
             SELECT JSON_ARRAYAGG(
                 JSON_OBJECT(
-                    'squad_id',
-                    'squad_name',
-                    'readiness_score',
-                    'active_members',
-                    'avg_combat_skill',
-                    'combat_effectiveness',
+                    'squad_id', ms.squad_id,
+                    'squad_name', ms.squad_name,
+                    'readiness_score', ms.readiness_score,
+                    'active_members', ms.active_members,
+                    'avg_combat_skill', ms.avg_combat_skill,
+                    'combat_effectiveness', ms.combat_effectiveness,
                     'response_coverage', (
                         SELECT JSON_ARRAYAGG(
-                            JSON_OBJECT(
-                                'zone_id', l.zone_id
-                                'response_time', ca.military_response_time_minutes
+                            (
+                                SELECT JSON_OBJECT(
+                                    'zone_id', mcz.zone_id,
+                                    'response_time', mcz.response_time
+                                )
+                                -- у меня в схеме БД нет структуры этой таблицы, 
+                                -- только текстовое упоминание, поэтому предполагаю что так...
+                                FROM military_coverage_zones mcz
+                                WHERE mcz.squad_id = ms.squad_id
                             )
-                        )
-                        -- у меня в схеме БД нет структуры этой таблицы, 
-                        -- только текстовое упоминание, поэтому предполагаю что так...
-                        FROM squad_battle_participation sbp
-                        LEFT OUTER JOIN  creature_attacks ca ON ca.attack_id = sbp.attack_id
-                        LEFT OUTER JOIN locations l ON l.location_id = ca.location_id
-                        --WHERE sbp.squad_id = ms.squad_id 
-                        GROUP BY l.zone_id
+                        ) FROM (SELECT 1) AS also_dummy
                     )
                 )
-            ) FROM
+            ) FROM military_stats ms
         ),
         'security_evolution', (
             SELECT JSON_ARRAYAGG(
                 JSON_OBJECT(
-                    'year',
-                    'defense_success_rate',
-                    'total_attacks',
-                    'casualties',
-                    'year_over_year_improvement'
+                    'year', yss.year,
+                    'defense_success_rate', yss.defense_success_rate,
+                    'total_attacks', yss.total_attacks,
+                    'casualties', yss.casualties,
+                    'year_over_year_improvement', (
+                        COALESCE(yss.defense_success_rate - LAG(yss.defense_success_rate) OVER (ORDER BY yss.year) 
+                        + yss.casualties_rate - LAG(yss.casualties_rate) OVER (ORDER BY yss.year), 0)
+                    )
                 )
-            ) FROM
+            ) FROM year_security_stats yss
         )
     ) AS security_analysis,
-
-
-FROM
+FROM (SELECT 1) AS dummy;

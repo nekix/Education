@@ -1,12 +1,23 @@
 ﻿namespace FrameworksEducation.AspNetCore.Chapter_13.WebApi.Models;
 
-public class RecipeService
+public partial class RecipeService
 {
     private static readonly List<Recipe> _recipes = new();
     private static int _nextId = 1;
 
-    public RecipeService()
+    private readonly ILogger<RecipeService> _logger;
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Create recipe command start. Params: {name} {timeToCookHrs} {timeToCookMins} {method}.")]
+    public static partial void StartCreateRecipe(ILogger logger, string name, int timeToCookHrs, int timeToCookMins, string method);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Create recipe command end. Params: {name} {timeToCookHrs} {timeToCookMins} {method}.")]
+    public static partial void EndCreateRecipe(ILogger logger, string name, int timeToCookHrs, int timeToCookMins, string method);
+
+
+    public RecipeService(ILogger<RecipeService> logger)
     {
+        _logger = logger;
+
         // Добавляем начальные рецепты, если список пуст
         if (!_recipes.Any())
         {
@@ -67,8 +78,18 @@ public class RecipeService
         }
     }
 
+    //public required string Name { get; set; }
+    //public int TimeToCookHrs { get; set; }
+    //public int TimeToCookMins { get; set; }
+    //public bool IsDeleted { get; set; }
+    //public required string Method { get; set; }
+    //public required ICollection<Ingredient> Ingredients { get; set; }
+
+
     public int CreateRecipe(CreateRecipeCommand cmd)
     {
+        StartCreateRecipe(_logger, cmd.Name, cmd.TimeToCookHrs, cmd.TimeToCookMins, cmd.Method);
+
         Recipe recipe = new Recipe
         {
             RecipeId = _nextId++,
@@ -86,6 +107,9 @@ public class RecipeService
         };
 
         _recipes.Add(recipe);
+
+        EndCreateRecipe(_logger, cmd.Name, cmd.TimeToCookHrs, cmd.TimeToCookMins, cmd.Method);
+
         return recipe.RecipeId;
     }
 
@@ -154,7 +178,6 @@ public class CreateRecipeCommand
     public required string Name { get; set; }
     public int TimeToCookHrs { get; set; }
     public int TimeToCookMins { get; set; }
-    public bool IsDeleted { get; set; }
     public required string Method { get; set; }
     public required ICollection<Ingredient> Ingredients { get; set; }
 }

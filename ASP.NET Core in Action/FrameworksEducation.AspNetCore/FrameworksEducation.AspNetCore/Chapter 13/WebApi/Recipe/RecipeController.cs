@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FrameworksEducation.AspNetCore.Chapter_13.WebApi.Recipe;
 
+[Authorize]
 [FeatureEnabled(IsEnabled = true)]
 [ValidateModel]
 public class RecipeController : ApiController
@@ -35,7 +36,7 @@ public class RecipeController : ApiController
         }
     }
 
-    [Authorize]
+    [Authorize("Admin")]
     [HttpPost("{id}")]
     [EnsureRecipeExists]
     public IActionResult Edit(int id, [FromBody] UpdateRecipeCommand command)

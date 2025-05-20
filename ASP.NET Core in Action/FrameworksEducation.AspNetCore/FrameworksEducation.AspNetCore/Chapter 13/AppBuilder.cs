@@ -1,5 +1,6 @@
 ﻿using FrameworksEducation.AspNetCore.Chapter_13.Core.Products;
 using FrameworksEducation.AspNetCore.Chapter_13.Services;
+using FrameworksEducation.AspNetCore.Chapter_13.WebApi.Models;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.FileProviders;
@@ -36,9 +37,7 @@ public class AppBuilder
                 opts.ViewLocationFormats.Add("Chapter 13/Mvc/Views/Shared/{0}.cshtml");
             });
 
-        builder.Services.AddEndpointsApiExplorer();
-        
-        builder.Services.AddSwaggerGen();
+        ConfigureWebApiServices(builder.Services);
 
         if (builder.Environment.IsDevelopment())
         {
@@ -97,5 +96,15 @@ public class AppBuilder
             pattern: "mvc/{controller=Home}/{action=Index}/{id?}");
 
         return app;
+    }
+
+    private static IServiceCollection ConfigureWebApiServices(IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+
+        services.AddScoped<RecipeService>();
+
+        return services;
     }
 }

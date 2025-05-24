@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworksEducation.AspNetC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworksEducation.AspNetCore.ConsoleClient", "FrameworksEducation.AspNetCore.ConsoleClient\FrameworksEducation.AspNetCore.ConsoleClient.csproj", "{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworksEducation.AspNetCore.Tests", "FrameworksEducation.AspNetCore.Tests\FrameworksEducation.AspNetCore.Tests.csproj", "{C8A80E30-B70C-496B-A03B-F6F0D5063A31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E90F73A3-6827-2FA4-A0EC-C22973EDC8AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8A80E30-B70C-496B-A03B-F6F0D5063A31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8A80E30-B70C-496B-A03B-F6F0D5063A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8A80E30-B70C-496B-A03B-F6F0D5063A31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8A80E30-B70C-496B-A03B-F6F0D5063A31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

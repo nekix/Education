@@ -1,26 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.Models;
 
 namespace CarPark.Controllers
 {
-    public class VehiclesController : Controller
+    public class ModelsController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public VehiclesController(ApplicationDbContext context)
+        public ModelsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Vehicles
+        // GET: Models
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Vehicles.ToListAsync());
+            return View(await _context.Models.ToListAsync());
         }
 
-        // GET: Vehicles/Details/5
+        // GET: Models/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -28,43 +33,39 @@ namespace CarPark.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles
+            var model = await _context.Models
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicle == null)
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(vehicle);
+            return View(model);
         }
 
-        // GET: Vehicles/Create
-        public async Task<IActionResult> Create()
+        // GET: Models/Create
+        public IActionResult Create()
         {
-            List<Model> models = await _context.Models.ToListAsync();
-
-            ViewBag.Models = models;
-
             return View();
         }
 
-        // POST: Vehicles/Create
+        // POST: Models/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ModelId,VinNumber,Price,ManufactureYear,Mileage,Color")] Vehicle vehicle)
+        public async Task<IActionResult> Create([Bind("ModelName,VehicleType,SeatsCount,MaxLoadingWeightKg,EnginePowerKW,TransmissionType,FuelSystemType,FuelTankVolumeLiters")] Model model)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(vehicle);
+                _context.Add(model);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(vehicle);
+            return View(model);
         }
 
-        // GET: Vehicles/Edit/5
+        // GET: Models/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +73,22 @@ namespace CarPark.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle == null)
+            var model = await _context.Models.FindAsync(id);
+            if (model == null)
             {
                 return NotFound();
             }
-            return View(vehicle);
+            return View(model);
         }
 
-        // POST: Vehicles/Edit/5
+        // POST: Models/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ModelId,VinNumber,Price,ManufactureYear,Mileage,Color")] Vehicle vehicle)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ModelName,VehicleType,SeatsCount,MaxLoadingWeightKg,EnginePowerKW,TransmissionType,FuelSystemType,FuelTankVolumeLiters")] Model model)
         {
-            if (id != vehicle.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
@@ -96,12 +97,12 @@ namespace CarPark.Controllers
             {
                 try
                 {
-                    _context.Update(vehicle);
+                    _context.Update(model);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!VehicleExists(vehicle.Id))
+                    if (!ModelExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -112,10 +113,10 @@ namespace CarPark.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(vehicle);
+            return View(model);
         }
 
-        // GET: Vehicles/Delete/5
+        // GET: Models/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +124,34 @@ namespace CarPark.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles
+            var model = await _context.Models
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicle == null)
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(vehicle);
+            return View(model);
         }
 
-        // POST: Vehicles/Delete/5
+        // POST: Models/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle != null)
+            var model = await _context.Models.FindAsync(id);
+            if (model != null)
             {
-                _context.Vehicles.Remove(vehicle);
+                _context.Models.Remove(model);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool VehicleExists(int id)
+        private bool ModelExists(int id)
         {
-            return _context.Vehicles.Any(e => e.Id == id);
+            return _context.Models.Any(e => e.Id == id);
         }
     }
 }

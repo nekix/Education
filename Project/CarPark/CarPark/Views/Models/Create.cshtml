@@ -1,0 +1,68 @@
+﻿@model CarPark.Models.Model
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Model</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="ModelName" class="control-label"></label>
+                <input asp-for="ModelName" class="form-control" />
+                <span asp-validation-for="ModelName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VehicleType" class="control-label"></label>
+                <input asp-for="VehicleType" class="form-control" />
+                <span asp-validation-for="VehicleType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SeatsCount" class="control-label"></label>
+                <input asp-for="SeatsCount" class="form-control" />
+                <span asp-validation-for="SeatsCount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaxLoadingWeightKg" class="control-label"></label>
+                <input asp-for="MaxLoadingWeightKg" class="form-control" />
+                <span asp-validation-for="MaxLoadingWeightKg" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnginePowerKW" class="control-label"></label>
+                <input asp-for="EnginePowerKW" class="form-control" />
+                <span asp-validation-for="EnginePowerKW" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TransmissionType" class="control-label"></label>
+                <input asp-for="TransmissionType" class="form-control" />
+                <span asp-validation-for="TransmissionType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FuelSystemType" class="control-label"></label>
+                <input asp-for="FuelSystemType" class="form-control" />
+                <span asp-validation-for="FuelSystemType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FuelTankVolumeLiters" class="control-label"></label>
+                <input asp-for="FuelTankVolumeLiters" class="form-control" />
+                <span asp-validation-for="FuelTankVolumeLiters" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

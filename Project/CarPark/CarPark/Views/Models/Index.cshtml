@@ -1,0 +1,83 @@
+﻿@model IEnumerable<CarPark.Models.Model>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Models</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Id)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ModelName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.VehicleType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SeatsCount)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MaxLoadingWeightKg)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EnginePowerKW)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TransmissionType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FuelSystemType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FuelTankVolumeLiters)
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Id)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ModelName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.VehicleType)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SeatsCount)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.MaxLoadingWeightKg)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.EnginePowerKW)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.TransmissionType)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.FuelSystemType)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.FuelTankVolumeLiters)
+        </td>
+        <td>
+            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+            <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+        </td>
+    </tr>
+}
+    </tbody>
+</table>

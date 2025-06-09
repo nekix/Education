@@ -41,7 +41,9 @@ namespace CarPark.Controllers
         // GET: Vehicles/Create
         public async Task<IActionResult> Create()
         {
-            List<Model> models = await _context.Models.ToListAsync();
+            List<Model> models = await _context.Models
+                .OrderBy(m => m.Id)
+                .ToListAsync();
 
             ViewBag.Models = models;
 
@@ -77,6 +79,13 @@ namespace CarPark.Controllers
             {
                 return NotFound();
             }
+
+            List<Model> models = await _context.Models
+                .OrderBy(m => m.Id)
+                .ToListAsync();
+
+            ViewBag.Models = models;
+
             return View(vehicle);
         }
 

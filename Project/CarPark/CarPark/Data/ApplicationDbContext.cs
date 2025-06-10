@@ -25,9 +25,6 @@ public class ApplicationDbContext : DbContext
             .ToTable("model");
 
         modelBuilder.Entity<Model>()
-            .HasData(CarPark.Models.Model.NoName);
-
-        modelBuilder.Entity<Model>()
             .Property(m => m.Id)
             .UseIdentityAlwaysColumn();
 
@@ -80,6 +77,18 @@ public class ApplicationDbContext : DbContext
     {
         List<Model> models = new List<Model>
                 {
+                    // NoName модель
+                    new Model()
+                    {
+                        ModelName = "NoName",
+                        VehicleType = string.Empty,
+                        SeatsCount = default,
+                        MaxLoadingWeightKg = default,
+                        EnginePowerKW = default,
+                        TransmissionType = string.Empty,
+                        FuelSystemType = string.Empty,
+                        FuelTankVolumeLiters = string.Empty
+                    },
                     // Легковые автомобили
                     new Model
                     {

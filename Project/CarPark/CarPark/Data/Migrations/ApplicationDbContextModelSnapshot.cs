@@ -71,20 +71,6 @@ namespace CarPark.Data.Migrations
                         .HasName("pk_model");
 
                     b.ToTable("model", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            EnginePowerKW = 0.0,
-                            FuelSystemType = "",
-                            FuelTankVolumeLiters = "",
-                            MaxLoadingWeightKg = 0.0,
-                            ModelName = "NoName",
-                            SeatsCount = 0,
-                            TransmissionType = "",
-                            VehicleType = ""
-                        });
                 });
 
             modelBuilder.Entity("CarPark.Models.Vehicle", b =>

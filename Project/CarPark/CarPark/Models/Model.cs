@@ -19,18 +19,4 @@ public class Model
     public string FuelSystemType { get; set; }
 
     public string FuelTankVolumeLiters { get; set; }
-
-    public static Model NoName =>
-        new Model
-        {
-            Id = -1,
-            ModelName = "NoName",
-            VehicleType = string.Empty,
-            SeatsCount = default,
-            MaxLoadingWeightKg = default,
-            EnginePowerKW = default,
-            TransmissionType = string.Empty,
-            FuelSystemType = string.Empty,
-            FuelTankVolumeLiters = string.Empty
-        };
 }

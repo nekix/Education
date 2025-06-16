@@ -1,5 +1,6 @@
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 namespace CarPark;
 
@@ -14,12 +15,27 @@ public class Program
 
         if (builder.Environment.IsDevelopment())
         {
+            builder.Services.AddOpenApi(static options =>
+            {
+                options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+            });
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         }
 
         builder.AddDataProvidersServices();
 
         WebApplication app = builder.Build();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/openapi/v1.json", "v1");
+            });
+        }
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
@@ -28,7 +44,11 @@ public class Program
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
-        
+        else
+        {
+            app.UseDeveloperExceptionPage();
+        }
+
         app.UseHttpsRedirection();
         app.UseRouting();
 

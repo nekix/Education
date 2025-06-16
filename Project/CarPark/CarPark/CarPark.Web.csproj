@@ -8,24 +8,30 @@
     <UserSecretsId>775751f3-e1ba-4be2-b783-6dffadc8d708</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
+  </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.1" />
   </ItemGroup>
 
 </Project>

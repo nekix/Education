@@ -33,6 +33,7 @@ public class Program
 
             app.UseSwaggerUI(options =>
             {
+                options.InjectStylesheet("/swagger-ui/custom.css");
                 options.SwaggerEndpoint("/openapi/v1.json", "v1");
             });
         }

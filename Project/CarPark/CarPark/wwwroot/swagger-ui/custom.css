@@ -1,0 +1,4 @@
+.swagger-ui .highlight-code > .microlight {
+    max-height: none !important;
+    overflow-y: auto !important;
+}

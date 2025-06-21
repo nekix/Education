@@ -6,6 +6,8 @@ public sealed class Vehicle
 
     public int ModelId { get; set; }
 
+    public int EnterpriseId { get; set; }
+
     public string VinNumber { get; set; }
 
     public decimal Price { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace CarPark.Models;
 
-public class Model
+public sealed class Model
 {
     public int Id { get; set; }
 

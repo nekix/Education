@@ -1,4 +1,6 @@
-﻿namespace CarPark.ViewModels.Api;
+﻿using System.Text.Json.Serialization;
+
+namespace CarPark.ViewModels.Api;
 
 public class EnterpriseOverviewViewModel
 {
@@ -8,7 +10,7 @@ public class EnterpriseOverviewViewModel
 
     public required string LegalAddress { get; set; }
 
-    public required List<VehicleViewModel> Vehicles { get; set; }
+    //public required List<VehicleViewModel> Vehicles { get; set; }
 
     public required List<DriverViewModel> Drivers { get; set; }
 
@@ -42,9 +44,9 @@ public class EnterpriseOverviewViewModel
     {
         public required int Id { get; set; }
 
-        public required string FullName { get; set; }
+        //public required string FullName { get; set; }
 
-        public required string DriverLicenseNumber { get; set; }
+        //public required string DriverLicenseNumber { get; set; }
 
         public required List<VehicleAssignmentViewModel> VehiclesAssignments { get; set; }
 

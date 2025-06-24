@@ -2,6 +2,7 @@
 using CarPark.ViewModels.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using VehicleAssignmentViewModel = CarPark.ViewModels.Api.DriverViewModel.VehicleAssignmentViewModel;
 
 namespace CarPark.Controllers.Api;
 

@@ -450,92 +450,85 @@ public class ApplicationDbContext : DbContext
     private IReadOnlyList<DriverVehicleAssignment> GetSeedDriverVehicleAssignments()
     {
         List<DriverVehicleAssignment> assignments = new List<DriverVehicleAssignment>
+    {
+        // Извозкин.Такси-Парк (Enterprise Id = 1)
+        new DriverVehicleAssignment
         {
-            // Извозкин.Такси-Парк (Enterprise Id = 1)
-            // Иванов И.И. на красной Toyota Camry
-            new DriverVehicleAssignment
-            {
-                DriverId = 1,
-                VehicleId = 1,
-                IsActiveAssignment = true  
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 1,
-                VehicleId = 2,
-                IsActiveAssignment = false
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 2,
-                VehicleId = 1,
-                IsActiveAssignment = false
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 2,
-                VehicleId = 2,
-                IsActiveAssignment = false
-            },
-            // Минивэн остается без водителя (VehicleId = 5)
+            DriverId = 1,
+            VehicleId = 1,
+            IsActiveAssignment = true
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 1,
+            VehicleId = 2,
+            IsActiveAssignment = false
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 2,
+            VehicleId = 1,
+            IsActiveAssignment = false
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 2,
+            VehicleId = 2,
+            IsActiveAssignment = false
+        },
 
-            // Delivery-Express (Enterprise Id = 2)
-            // Александров А.А.
-            new DriverVehicleAssignment
-            {
-                DriverId = 4,
-                VehicleId = 3,
-                IsActiveAssignment = true
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 4,
-                VehicleId = 4,
-                IsActiveAssignment = false
-            },
-            // Михайлов М.М.
-            new DriverVehicleAssignment
-            {
-                DriverId = 5,
-                VehicleId = 3,
-                IsActiveAssignment = false
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 5,
-                VehicleId = 4,
-                IsActiveAssignment = false
-            },
-            // КАМАЗ остается без водителя (VehicleId = 9)
+        // Delivery-Express (Enterprise Id = 2)
+        new DriverVehicleAssignment
+        {
+            DriverId = 4,
+            VehicleId = 4,
+            IsActiveAssignment = true
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 4,
+            VehicleId = 5,
+            IsActiveAssignment = false
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 5,
+            VehicleId = 4,
+            IsActiveAssignment = false
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 5,
+            VehicleId = 5,
+            IsActiveAssignment = false
+        },
 
-            // DoStavka (Enterprise Id = 3)
-            // Сергеев С.С.
-            new DriverVehicleAssignment
-            {
-                DriverId = 7,
-                VehicleId = 7,
-                IsActiveAssignment = true
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 7,
-                VehicleId = 8,
-                IsActiveAssignment = false
-            },
-            // Андреев А.А.
-            new DriverVehicleAssignment
-            {
-                DriverId = 8,
-                VehicleId = 6,
-                IsActiveAssignment = true
-            },
-            new DriverVehicleAssignment
-            {
-                DriverId = 8,
-                VehicleId = 10,
-                IsActiveAssignment = false
-            }
-        };
+        // DoStavka (Enterprise Id = 3)
+        new DriverVehicleAssignment
+        {
+            DriverId = 7,
+            VehicleId = 7,
+            IsActiveAssignment = true
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 7,
+            VehicleId = 8,
+            IsActiveAssignment = false
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 8,
+            VehicleId = 9,
+            IsActiveAssignment = true
+        },
+        new DriverVehicleAssignment
+        {
+            DriverId = 8,
+            VehicleId = 10,
+            IsActiveAssignment = false
+        }
+    };
 
         return assignments;
     }

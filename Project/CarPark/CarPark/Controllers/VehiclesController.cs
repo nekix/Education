@@ -28,7 +28,7 @@ namespace CarPark.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles
+            Vehicle? vehicle = await _context.Vehicles
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (vehicle == null)
             {
@@ -74,7 +74,7 @@ namespace CarPark.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles.FindAsync(id);
+            Vehicle? vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle == null)
             {
                 return NotFound();
@@ -132,7 +132,7 @@ namespace CarPark.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles
+            Vehicle? vehicle = await _context.Vehicles
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (vehicle == null)
             {
@@ -147,7 +147,7 @@ namespace CarPark.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var vehicle = await _context.Vehicles.FindAsync(id);
+            Vehicle? vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle != null)
             {
                 _context.Vehicles.Remove(vehicle);

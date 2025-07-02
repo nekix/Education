@@ -13,6 +13,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Model> Models { get; set; } = default!;
     public DbSet<Driver> Drivers { get; set; } = default!;
     public DbSet<Enterprise> Enterprises { get; set; } = default!;
+    public DbSet<User> Users { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -73,8 +74,23 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Driver>()
             .HasOne(d => d.ActiveAssignedVehicle)
             .WithOne(v => v.ActiveAssignedDriver)
-            .HasForeignKey<Driver>()
+            .HasForeignKey<Driver>("assigned_vehicle_id")
             .IsRequired(false);
+
+        modelBuilder.Entity<User>()
+            .ToTable("user");
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Id)
+            .UseIdentityAlwaysColumn();
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.CreationDate)
+            .HasColumnType("timestamp with time zone");
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Username)
+            .IsUnique();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -94,8 +110,11 @@ public class ApplicationDbContext : DbContext
                 context.Set<Vehicle>().AddRange(GetSeedVehicles());
                 context.SaveChanges();
 
-                //context.Set<Driver>().AddRange(GetSeedDrivers(context));
-                //context.SaveChanges();
+                context.Set<Driver>().AddRange(GetSeedDrivers(context));
+                context.SaveChanges();
+
+                context.Set<User>().AddRange(GetSeedUsers());
+                context.SaveChanges();
             }
         });
 
@@ -112,8 +131,11 @@ public class ApplicationDbContext : DbContext
                 await context.Set<Vehicle>().AddRangeAsync(GetSeedVehicles(), cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
-                //await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(context), cancellationToken);
-                //await context.SaveChangesAsync(cancellationToken);
+                await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(context), cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
+
+                await context.Set<User>().AddRangeAsync(GetSeedUsers(), cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
             }
         });
     }
@@ -123,7 +145,8 @@ public class ApplicationDbContext : DbContext
         return context.Set<Model>().Any()
                || context.Set<Vehicle>().Any()
                || context.Set<Enterprise>().Any()
-               || context.Set<Driver>().Any();
+               || context.Set<Driver>().Any()
+               || context.Set<User>().Any();
     }
 
     private IReadOnlyList<Model> GetSeedModels()
@@ -363,8 +386,6 @@ public class ApplicationDbContext : DbContext
 
     private IReadOnlyList<Driver> GetSeedDrivers(DbContext context)
     {
-        DbSet<Vehicle> vhContext = context.Set<Vehicle>();
-
         List<Driver> drivers = new List<Driver>
         {
             // Водители для Извозкин.Такси-Парк (Enterprise Id = 1)
@@ -372,24 +393,13 @@ public class ApplicationDbContext : DbContext
             {
                 EnterpriseId = 1,
                 FullName = "Иванов Иван Иванович",
-                DriverLicenseNumber = "7777 123456",
-                //AssignedVehicles = new List<Vehicle>
-                //{
-                //    vhContext.First(v => v.Id == 1),
-                //    vhContext.First(v => v.Id == 2),
-                //},
-                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 1)
+                DriverLicenseNumber = "7777 123456"
             },
             new Driver
             {
                 EnterpriseId = 1,
                 FullName = "Петров Петр Петрович",
-                DriverLicenseNumber = "7777 234567",
-                //AssignedVehicles = new List<Vehicle>
-                //{
-                //    vhContext.First(v => v.Id == 1),
-                //    vhContext.First(v => v.Id == 2),
-                //},
+                DriverLicenseNumber = "7777 234567"
             },
             new Driver
             {
@@ -402,24 +412,13 @@ public class ApplicationDbContext : DbContext
             {
                 EnterpriseId = 2,
                 FullName = "Александров Александр Александрович",
-                DriverLicenseNumber = "7778 123456",
-                //AssignedVehicles = new List<Vehicle>
-                //{
-                //    vhContext.First(v => v.Id == 4),
-                //    vhContext.First(v => v.Id == 5),
-                //},
-                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 4)
+                DriverLicenseNumber = "7778 123456"
             },
             new Driver
             {
                 EnterpriseId = 2,
                 FullName = "Михайлов Михаил Михайлович",
-                DriverLicenseNumber = "7778 234567",
-                //AssignedVehicles = new List<Vehicle>
-                //{
-                //    vhContext.First(v => v.Id == 4),
-                //    vhContext.First(v => v.Id == 5),
-                //},
+                DriverLicenseNumber = "7778 234567"
             },
             new Driver
             {
@@ -432,28 +431,74 @@ public class ApplicationDbContext : DbContext
             {
                 EnterpriseId = 3,
                 FullName = "Сергеев Сергей Сергеевич",
-                DriverLicenseNumber = "7779 123456",
-                //AssignedVehicles = new List<Vehicle>
-                //{
-                //    vhContext.First(v => v.Id == 7),
-                //    vhContext.First(v => v.Id == 8),
-                //},
-                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 7)
+                DriverLicenseNumber = "7779 123456"
             },
             new Driver
             {
                 EnterpriseId = 3,
                 FullName = "Андреев Андрей Андреевич",
-                DriverLicenseNumber = "7779 234567",
-                //AssignedVehicles = new List<Vehicle>
-                //{
-                //    vhContext.First(v => v.Id == 9),
-                //    vhContext.First(v => v.Id == 10),
-                //},
-                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 9)
+                DriverLicenseNumber = "7779 234567"
             }
         };
 
+        // Get existing vehicles from context to avoid tracking conflicts
+        List<Vehicle> existingVehicles = context.Set<Vehicle>().ToList();
+
+        drivers[0].AssignedVehicles = new List<Vehicle>
+        {
+            existingVehicles.First(v => v.Id == 1),
+            existingVehicles.First(v => v.Id == 2),
+        };
+        drivers[0].ActiveAssignedVehicle = existingVehicles.First(v => v.Id == 1);
+
+        drivers[1].AssignedVehicles = new List<Vehicle>
+        {
+            existingVehicles.First(v => v.Id == 1),
+            existingVehicles.First(v => v.Id == 2),
+        };
+
+        drivers[3].AssignedVehicles = new List<Vehicle>
+        {
+            existingVehicles.First(v => v.Id == 4),
+            existingVehicles.First(v => v.Id == 5),
+        };
+        drivers[3].ActiveAssignedVehicle = existingVehicles.First(v => v.Id == 4);
+
+        drivers[4].AssignedVehicles = new List<Vehicle>
+        {
+            existingVehicles.First(v => v.Id == 4),
+            existingVehicles.First(v => v.Id == 5),
+        };
+
+        drivers[6].AssignedVehicles = new List<Vehicle>
+        {
+            existingVehicles.First(v => v.Id == 7),
+            existingVehicles.First(v => v.Id == 8),
+        };
+        drivers[6].ActiveAssignedVehicle = existingVehicles.First(v => v.Id == 7);
+
+        drivers[7].AssignedVehicles = new List<Vehicle>
+        {
+            existingVehicles.First(v => v.Id == 9),
+            existingVehicles.First(v => v.Id == 10),
+        };
+        drivers[7].ActiveAssignedVehicle = existingVehicles.First(v => v.Id == 9);
+
         return drivers;
+    }
+
+    private IReadOnlyList<User> GetSeedUsers()
+    {
+        List<User> users = new List<User>
+        {
+            new User
+            {
+                Username = "admin",
+                PasswordHash = "admin123",
+                CreationDate = DateTime.UtcNow
+            }
+        };
+
+        return users;
     }
 }

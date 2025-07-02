@@ -40,7 +40,8 @@ namespace CarPark.Data.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     enterprise_id = table.Column<int>(type: "integer", nullable: false),
                     full_name = table.Column<string>(type: "text", nullable: false),
-                    driver_license_number = table.Column<string>(type: "text", nullable: false)
+                    driver_license_number = table.Column<string>(type: "text", nullable: false),
+                    assigned_vehicle_id = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,8 +53,8 @@ namespace CarPark.Data.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_driver_vehicle_id",
-                        column: x => x.id,
+                        name: "fk_driver_vehicle_assigned_vehicle_id",
+                        column: x => x.assigned_vehicle_id,
                         principalTable: "vehicle",
                         principalColumn: "id");
                 });
@@ -86,6 +87,12 @@ namespace CarPark.Data.Migrations
                 name: "ix_vehicle_enterprise_id",
                 table: "vehicle",
                 column: "enterprise_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_driver_assigned_vehicle_id",
+                table: "driver",
+                column: "assigned_vehicle_id",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_driver_enterprise_id",

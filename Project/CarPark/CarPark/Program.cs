@@ -1,6 +1,7 @@
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CarPark;
 
@@ -12,6 +13,18 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        
+        // Add authentication with cookies
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Auth/Login";
+                options.LogoutPath = "/Auth/Logout";
+                options.ExpireTimeSpan = TimeSpan.FromHours(24);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Cookie.SameSite = SameSiteMode.Strict;
+            });
 
         if (builder.Environment.IsDevelopment())
         {
@@ -53,6 +66,7 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapStaticAssets();

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.Models;
 using CarPark.ViewModels.Api;
-using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseOverviewViewModel.RelatedEntitiesViewModel;
+using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseViewModel.RelatedEntitiesViewModel;
 
 namespace CarPark.Controllers.Api;
 
@@ -18,9 +18,11 @@ public class EnterprisesController : ApiBaseController
 
     // GET: api/Enterprises
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Enterprise>>> GetEnterprises()
+    public async Task<ActionResult<IEnumerable<EnterpriseViewModel>>> GetEnterprises()
     {
-        return await _context.Enterprises.ToListAsync();
+        IQueryable<EnterpriseViewModel> enterprisesQuery = CreateEnterprisesQuery();
+
+        return await enterprisesQuery.ToListAsync();
     }
 
     // GET: api/Enterprises/5
@@ -28,9 +30,11 @@ public class EnterprisesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesDefaultResponseType]
-    public async Task<ActionResult<Enterprise>> GetEnterprise(int id)
+    public async Task<ActionResult<EnterpriseViewModel>> GetEnterprise(int id)
     {
-        Enterprise? enterprise = await _context.Enterprises.FindAsync(id);
+        IQueryable<EnterpriseViewModel> enterprisesQuery = CreateEnterprisesQuery();
+
+        EnterpriseViewModel? enterprise = await enterprisesQuery.SingleOrDefaultAsync(e => e.Id == id);
 
         if (enterprise == null)
         {
@@ -40,8 +44,7 @@ public class EnterprisesController : ApiBaseController
         return enterprise;
     }
 
-    [HttpGet("{id}/overview")]
-    public async Task<ActionResult<List<EnterpriseOverviewViewModel>>> GetTest(int id)
+    private IQueryable<EnterpriseViewModel> CreateEnterprisesQuery()
     {
         var driversQuery =
             from d in _context.Drivers
@@ -59,28 +62,30 @@ public class EnterprisesController : ApiBaseController
                 v.Id
             };
 
-        IQueryable<EnterpriseOverviewViewModel> overviewQuery =
+        IQueryable<EnterpriseViewModel> enterprisesQuery =
             from e in _context.Enterprises
             let drivers = driversQuery
-                .Where(x => x.EnterpriseId == e.Id)
-                .Select(x => x.Id)
+                .Where(d => d.EnterpriseId == e.Id)
+                .Select(d => d.Id)
+                .OrderBy(id => id)
                 .ToList()
             let vehicles = vehiclesQuery
-                .Where(x => x.EnterpriseId == e.Id)
-                .Select(x => x.Id)
+                .Where(v => v.EnterpriseId == e.Id)
+                .Select(v => v.Id)
+                .OrderBy(id => id)
                 .ToList()
-            select new EnterpriseOverviewViewModel
+            select new EnterpriseViewModel
             {
                 Id = e.Id,
                 Name = e.Name,
                 LegalAddress = e.LegalAddress,
-                RelatedEntities = new RelatedEntitiesViewModel()
+                RelatedEntities = new RelatedEntitiesViewModel
                 {
                     DriversIds = drivers,
                     VehiclesIds = vehicles
                 }
             };
 
-        return Ok(await overviewQuery.FirstOrDefaultAsync(q => q.Id == id));
+        return enterprisesQuery.OrderBy(e => e.Id);
     }
 }

@@ -51,28 +51,32 @@ namespace CarPark.Data.Migrations
                         principalTable: "enterprise",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_driver_vehicle_id",
+                        column: x => x.id,
+                        principalTable: "vehicle",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
                 name: "driver_vehicle_assignment",
                 columns: table => new
                 {
-                    driver_id = table.Column<int>(type: "integer", nullable: false),
-                    vehicle_id = table.Column<int>(type: "integer", nullable: false),
-                    is_active_assignment = table.Column<bool>(type: "boolean", nullable: false)
+                    assigned_drivers_id = table.Column<int>(type: "integer", nullable: false),
+                    assigned_vehicles_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_driver_vehicle_assignment", x => new { x.driver_id, x.vehicle_id });
+                    table.PrimaryKey("pk_driver_vehicle_assignment", x => new { x.assigned_drivers_id, x.assigned_vehicles_id });
                     table.ForeignKey(
-                        name: "fk_driver_vehicle_assignment_driver_driver_id",
-                        column: x => x.driver_id,
+                        name: "fk_driver_vehicle_assignment_driver_assigned_drivers_id",
+                        column: x => x.assigned_drivers_id,
                         principalTable: "driver",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_driver_vehicle_assignment_vehicle_vehicle_id",
-                        column: x => x.vehicle_id,
+                        name: "fk_driver_vehicle_assignment_vehicle_assigned_vehicles_id",
+                        column: x => x.assigned_vehicles_id,
                         principalTable: "vehicle",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -89,18 +93,9 @@ namespace CarPark.Data.Migrations
                 column: "enterprise_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_driver_vehicle_assignment_driver_id_is_active_assignment",
+                name: "ix_driver_vehicle_assignment_assigned_vehicles_id",
                 table: "driver_vehicle_assignment",
-                columns: new[] { "driver_id", "is_active_assignment" },
-                unique: true,
-                filter: "is_active_assignment = TRUE");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_driver_vehicle_assignment_vehicle_id_is_active_assignment",
-                table: "driver_vehicle_assignment",
-                columns: new[] { "vehicle_id", "is_active_assignment" },
-                unique: true,
-                filter: "is_active_assignment = TRUE");
+                column: "assigned_vehicles_id");
 
             migrationBuilder.AddForeignKey(
                 name: "fk_vehicle_enterprise_enterprise_id",

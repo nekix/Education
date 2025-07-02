@@ -13,7 +13,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Model> Models { get; set; } = default!;
     public DbSet<Driver> Drivers { get; set; } = default!;
     public DbSet<Enterprise> Enterprises { get; set; } = default!;
-    public DbSet<DriverVehicleAssignment> DriverVehicleAssignments { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,33 +65,16 @@ public class ApplicationDbContext : DbContext
             .Property(d => d.Id)
             .UseIdentityAlwaysColumn();
 
-        modelBuilder.Entity<DriverVehicleAssignment>()
-            .ToTable("driver_vehicle_assignment")
-            .HasKey(dva => new { dva.DriverId, dva.VehicleId });
+        modelBuilder.Entity<Driver>()
+            .HasMany(d => d.AssignedVehicles)
+            .WithMany(v => v.AssignedDrivers)
+            .UsingEntity("driver_vehicle_assignment");
 
-        modelBuilder.Entity<DriverVehicleAssignment>()
-            .HasOne<Driver>()
-            .WithMany()
-            .HasForeignKey(dva => dva.DriverId)
-            .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<DriverVehicleAssignment>()
-            .HasOne<Vehicle>()
-            .WithMany()
-            .HasForeignKey(dva => dva.VehicleId)
-            .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<DriverVehicleAssignment>()
-            .HasIndex(dva => new { dva.DriverId, dva.IsActiveAssignment })
-            .IsUnique()
-            .HasFilter($"is_active_assignment = TRUE");
-
-        modelBuilder.Entity<DriverVehicleAssignment>()
-            .HasIndex(dva => new { dva.VehicleId, dva.IsActiveAssignment })
-            .IsUnique()
-            .HasFilter($"is_active_assignment = TRUE");
+        modelBuilder.Entity<Driver>()
+            .HasOne(d => d.ActiveAssignedVehicle)
+            .WithOne(v => v.ActiveAssignedDriver)
+            .HasForeignKey<Driver>()
+            .IsRequired(false);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -109,18 +91,15 @@ public class ApplicationDbContext : DbContext
                 context.Set<Enterprise>().AddRange(GetSeedEnterprises());
                 context.SaveChanges();
 
-                context.Set<Driver>().AddRange(GetSeedDrivers());
-                context.SaveChanges();
-
                 context.Set<Vehicle>().AddRange(GetSeedVehicles());
                 context.SaveChanges();
 
-                context.Set<DriverVehicleAssignment>().AddRange(GetSeedDriverVehicleAssignments());
-                context.SaveChanges();
+                //context.Set<Driver>().AddRange(GetSeedDrivers(context));
+                //context.SaveChanges();
             }
         });
 
-        optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) =>
+        optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) => 
         {
             if (!CheckHasAnyData(context))
             {
@@ -130,14 +109,11 @@ public class ApplicationDbContext : DbContext
                 await context.Set<Enterprise>().AddRangeAsync(GetSeedEnterprises(), cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
-                await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(), cancellationToken);
-                await context.SaveChangesAsync(cancellationToken);
-
                 await context.Set<Vehicle>().AddRangeAsync(GetSeedVehicles(), cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
-                await context.Set<DriverVehicleAssignment>().AddRangeAsync(GetSeedDriverVehicleAssignments(), cancellationToken);
-                await context.SaveChangesAsync(cancellationToken);
+                //await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(context), cancellationToken);
+                //await context.SaveChangesAsync(cancellationToken);
             }
         });
     }
@@ -385,8 +361,10 @@ public class ApplicationDbContext : DbContext
         return enterprises;
     }
 
-    private IReadOnlyList<Driver> GetSeedDrivers()
+    private IReadOnlyList<Driver> GetSeedDrivers(DbContext context)
     {
+        DbSet<Vehicle> vhContext = context.Set<Vehicle>();
+
         List<Driver> drivers = new List<Driver>
         {
             // Водители для Извозкин.Такси-Парк (Enterprise Id = 1)
@@ -394,13 +372,24 @@ public class ApplicationDbContext : DbContext
             {
                 EnterpriseId = 1,
                 FullName = "Иванов Иван Иванович",
-                DriverLicenseNumber = "7777 123456"
+                DriverLicenseNumber = "7777 123456",
+                //AssignedVehicles = new List<Vehicle>
+                //{
+                //    vhContext.First(v => v.Id == 1),
+                //    vhContext.First(v => v.Id == 2),
+                //},
+                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 1)
             },
             new Driver
             {
                 EnterpriseId = 1,
                 FullName = "Петров Петр Петрович",
-                DriverLicenseNumber = "7777 234567"
+                DriverLicenseNumber = "7777 234567",
+                //AssignedVehicles = new List<Vehicle>
+                //{
+                //    vhContext.First(v => v.Id == 1),
+                //    vhContext.First(v => v.Id == 2),
+                //},
             },
             new Driver
             {
@@ -408,19 +397,29 @@ public class ApplicationDbContext : DbContext
                 FullName = "Сидоров Сидор Сидорович",
                 DriverLicenseNumber = "7777 345678"
             },
-            
             // Водители для Delivery-Express (Enterprise Id = 2)
             new Driver
             {
                 EnterpriseId = 2,
                 FullName = "Александров Александр Александрович",
-                DriverLicenseNumber = "7778 123456"
+                DriverLicenseNumber = "7778 123456",
+                //AssignedVehicles = new List<Vehicle>
+                //{
+                //    vhContext.First(v => v.Id == 4),
+                //    vhContext.First(v => v.Id == 5),
+                //},
+                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 4)
             },
             new Driver
             {
                 EnterpriseId = 2,
                 FullName = "Михайлов Михаил Михайлович",
-                DriverLicenseNumber = "7778 234567"
+                DriverLicenseNumber = "7778 234567",
+                //AssignedVehicles = new List<Vehicle>
+                //{
+                //    vhContext.First(v => v.Id == 4),
+                //    vhContext.First(v => v.Id == 5),
+                //},
             },
             new Driver
             {
@@ -428,108 +427,33 @@ public class ApplicationDbContext : DbContext
                 FullName = "Николаев Николай Николаевич",
                 DriverLicenseNumber = "7778 345678"
             },
-
             // Водители для DoStavka (Enterprise Id = 3)
             new Driver
             {
                 EnterpriseId = 3,
                 FullName = "Сергеев Сергей Сергеевич",
-                DriverLicenseNumber = "7779 123456"
+                DriverLicenseNumber = "7779 123456",
+                //AssignedVehicles = new List<Vehicle>
+                //{
+                //    vhContext.First(v => v.Id == 7),
+                //    vhContext.First(v => v.Id == 8),
+                //},
+                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 7)
             },
             new Driver
             {
                 EnterpriseId = 3,
                 FullName = "Андреев Андрей Андреевич",
-                DriverLicenseNumber = "7779 234567"
+                DriverLicenseNumber = "7779 234567",
+                //AssignedVehicles = new List<Vehicle>
+                //{
+                //    vhContext.First(v => v.Id == 9),
+                //    vhContext.First(v => v.Id == 10),
+                //},
+                //ActiveAssignedVehicle = vhContext.First(v => v.Id == 9)
             }
         };
 
         return drivers;
-    }
-
-    private IReadOnlyList<DriverVehicleAssignment> GetSeedDriverVehicleAssignments()
-    {
-        List<DriverVehicleAssignment> assignments = new List<DriverVehicleAssignment>
-    {
-        // Извозкин.Такси-Парк (Enterprise Id = 1)
-        new DriverVehicleAssignment
-        {
-            DriverId = 1,
-            VehicleId = 1,
-            IsActiveAssignment = true
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 1,
-            VehicleId = 2,
-            IsActiveAssignment = false
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 2,
-            VehicleId = 1,
-            IsActiveAssignment = false
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 2,
-            VehicleId = 2,
-            IsActiveAssignment = false
-        },
-
-        // Delivery-Express (Enterprise Id = 2)
-        new DriverVehicleAssignment
-        {
-            DriverId = 4,
-            VehicleId = 4,
-            IsActiveAssignment = true
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 4,
-            VehicleId = 5,
-            IsActiveAssignment = false
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 5,
-            VehicleId = 4,
-            IsActiveAssignment = false
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 5,
-            VehicleId = 5,
-            IsActiveAssignment = false
-        },
-
-        // DoStavka (Enterprise Id = 3)
-        new DriverVehicleAssignment
-        {
-            DriverId = 7,
-            VehicleId = 7,
-            IsActiveAssignment = true
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 7,
-            VehicleId = 8,
-            IsActiveAssignment = false
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 8,
-            VehicleId = 9,
-            IsActiveAssignment = true
-        },
-        new DriverVehicleAssignment
-        {
-            DriverId = 8,
-            VehicleId = 10,
-            IsActiveAssignment = false
-        }
-    };
-
-        return assignments;
     }
 }

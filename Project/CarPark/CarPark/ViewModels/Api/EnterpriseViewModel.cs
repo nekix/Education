@@ -1,8 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿namespace CarPark.ViewModels.Api;
 
-namespace CarPark.ViewModels.Api;
-
-public class EnterpriseOverviewViewModel
+public class EnterpriseViewModel
 {
     public required int Id { get; set; }
 

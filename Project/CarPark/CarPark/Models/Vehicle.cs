@@ -17,4 +17,8 @@ public sealed class Vehicle
     public int Mileage { get; set; }
 
     public string Color { get; set; }
+
+    public List<Driver> AssignedDrivers { get; set; } = new List<Driver>();
+
+    public Driver? ActiveAssignedDriver { get; set; }
 }

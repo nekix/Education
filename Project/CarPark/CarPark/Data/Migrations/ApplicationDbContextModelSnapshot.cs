@@ -24,7 +24,6 @@ namespace CarPark.Data.Migrations
             modelBuilder.Entity("CarPark.Models.Driver", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasColumnName("id");
 
@@ -51,36 +50,6 @@ namespace CarPark.Data.Migrations
                         .HasDatabaseName("ix_driver_enterprise_id");
 
                     b.ToTable("driver", (string)null);
-                });
-
-            modelBuilder.Entity("CarPark.Models.DriverVehicleAssignment", b =>
-                {
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer")
-                        .HasColumnName("driver_id");
-
-                    b.Property<int>("VehicleId")
-                        .HasColumnType("integer")
-                        .HasColumnName("vehicle_id");
-
-                    b.Property<bool>("IsActiveAssignment")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active_assignment");
-
-                    b.HasKey("DriverId", "VehicleId")
-                        .HasName("pk_driver_vehicle_assignment");
-
-                    b.HasIndex("DriverId", "IsActiveAssignment")
-                        .IsUnique()
-                        .HasDatabaseName("ix_driver_vehicle_assignment_driver_id_is_active_assignment")
-                        .HasFilter("is_active_assignment = TRUE");
-
-                    b.HasIndex("VehicleId", "IsActiveAssignment")
-                        .IsUnique()
-                        .HasDatabaseName("ix_driver_vehicle_assignment_vehicle_id_is_active_assignment")
-                        .HasFilter("is_active_assignment = TRUE");
-
-                    b.ToTable("driver_vehicle_assignment", (string)null);
                 });
 
             modelBuilder.Entity("CarPark.Models.Enterprise", b =>
@@ -211,6 +180,25 @@ namespace CarPark.Data.Migrations
                     b.ToTable("vehicle", (string)null);
                 });
 
+            modelBuilder.Entity("driver_vehicle_assignment", b =>
+                {
+                    b.Property<int>("AssignedDriversId")
+                        .HasColumnType("integer")
+                        .HasColumnName("assigned_drivers_id");
+
+                    b.Property<int>("AssignedVehiclesId")
+                        .HasColumnType("integer")
+                        .HasColumnName("assigned_vehicles_id");
+
+                    b.HasKey("AssignedDriversId", "AssignedVehiclesId")
+                        .HasName("pk_driver_vehicle_assignment");
+
+                    b.HasIndex("AssignedVehiclesId")
+                        .HasDatabaseName("ix_driver_vehicle_assignment_assigned_vehicles_id");
+
+                    b.ToTable("driver_vehicle_assignment", (string)null);
+                });
+
             modelBuilder.Entity("CarPark.Models.Driver", b =>
                 {
                     b.HasOne("CarPark.Models.Enterprise", null)
@@ -219,23 +207,13 @@ namespace CarPark.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_driver_enterprise_enterprise_id");
-                });
 
-            modelBuilder.Entity("CarPark.Models.DriverVehicleAssignment", b =>
-                {
-                    b.HasOne("CarPark.Models.Driver", null)
-                        .WithMany()
-                        .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_driver_vehicle_assignment_driver_driver_id");
+                    b.HasOne("CarPark.Models.Vehicle", "ActiveAssignedVehicle")
+                        .WithOne("ActiveAssignedDriver")
+                        .HasForeignKey("CarPark.Models.Driver", "Id")
+                        .HasConstraintName("fk_driver_vehicle_id");
 
-                    b.HasOne("CarPark.Models.Vehicle", null)
-                        .WithMany()
-                        .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_driver_vehicle_assignment_vehicle_vehicle_id");
+                    b.Navigation("ActiveAssignedVehicle");
                 });
 
             modelBuilder.Entity("CarPark.Models.Vehicle", b =>
@@ -253,6 +231,28 @@ namespace CarPark.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_vehicle_model_model_id");
+                });
+
+            modelBuilder.Entity("driver_vehicle_assignment", b =>
+                {
+                    b.HasOne("CarPark.Models.Driver", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedDriversId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_driver_vehicle_assignment_driver_assigned_drivers_id");
+
+                    b.HasOne("CarPark.Models.Vehicle", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedVehiclesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_driver_vehicle_assignment_vehicle_assigned_vehicles_id");
+                });
+
+            modelBuilder.Entity("CarPark.Models.Vehicle", b =>
+                {
+                    b.Navigation("ActiveAssignedDriver");
                 });
 #pragma warning restore 612, 618
         }

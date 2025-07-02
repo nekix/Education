@@ -10,12 +10,12 @@ public class DriverViewModel
 
     public required string DriverLicenseNumber { get; set; }
 
-    public required List<VehicleAssignmentViewModel> VehiclesAssignments { get; set; }
+    public required VehiclesAssignmentsViewModel VehiclesAssignments { get; set; }
 
-    public class VehicleAssignmentViewModel
+    public class VehiclesAssignmentsViewModel
     {
-        public required int VehicleId { get; set; }
+        public required IEnumerable<int> VehiclesIds { get; set; }
 
-        public required bool IsActive { get; set; }
+        public required int? ActiveVehicleId { get; set; }
     }
 }

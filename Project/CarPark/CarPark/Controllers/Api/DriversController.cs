@@ -2,7 +2,7 @@
 using CarPark.ViewModels.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using VehicleAssignmentViewModel = CarPark.ViewModels.Api.DriverViewModel.VehicleAssignmentViewModel;
+using VehiclesAssignmentsViewModel = CarPark.ViewModels.Api.DriverViewModel.VehiclesAssignmentsViewModel;
 
 namespace CarPark.Controllers.Api;
 
@@ -19,23 +19,9 @@ public class DriversController : ApiBaseController
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DriverViewModel>>> GetDrivers()
     {
-        return await _context.Drivers
-            .GroupJoin(_context.DriverVehicleAssignments,
-                d => d.Id,
-                dva => dva.DriverId,
-                (d, dva) => new DriverViewModel()
-                {
-                    Id = d.Id,
-                    DriverLicenseNumber = d.DriverLicenseNumber,
-                    EnterpriseId = d.EnterpriseId,
-                    FullName = d.FullName,
-                    VehiclesAssignments = dva.Select(a => new VehicleAssignmentViewModel()
-                    {
-                        VehicleId = a.VehicleId,
-                        IsActive = a.IsActiveAssignment
-                    }).ToList()
-                })
-            .ToListAsync();
+        IQueryable<DriverViewModel> vehiclesQuery = CreateDriversQuery();
+
+        return await vehiclesQuery.ToListAsync();
     }
 
     // GET: api/Drivers/5
@@ -45,29 +31,39 @@ public class DriversController : ApiBaseController
     [ProducesDefaultResponseType]
     public async Task<ActionResult<DriverViewModel>> GetDriver(int id)
     {
-        DriverViewModel? driverVm = await _context.Drivers
-            .GroupJoin(_context.DriverVehicleAssignments,
-                d => d.Id,
-                dva => dva.DriverId,
-                (d, dva) => new DriverViewModel()
-                {
-                    Id = d.Id,
-                    DriverLicenseNumber = d.DriverLicenseNumber,
-                    EnterpriseId = d.EnterpriseId,
-                    FullName = d.FullName,
-                    VehiclesAssignments = dva.Select(a => new VehicleAssignmentViewModel()
-                    {
-                        VehicleId = a.VehicleId,
-                        IsActive = a.IsActiveAssignment
-                    }).ToList()
-                })
-            .FirstOrDefaultAsync(vm => vm.Id == id);
+        IQueryable<DriverViewModel> driversQuery = CreateDriversQuery();
 
-        if (driverVm == null)
+        DriverViewModel? driver = await driversQuery.SingleOrDefaultAsync(v => v.Id == id);
+
+        if (driver == null)
         {
             return NotFound();
         }
 
-        return driverVm;
+        return driver;
+    }
+
+    private IQueryable<DriverViewModel> CreateDriversQuery()
+    {
+        IQueryable<DriverViewModel> vehiclesQuery =
+            from d in _context.Drivers
+            let assignments = d.AssignedVehicles
+                .Select(av => av.Id)
+                .Order()
+                .ToList()
+            select new DriverViewModel
+            {
+                Id = d.Id,
+                EnterpriseId = d.EnterpriseId,
+                FullName = d.FullName,
+                DriverLicenseNumber = d.DriverLicenseNumber,
+                VehiclesAssignments = new VehiclesAssignmentsViewModel
+                {
+                    VehiclesIds = assignments,
+                    ActiveVehicleId = d.ActiveAssignedVehicle.Id
+                }
+            };
+
+        return vehiclesQuery;
     }
 }

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
-using CarPark.Models;
+using CarPark.ViewModels.Api;
+using DriversAssignmentsViewModel = CarPark.ViewModels.Api.VehicleViewModel.DriversAssignmentsViewModel;
 
 namespace CarPark.Controllers.Api;
 
@@ -16,9 +17,11 @@ public class VehiclesController : ApiBaseController
 
     // GET: api/VehiclesApi
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehicles()
+    public async Task<ActionResult<IEnumerable<VehicleViewModel>>> GetVehicles()
     {
-        return await _context.Vehicles.ToListAsync();
+        IQueryable<VehicleViewModel> vehiclesQuery = CreateVehiclesQuery();
+
+        return await vehiclesQuery.ToListAsync();
     }
 
     // GET: api/VehiclesApi/5
@@ -26,9 +29,11 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesDefaultResponseType]
-    public async Task<ActionResult<Vehicle>> GetVehicle(int id)
+    public async Task<ActionResult<VehicleViewModel>> GetVehicle(int id)
     {
-        var vehicle = await _context.Vehicles.FindAsync(id);
+        IQueryable<VehicleViewModel> vehiclesQuery = CreateVehiclesQuery();
+
+        VehicleViewModel? vehicle = await vehiclesQuery.SingleOrDefaultAsync(v => v.Id == id);
 
         if (vehicle == null)
         {
@@ -38,75 +43,31 @@ public class VehiclesController : ApiBaseController
         return vehicle;
     }
 
-    // PUT: api/VehiclesApi/5
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
-    public async Task<IActionResult> PutVehicle(int id, Vehicle vehicle)
+    private IQueryable<VehicleViewModel> CreateVehiclesQuery()
     {
-        if (id != vehicle.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(vehicle).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!VehicleExists(id))
+        IQueryable<VehicleViewModel> vehiclesQuery =
+            from v in _context.Vehicles
+            let assignments = v.AssignedDrivers
+                .Select(ad => ad.Id)
+                .Order()
+                .ToList()
+            select new VehicleViewModel
             {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
+                Id = v.Id,
+                ModelId = v.ModelId,
+                EnterpriseId = v.EnterpriseId,
+                VinNumber = v.VinNumber,
+                Price = v.Price,
+                ManufactureYear = v.ManufactureYear,
+                Mileage = v.Mileage,
+                Color = v.Color,
+                DriversAssignments = new DriversAssignmentsViewModel
+                {
+                    DriversIds = assignments,
+                    ActiveDriverId = v.ActiveAssignedDriver.Id
+                }
+            };
 
-        return NoContent();
-    }
-
-    // POST: api/VehiclesApi
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesDefaultResponseType]
-    public async Task<ActionResult<Vehicle>> PostVehicle(Vehicle vehicle)
-    {
-        _context.Vehicles.Add(vehicle);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction("GetVehicle", new { id = vehicle.Id }, vehicle);
-    }
-
-    // DELETE: api/VehiclesApi/5
-    [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
-    public async Task<IActionResult> DeleteVehicle(int id)
-    {
-        var vehicle = await _context.Vehicles.FindAsync(id);
-        if (vehicle == null)
-        {
-            return NotFound();
-        }
-
-        _context.Vehicles.Remove(vehicle);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool VehicleExists(int id)
-    {
-        return _context.Vehicles.Any(e => e.Id == id);
+        return vehiclesQuery;
     }
 }

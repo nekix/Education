@@ -1,9 +1,11 @@
 ﻿using CarPark.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarPark.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -13,10 +15,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<Model> Models { get; set; } = default!;
     public DbSet<Driver> Drivers { get; set; } = default!;
     public DbSet<Enterprise> Enterprises { get; set; } = default!;
-    public DbSet<User> Users { get; set; } = default!;
+    public DbSet<Manager> Managers { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Vehicle>()
             .ToTable("vehicle");
 
@@ -77,20 +81,23 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey<Driver>("assigned_vehicle_id")
             .IsRequired(false);
 
-        modelBuilder.Entity<User>()
-            .ToTable("user");
+        modelBuilder.Entity<Manager>()
+            .ToTable("manager");
 
-        modelBuilder.Entity<User>()
+        modelBuilder.Entity<Manager>()
             .Property(u => u.Id)
-            .UseIdentityAlwaysColumn();
+            .UseIdentityColumn();
 
-        modelBuilder.Entity<User>()
-            .Property(u => u.CreationDate)
-            .HasColumnType("timestamp with time zone");
+        modelBuilder.Entity<Manager>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(m => m.IdentityUserId)
+            .IsRequired();
 
-        modelBuilder.Entity<User>()
-            .HasIndex(u => u.Username)
-            .IsUnique();
+        modelBuilder.Entity<Manager>()
+            .HasMany(m => m.Enterprises)
+            .WithMany(e => e.Managers)
+            .UsingEntity("enterprise_manager");
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -113,7 +120,10 @@ public class ApplicationDbContext : DbContext
                 context.Set<Driver>().AddRange(GetSeedDrivers(context));
                 context.SaveChanges();
 
-                context.Set<User>().AddRange(GetSeedUsers());
+                context.Set<IdentityUser>().AddRange(SeedIdentityUsers());
+                context.SaveChanges();
+
+                context.Set<Manager>().AddRange(GetSeedManagers(context));
                 context.SaveChanges();
             }
         });
@@ -134,7 +144,10 @@ public class ApplicationDbContext : DbContext
                 await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(context), cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
-                await context.Set<User>().AddRangeAsync(GetSeedUsers(), cancellationToken);
+                await context.Set<IdentityUser>().AddRangeAsync(SeedIdentityUsers(), cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
+
+                await context.Set<Manager>().AddRangeAsync(GetSeedManagers(context), cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
             }
         });
@@ -146,7 +159,8 @@ public class ApplicationDbContext : DbContext
                || context.Set<Vehicle>().Any()
                || context.Set<Enterprise>().Any()
                || context.Set<Driver>().Any()
-               || context.Set<User>().Any();
+               || context.Set<IdentityUser>().Any()
+               || context.Set<Manager>().Any();
     }
 
     private IReadOnlyList<Model> GetSeedModels()
@@ -487,18 +501,55 @@ public class ApplicationDbContext : DbContext
         return drivers;
     }
 
-    private IReadOnlyList<User> GetSeedUsers()
+    private IReadOnlyList<IdentityUser> SeedIdentityUsers()
     {
-        List<User> users = new List<User>
+        PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
+        
+        List<IdentityUser> users = new List<IdentityUser>();
+
+        IdentityUser adminUser = new IdentityUser
         {
-            new User
+            Id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            UserName = "manager1",
+            NormalizedUserName = "MANAGER1",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        adminUser.PasswordHash = hasher.HashPassword(adminUser, "123456");
+        users.Add(adminUser);
+
+        IdentityUser managerUser = new IdentityUser
+        {
+            Id = "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+            UserName = "manager2",
+            NormalizedUserName = "MANAGER2",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        managerUser.PasswordHash = hasher.HashPassword(managerUser, "123456");
+        users.Add(managerUser);
+
+        return users;
+    }
+
+    private IReadOnlyList<Manager> GetSeedManagers(DbContext context)
+    {
+        List<Enterprise> existingEnterprises = context.Set<Enterprise>().ToList();
+        
+        List<Manager> managers = new List<Manager>
+        {
+            new Manager
             {
-                Username = "admin",
-                PasswordHash = "admin123",
-                CreationDate = DateTime.UtcNow
+                IdentityUserId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                Enterprises = existingEnterprises.Where(e => e.Id == 1 || e.Id == 2).ToList()
+            },
+            new Manager
+            {
+                IdentityUserId = "b2c3d4e5-f6g7-8901-bcde-f23456789012", 
+                Enterprises = existingEnterprises.Where(e => e.Id == 2 || e.Id == 3).ToList()
             }
         };
 
-        return users;
+        return managers;
     }
 }

@@ -3,9 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.ViewModels.Api;
 using DriversAssignmentsViewModel = CarPark.ViewModels.Api.VehicleViewModel.DriversAssignmentsViewModel;
+using Microsoft.AspNetCore.Authorization;
+using CarPark.Models;
+using CarPark.Identity;
 
 namespace CarPark.Controllers.Api;
 
+[Authorize(AppIdentityConst.ManagerPolicy)]
 public class VehiclesController : ApiBaseController
 {
     private readonly ApplicationDbContext _context;
@@ -19,9 +23,13 @@ public class VehiclesController : ApiBaseController
     [HttpGet]
     public async Task<ActionResult<IEnumerable<VehicleViewModel>>> GetVehicles()
     {
-        IQueryable<VehicleViewModel> vehiclesQuery = CreateVehiclesQuery();
+        int managerId = GetCurrentManagerId();
 
-        return await vehiclesQuery.ToListAsync();
+        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
+
+        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+
+        return await viewModelQuery.OrderBy(x => x.Id).ToListAsync();
     }
 
     // GET: api/VehiclesApi/5
@@ -31,22 +39,38 @@ public class VehiclesController : ApiBaseController
     [ProducesDefaultResponseType]
     public async Task<ActionResult<VehicleViewModel>> GetVehicle(int id)
     {
-        IQueryable<VehicleViewModel> vehiclesQuery = CreateVehiclesQuery();
+        int managerId = GetCurrentManagerId();
 
-        VehicleViewModel? vehicle = await vehiclesQuery.SingleOrDefaultAsync(v => v.Id == id);
+        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
 
-        if (vehicle == null)
+        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+
+        VehicleViewModel? viewModel = await viewModelQuery
+            .SingleOrDefaultAsync(v => v.Id == id);
+
+        if (viewModel == null)
         {
             return NotFound();
         }
 
-        return vehicle;
+        return viewModel;
     }
 
-    private IQueryable<VehicleViewModel> CreateVehiclesQuery()
+    private IQueryable<Vehicle> GetFilteredByManagerQuery(int managerId)
+    {
+        IQueryable<Vehicle> filteredQuery =
+            from e in _context.Enterprises
+            join v in _context.Vehicles on e.Id equals v.EnterpriseId
+            where e.Managers.Any(m => m.Id == managerId)
+            select v;
+
+        return filteredQuery;
+    }
+
+    private IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
     {
         IQueryable<VehicleViewModel> vehiclesQuery =
-            from v in _context.Vehicles
+            from v in query
             let assignments = v.AssignedDrivers
                 .Select(ad => ad.Id)
                 .Order()

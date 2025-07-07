@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CarPark.Data;
+﻿using CarPark.Data;
 using CarPark.Models;
 using CarPark.ViewModels.Api;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseViewModel.RelatedEntitiesViewModel;
 
 namespace CarPark.Controllers.Api;
 
+[Authorize("Manager")]
 public class EnterprisesController : ApiBaseController
 {
     private readonly ApplicationDbContext _context;
@@ -20,9 +22,13 @@ public class EnterprisesController : ApiBaseController
     [HttpGet]
     public async Task<ActionResult<IEnumerable<EnterpriseViewModel>>> GetEnterprises()
     {
-        IQueryable<EnterpriseViewModel> enterprisesQuery = CreateEnterprisesQuery();
+        int managerId = GetCurrentManagerId();
 
-        return await enterprisesQuery.ToListAsync();
+        IQueryable<Enterprise> originalQuery = GetFilteredByManagerQuery(managerId);
+
+        IQueryable<EnterpriseViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+
+        return await viewModelQuery.OrderBy(x => x.Id).ToListAsync();
     }
 
     // GET: api/Enterprises/5
@@ -32,19 +38,34 @@ public class EnterprisesController : ApiBaseController
     [ProducesDefaultResponseType]
     public async Task<ActionResult<EnterpriseViewModel>> GetEnterprise(int id)
     {
-        IQueryable<EnterpriseViewModel> enterprisesQuery = CreateEnterprisesQuery();
+        int managerId = GetCurrentManagerId();
 
-        EnterpriseViewModel? enterprise = await enterprisesQuery.SingleOrDefaultAsync(e => e.Id == id);
+        IQueryable<Enterprise> originalQuery = GetFilteredByManagerQuery(managerId);
 
-        if (enterprise == null)
+        IQueryable<EnterpriseViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+
+        EnterpriseViewModel? viewModel = await viewModelQuery
+            .SingleOrDefaultAsync(x => x.Id == id);
+
+        if (viewModel == null)
         {
             return NotFound();
         }
 
-        return enterprise;
+        return viewModel;
     }
 
-    private IQueryable<EnterpriseViewModel> CreateEnterprisesQuery()
+    private IQueryable<Enterprise> GetFilteredByManagerQuery(int managerId)
+    {
+        IQueryable<Enterprise> filteredQuery =
+            from e in _context.Enterprises
+            where e.Managers.Any(m => m.Id == managerId)
+            select e;
+
+        return filteredQuery;
+    }
+
+    private IQueryable<EnterpriseViewModel> TransformToViewModelQuery(IQueryable<Enterprise> query)
     {
         var driversQuery =
             from d in _context.Drivers
@@ -62,8 +83,8 @@ public class EnterprisesController : ApiBaseController
                 v.Id
             };
 
-        IQueryable<EnterpriseViewModel> enterprisesQuery =
-            from e in _context.Enterprises
+        IQueryable<EnterpriseViewModel> viewModelQuery =
+            from e in query
             let drivers = driversQuery
                 .Where(d => d.EnterpriseId == e.Id)
                 .Select(d => d.Id)
@@ -86,6 +107,6 @@ public class EnterprisesController : ApiBaseController
                 }
             };
 
-        return enterprisesQuery.OrderBy(e => e.Id);
+        return viewModelQuery;
     }
 }

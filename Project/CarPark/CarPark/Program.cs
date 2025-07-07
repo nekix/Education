@@ -1,7 +1,9 @@
 using CarPark.Data;
+using CarPark.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace CarPark;
 
@@ -14,17 +16,13 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         
-        // Add authentication with cookies
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
-            {
-                options.LoginPath = "/Auth/Login";
-                options.LogoutPath = "/Auth/Logout";
-                options.ExpireTimeSpan = TimeSpan.FromHours(24);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                options.Cookie.SameSite = SameSiteMode.Strict;
-            });
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy(AppIdentityConst.ManagerPolicy, policy => policy.RequireClaim(AppIdentityConst.ManagerIdClaim));
+        });
+
+        builder.Services.AddSimpleIdentity<IdentityUser>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
         if (builder.Environment.IsDevelopment())
         {
@@ -96,5 +94,28 @@ public static class ServiceCollectionExtensions
                 .UseSnakeCaseNamingConvention());
 
         return builder.Services;
+    }
+
+    public static IdentityBuilder AddSimpleIdentity<TUser>(this IServiceCollection services)
+        where TUser : class
+    {
+        services
+            .AddAuthentication(IdentityConstants.ApplicationScheme)
+            .AddCookie(IdentityConstants.ApplicationScheme, o =>
+            {
+                o.LoginPath = new PathString("/Auth/Login");
+                o.LogoutPath = new PathString("/Auth/Logout");
+                o.ExpireTimeSpan = TimeSpan.FromHours(24);
+                o.Cookie.HttpOnly = true;
+                o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                o.Cookie.SameSite = SameSiteMode.Strict;
+                o.Events = new CookieAuthenticationEvents
+                {
+                    OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync
+                };
+            });
+
+        return services.AddIdentityCore<TUser>(_ => { })
+            .AddApiEndpoints();
     }
 }

@@ -7,4 +7,6 @@ public sealed class Enterprise
     public string Name { get; set; }
 
     public string LegalAddress { get; set; }
+    
+    public List<Manager> Managers { get; set; }
 }

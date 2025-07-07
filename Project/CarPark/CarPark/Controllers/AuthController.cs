@@ -1,19 +1,30 @@
+using CarPark.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CarPark.Data;
-using CarPark.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
+using CarPark.Identity;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace CarPark.Controllers;
 
 public class AuthController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public AuthController(ApplicationDbContext context)
+    public AuthController(ApplicationDbContext context, 
+        SignInManager<IdentityUser> signInManager,
+        UserManager<IdentityUser> userManager)
     {
         _context = context;
+        
+        _signInManager = signInManager;
+        _signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+
+        _userManager = userManager;
     }
 
     [HttpGet]
@@ -26,46 +37,70 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Login(string username, string password, string? returnUrl = null)
     {
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        SignInResult result = await PasswordSignInAsync(username, password, true, lockoutOnFailure: true);
+
+        if (!result.Succeeded)
         {
-            ModelState.AddModelError("", "Введите логин и пароль");
+            ModelState.AddModelError("", result.ToString());
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
-        User? user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == username && u.PasswordHash == password);
-
-        if (user == null)
-        {
-            ModelState.AddModelError("", "Неверный логин или пароль");
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
+        // The signInManager already produced the needed response in the form of a cookie or bearer token.
+        if (returnUrl != null)
+        { 
+            return Redirect(returnUrl);
         }
-
-        List<Claim> claims = new List<Claim>
+        else
         {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-        };
+            return RedirectToAction("Index", "Home");
+        }
+    }
 
-        ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
-        ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+    [Authorize(AppIdentityConst.ManagerPolicy)]
+    [HttpPost]
+    public async Task<IActionResult> Logout(string? returnUrl = null)
+    {
+        await _signInManager.SignOutAsync();
 
-        await HttpContext.SignInAsync(claimsPrincipal);
-
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        if (returnUrl != null)
         {
             return Redirect(returnUrl);
         }
 
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Login", new { });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Logout()
+    private async Task<SignInResult> PasswordSignInAsync(
+        string userName,
+        string password,
+        bool isPersistent, 
+        bool lockoutOnFailure)
     {
-        await HttpContext.SignOutAsync();
-        return RedirectToAction("Login");
+        IdentityUser? user = await _userManager.FindByNameAsync(userName);
+        if (user == null)
+        {
+            return SignInResult.Failed;
+        }
+
+        SignInResult attempt = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
+        if (!attempt.Succeeded)
+        {
+            return attempt;
+        }
+
+        int managerId = await _context.Managers
+            .Where(m => m.IdentityUserId == user!.Id)
+            .Select(m => m.Id)
+            .SingleAsync();
+
+        await _signInManager.SignInWithClaimsAsync(user, isPersistent, 
+            new Claim[]
+            {
+                new Claim("amr", "pwd"),
+                new Claim(AppIdentityConst.ManagerIdClaim, managerId.ToString())
+            });
+
+        return SignInResult.Success;
     }
 } 

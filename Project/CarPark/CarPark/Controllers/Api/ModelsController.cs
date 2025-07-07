@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace CarPark.Controllers.Api;
 

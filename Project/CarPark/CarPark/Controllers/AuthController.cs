@@ -1,10 +1,11 @@
 using CarPark.Data;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using CarPark.Identity;
+using CarPark.Models;
+using Microsoft.Build.Framework;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace CarPark.Controllers;
@@ -35,21 +36,27 @@ public class AuthController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login(string username, string password, string? returnUrl = null)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login([FromForm] LoginRequest request)
     {
-        SignInResult result = await PasswordSignInAsync(username, password, true, lockoutOnFailure: true);
+        if (!ModelState.IsValid)
+        {
+            return View();
+        }
+
+        SignInResult result = await PasswordSignInAsync(request.Username, request.Password, true, lockoutOnFailure: true);
 
         if (!result.Succeeded)
         {
             ModelState.AddModelError("", result.ToString());
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["ReturnUrl"] = request.ReturnUrl;
             return View();
         }
 
         // The signInManager already produced the needed response in the form of a cookie or bearer token.
-        if (returnUrl != null)
+        if (request.ReturnUrl != null)
         { 
-            return Redirect(returnUrl);
+            return Redirect(request.ReturnUrl);
         }
         else
         {
@@ -57,8 +64,8 @@ public class AuthController : Controller
         }
     }
 
-    [Authorize(AppIdentityConst.ManagerPolicy)]
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = null)
     {
         await _signInManager.SignOutAsync();
@@ -68,7 +75,18 @@ public class AuthController : Controller
             return Redirect(returnUrl);
         }
 
-        return RedirectToAction("Login", new { });
+        return RedirectToAction("Index", "Home");
+    }
+
+    public class LoginRequest
+    {
+        [Required]
+        public required string Username { get; set; }
+
+        [Required]
+        public required string Password { get; set; }
+
+        public required string? ReturnUrl { get; set; }
     }
 
     private async Task<SignInResult> PasswordSignInAsync(

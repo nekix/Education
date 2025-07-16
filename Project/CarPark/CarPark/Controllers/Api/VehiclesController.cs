@@ -64,26 +64,20 @@ public class VehiclesController : ApiBaseController
     [ProducesDefaultResponseType]
     public async Task<IActionResult> PutVehicle(int id, CreateUpdateVehicleRequest request)
     {
-        Vehicle? vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == id);
+        Vehicle? vehicle = await _context.Vehicles
+            .Include(d => d.AssignedDrivers)
+            .Include(d => d.ActiveAssignedDriver)
+            .FirstOrDefaultAsync(v => v.Id == id);
 
         if (vehicle == null)
         {
             return NotFound();
         }
 
-        if (request.DriversAssignments.ActiveDriverId != null)
-        {
-            int activeDriverId = request.DriversAssignments.ActiveDriverId.Value;
-
-            if (!request.DriversAssignments.DriversIds.Contains(activeDriverId))
-            {
-                return BadRequest();
-            }
-        }
-
         if (request.DriversAssignments.DriversIds.Any())
         {
             List<Driver> drivers = await _context.Drivers
+                .Where(d => d.EnterpriseId == request.EnterpriseId)
                 .Where(d => request.DriversAssignments.DriversIds.Contains(d.Id))
                 .ToListAsync();
 
@@ -93,7 +87,18 @@ public class VehiclesController : ApiBaseController
             }
 
             vehicle.AssignedDrivers = drivers;
-            vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == request.DriversAssignments.ActiveDriverId);
+
+            if (request.DriversAssignments.ActiveDriverId != null)
+            {
+                int activeDriverId = request.DriversAssignments.ActiveDriverId.Value;
+
+                if (!request.DriversAssignments.DriversIds.Contains(activeDriverId))
+                {
+                    return BadRequest();
+                }
+
+                vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == request.DriversAssignments.ActiveDriverId);
+            }
         }
 
         vehicle.ModelId = request.ModelId;
@@ -117,16 +122,6 @@ public class VehiclesController : ApiBaseController
     [ProducesDefaultResponseType]
     public async Task<ActionResult> PostVehicle(CreateUpdateVehicleRequest request)
     {
-        if (request.DriversAssignments.ActiveDriverId != null)
-        {
-            int activeDriverId = request.DriversAssignments.ActiveDriverId.Value;
-
-            if (!request.DriversAssignments.DriversIds.Contains(activeDriverId))
-            {
-                return BadRequest();
-            }
-        }
-
         Vehicle vehicle = new Vehicle
         {
             ModelId = request.ModelId,
@@ -141,6 +136,7 @@ public class VehiclesController : ApiBaseController
         if (request.DriversAssignments.DriversIds.Any())
         {
             List<Driver> drivers = await _context.Drivers
+                .Where(d => d.EnterpriseId == request.EnterpriseId)
                 .Where(d => request.DriversAssignments.DriversIds.Contains(d.Id))
                 .ToListAsync();
 
@@ -150,14 +146,27 @@ public class VehiclesController : ApiBaseController
             }
 
             vehicle.AssignedDrivers = drivers;
-            vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == request.DriversAssignments.ActiveDriverId);
+
+            if (request.DriversAssignments.ActiveDriverId != null)
+            {
+                int activeDriverId = request.DriversAssignments.ActiveDriverId.Value;
+
+                if (!request.DriversAssignments.DriversIds.Contains(activeDriverId))
+                {
+                    return BadRequest();
+                }
+
+                vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == request.DriversAssignments.ActiveDriverId);
+            }
         }
 
         _context.Vehicles.Add(vehicle);
 
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("GetVehicle", new { id = vehicle.Id }, vehicle);
+        VehicleViewModel viewModel = MapToViewModel(vehicle);
+
+        return CreatedAtAction("GetVehicle", new { id = vehicle.Id }, viewModel);
     }
 
     // DELETE: api/Vehicles/5
@@ -214,6 +223,26 @@ public class VehiclesController : ApiBaseController
             [Required]
             public required int? ActiveDriverId { get; set; }
         }
+    }
+
+    private VehicleViewModel MapToViewModel(Vehicle vehicle)
+    {
+        return new VehicleViewModel
+        {
+            Id = vehicle.Id,
+            ModelId = vehicle.ModelId,
+            EnterpriseId = vehicle.EnterpriseId,
+            VinNumber = vehicle.VinNumber,
+            Price = vehicle.Price,
+            ManufactureYear = vehicle.ManufactureYear,
+            Mileage = vehicle.Mileage,
+            Color = vehicle.Color,
+            DriversAssignments = new VehicleViewModel.DriversAssignmentsViewModel
+            {
+                DriversIds = vehicle.AssignedDrivers.Select(x => x.Id),
+                ActiveDriverId = vehicle.ActiveAssignedDriver?.Id
+            }
+        };
     }
 
     private IQueryable<Vehicle> GetFilteredByManagerQuery(int managerId)

@@ -7,6 +7,7 @@ using CarPark.Identity;
 using CarPark.Models;
 using Microsoft.Build.Framework;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+using CarPark.Attributes;
 
 namespace CarPark.Controllers;
 
@@ -36,7 +37,7 @@ public class AuthController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [AppValidateAntiForgeryToken]
     public async Task<IActionResult> Login([FromForm] LoginRequest request)
     {
         if (!ModelState.IsValid)
@@ -44,7 +45,10 @@ public class AuthController : Controller
             return View();
         }
 
-        SignInResult result = await PasswordSignInAsync(request.Username, request.Password, true, lockoutOnFailure: true);
+        SignInResult result =
+            await _signInManager.PasswordSignInAsync(request.Username, request.Password, true, lockoutOnFailure: true);
+
+        //SignInResult result = await PasswordSignInAsync(request.Username, request.Password, true, lockoutOnFailure: true);
 
         if (!result.Succeeded)
         {
@@ -65,7 +69,7 @@ public class AuthController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [AppValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = null)
     {
         await _signInManager.SignOutAsync();
@@ -101,16 +105,20 @@ public class AuthController : Controller
             return SignInResult.Failed;
         }
 
-        SignInResult attempt = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
-        if (!attempt.Succeeded)
-        {
-            return attempt;
-        }
+        IList<Claim> claims = await _userManager.GetClaimsAsync(user);
 
         int managerId = await _context.Managers
             .Where(m => m.IdentityUserId == user!.Id)
             .Select(m => m.Id)
             .SingleAsync();
+
+        await _userManager.AddClaimAsync(user, new Claim(AppIdentityConst.ManagerIdClaim, managerId.ToString()));
+
+        SignInResult attempt = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
+        if (!attempt.Succeeded)
+        {
+            return attempt;
+        }
 
         await _signInManager.SignInWithClaimsAsync(user, isPersistent, 
             new Claim[]
@@ -121,4 +129,4 @@ public class AuthController : Controller
 
         return SignInResult.Success;
     }
-} 
+}  

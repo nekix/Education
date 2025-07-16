@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.Models;
+using CarPark.Attributes;
 
 namespace CarPark.Controllers
 {
@@ -48,7 +49,7 @@ namespace CarPark.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AppValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ModelName,VehicleType,SeatsCount,MaxLoadingWeightKg,EnginePowerKW,TransmissionType,FuelSystemType,FuelTankVolumeLiters")] Model model)
         {
             if (ModelState.IsValid)
@@ -80,7 +81,7 @@ namespace CarPark.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AppValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,ModelName,VehicleType,SeatsCount,MaxLoadingWeightKg,EnginePowerKW,TransmissionType,FuelSystemType,FuelTankVolumeLiters")] Model model)
         {
             if (id != model.Id)
@@ -131,7 +132,7 @@ namespace CarPark.Controllers
 
         // POST: Models/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [AppValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var model = await _context.Models.FindAsync(id);

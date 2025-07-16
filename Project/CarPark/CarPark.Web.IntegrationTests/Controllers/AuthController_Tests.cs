@@ -4,6 +4,7 @@ using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using System.Reflection;
+using CarPark.Attributes;
 using Microsoft.AspNetCore.Mvc;
 using CarPark.Controllers;
 
@@ -37,7 +38,7 @@ public class AuthController_Tests
 
         // Assert
         Assert.True(string.IsNullOrEmpty(content));
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
@@ -91,7 +92,7 @@ public class AuthController_Tests
             .FirstOrDefault(m => m.Name == "Login" && 
                                  m.GetCustomAttribute<HttpPostAttribute>() != null);
 
-        ValidateAntiForgeryTokenAttribute? csrfAttribute = loginMethod?.GetCustomAttribute<ValidateAntiForgeryTokenAttribute>();
+        AppValidateAntiForgeryTokenAttribute? csrfAttribute = loginMethod?.GetCustomAttribute<AppValidateAntiForgeryTokenAttribute>();
         
         // Assert
         Assert.NotNull(loginMethod);

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using CarPark.Attributes;
 
 namespace CarPark;
 
@@ -23,6 +24,9 @@ public class Program
 
         builder.Services.AddSimpleIdentity<IdentityUser>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
+
+        builder.Services.AddAntiforgery();
+        builder.Services.AddSingleton<ValidateAntiforgeryTokenAuthorizationFilter>();
 
         if (builder.Environment.IsDevelopment())
         {

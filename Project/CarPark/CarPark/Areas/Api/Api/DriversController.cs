@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehiclesAssignmentsViewModel = CarPark.ViewModels.Api.DriverViewModel.VehiclesAssignmentsViewModel;
 
-namespace CarPark.Controllers.Api;
+namespace CarPark.Areas.Api.Api;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class DriversController : ApiBaseController

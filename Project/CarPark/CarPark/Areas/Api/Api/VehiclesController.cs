@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 using CarPark.Models;
 using CarPark.Identity;
 using Microsoft.Build.Framework;
+using CarPark.Attributes;
 
-namespace CarPark.Controllers.Api;
+namespace CarPark.Areas.Api.Api;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class VehiclesController : ApiBaseController
@@ -58,6 +59,7 @@ public class VehiclesController : ApiBaseController
 
     // PUT: api/Vehicles/5
     [HttpPut("{id}")]
+    [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -117,6 +119,7 @@ public class VehiclesController : ApiBaseController
 
     // POST: api/Vehicles
     [HttpPost]
+    [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesDefaultResponseType]
@@ -171,6 +174,7 @@ public class VehiclesController : ApiBaseController
 
     // DELETE: api/Vehicles/5
     [HttpDelete("{id}")]
+    [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesDefaultResponseType]

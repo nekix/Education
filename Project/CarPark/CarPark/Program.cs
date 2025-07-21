@@ -5,6 +5,8 @@ using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using CarPark.Attributes;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.OpenApi.Models;
 
 namespace CarPark;
 
@@ -25,6 +27,8 @@ public class Program
         builder.Services.AddSimpleIdentity<IdentityUser>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+        builder.Services.AddProblemDetails();
+
         builder.Services.AddAntiforgery();
         builder.Services.AddSingleton<ValidateAntiforgeryTokenAuthorizationFilter>();
 
@@ -33,6 +37,35 @@ public class Program
             builder.Services.AddOpenApi(static options =>
             {
                 options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+
+                options.AddDocumentTransformer((document, context, token) =>
+                {
+                    document.Components ??= new OpenApiComponents();
+
+                    document.Components.SecuritySchemes.Add("csrf", new OpenApiSecurityScheme
+                    {
+                        Name = "RequestVerificationToken",
+                        Type = SecuritySchemeType.ApiKey,
+                        In = ParameterLocation.Header,
+                        Description = "CSRF Token",
+                    });
+
+                    foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+                    {
+                        operation.Value.Security.Add(new OpenApiSecurityRequirement
+                        {
+                            {
+                                new OpenApiSecurityScheme
+                                {
+                                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "csrf" }
+                                },
+                                Array.Empty<string>()
+                            }
+                        });
+                    }
+
+                    return Task.CompletedTask;
+                });
             });
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -115,11 +148,38 @@ public static class ServiceCollectionExtensions
                 o.Cookie.SameSite = SameSiteMode.Strict;
                 o.Events = new CookieAuthenticationEvents
                 {
-                    OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync
+                    OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync,
+                    OnRedirectToLogin = context =>
+                    {
+                        if (IsApiRequest(context.Request))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return Task.CompletedTask;
+                        }
+                        
+                        context.Response.Redirect(context.RedirectUri);
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = context =>
+                    {
+                        if (IsApiRequest(context.Request))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            return Task.CompletedTask;
+                        }
+                        
+                        context.Response.Redirect(context.RedirectUri);
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
         return services.AddIdentityCore<TUser>(_ => { })
             .AddApiEndpoints();
+    }
+    
+    private static bool IsApiRequest(HttpRequest request)
+    {
+        return request.Path.StartsWithSegments("/api");
     }
 }

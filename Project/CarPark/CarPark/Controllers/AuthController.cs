@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using CarPark.Identity;
-using CarPark.Models;
 using Microsoft.Build.Framework;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using CarPark.Attributes;

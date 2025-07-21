@@ -2,8 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.Models;
+using CarPark.Attributes;
 
-namespace CarPark.Controllers.Api;
+namespace CarPark.Areas.Api.Api;
 
 public class ModelsController : ApiBaseController
 {
@@ -41,6 +42,7 @@ public class ModelsController : ApiBaseController
     // PUT: api/Models/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
+    [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,6 +78,7 @@ public class ModelsController : ApiBaseController
     // POST: api/Models
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
+    [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesDefaultResponseType]
     public async Task<ActionResult<Model>> PostModel(Model model)
@@ -88,6 +91,7 @@ public class ModelsController : ApiBaseController
 
     // DELETE: api/Models/5
     [HttpDelete("{id}")]
+    [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesDefaultResponseType]

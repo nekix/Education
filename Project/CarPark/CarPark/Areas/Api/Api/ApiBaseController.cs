@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace CarPark.Controllers.Api;
+namespace CarPark.Areas.Api.Api;
 
 [Route("api/[controller]")]
+[Area("Api")]
 [ApiController]
 [Produces("application/json")]
 public abstract class ApiBaseController : ControllerBase

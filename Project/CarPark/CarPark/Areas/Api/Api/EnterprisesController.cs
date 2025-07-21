@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseViewModel.RelatedEntitiesViewModel;
 
-namespace CarPark.Controllers.Api;
+namespace CarPark.Areas.Api.Api;
 
 [Authorize("Manager")]
 public class EnterprisesController : ApiBaseController

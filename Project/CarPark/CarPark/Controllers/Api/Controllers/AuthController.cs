@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
-namespace CarPark.Areas.Api.Api;
+namespace CarPark.Controllers.Api.Controllers;
 
 public class AuthController : ApiBaseController
 {
@@ -16,7 +16,7 @@ public class AuthController : ApiBaseController
     }
 
     [HttpPost("login")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -33,22 +33,17 @@ public class AuthController : ApiBaseController
             });
         }
 
-        return Ok();
+        return Created();
     }
 
     [HttpPost("logout")]
     [AppValidateAntiForgeryToken]
-    [ProducesResponseType(StatusCodes.Status302Found)]
-    public async Task<IActionResult> Logout(string? returnUrl = null)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
 
-        if (returnUrl != null)
-        {
-            return Redirect(returnUrl);
-        }
-
-        return RedirectToAction("Index", "Home");
+        return NoContent();
     }
 
     public class LoginRequest

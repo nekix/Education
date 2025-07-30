@@ -1,26 +1,27 @@
 ﻿using CarPark.Data;
 using CarPark.Identity;
-using CarPark.Models;
+using CarPark.Models.Drivers;
 using CarPark.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehiclesAssignmentsViewModel = CarPark.ViewModels.Api.DriverViewModel.VehiclesAssignmentsViewModel;
 
-namespace CarPark.Areas.Api.Api;
+namespace CarPark.Controllers.Api.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class DriversController : ApiBaseController
 {
-    private readonly ApplicationDbContext _context;
+            private readonly ApplicationDbContext _context;
 
-    public DriversController(ApplicationDbContext context)
+        public DriversController(ApplicationDbContext context)
     {
-        _context = context;
+                    _context = context;
     }
 
     // GET: api/Drivers
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DriverViewModel>))]
     public async Task<ActionResult<IEnumerable<DriverViewModel>>> GetDrivers()
     {
         int managerId = GetCurrentManagerId();
@@ -29,14 +30,13 @@ public class DriversController : ApiBaseController
 
         IQueryable<DriverViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
 
-        return await viewModelQuery.OrderBy(x => x.Id).ToListAsync();
+        return Ok(await viewModelQuery.OrderBy(x => x.Id).ToListAsync());
     }
 
     // GET: api/Drivers/5
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DriverViewModel))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
     public async Task<ActionResult<DriverViewModel>> GetDriver(int id)
     {
         int managerId = GetCurrentManagerId();
@@ -67,7 +67,7 @@ public class DriversController : ApiBaseController
         return filteredQuery;
     }
 
-    private IQueryable<DriverViewModel> TransformToViewModelQuery(IQueryable<Driver> query)
+    private static IQueryable<DriverViewModel> TransformToViewModelQuery(IQueryable<Driver> query)
     {
         IQueryable<DriverViewModel> viewModelQuery =
             from d in query
@@ -84,7 +84,7 @@ public class DriversController : ApiBaseController
                 VehiclesAssignments = new VehiclesAssignmentsViewModel
                 {
                     VehiclesIds = assignments,
-                    ActiveVehicleId = d.ActiveAssignedVehicle.Id
+                    ActiveVehicleId = d.ActiveAssignedVehicle != null ? d.ActiveAssignedVehicle.Id : null,
                 }
             };
 

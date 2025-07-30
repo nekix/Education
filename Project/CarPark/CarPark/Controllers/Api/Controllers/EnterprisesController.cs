@@ -1,12 +1,12 @@
 ﻿using CarPark.Data;
-using CarPark.Models;
+using CarPark.Models.Enterprises;
 using CarPark.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseViewModel.RelatedEntitiesViewModel;
 
-namespace CarPark.Areas.Api.Api;
+namespace CarPark.Controllers.Api.Controllers;
 
 [Authorize("Manager")]
 public class EnterprisesController : ApiBaseController
@@ -15,11 +15,12 @@ public class EnterprisesController : ApiBaseController
 
     public EnterprisesController(ApplicationDbContext context)
     {
-        _context = context;
+                    _context = context;
     }
 
     // GET: api/Enterprises
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<EnterpriseViewModel>))]
     public async Task<ActionResult<IEnumerable<EnterpriseViewModel>>> GetEnterprises()
     {
         int managerId = GetCurrentManagerId();
@@ -28,14 +29,13 @@ public class EnterprisesController : ApiBaseController
 
         IQueryable<EnterpriseViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
 
-        return await viewModelQuery.OrderBy(x => x.Id).ToListAsync();
+        return Ok(await viewModelQuery.OrderBy(x => x.Id).ToListAsync());
     }
 
     // GET: api/Enterprises/5
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseViewModel))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
     public async Task<ActionResult<EnterpriseViewModel>> GetEnterprise(int id)
     {
         int managerId = GetCurrentManagerId();

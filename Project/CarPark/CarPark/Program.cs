@@ -5,8 +5,11 @@ using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using CarPark.Attributes;
-using Microsoft.AspNetCore.Authentication;
+using CarPark.Models.Models;
+using CarPark.Models.Vehicles;
+using CarPark.Shared.CQ;
 using Microsoft.OpenApi.Models;
+using FluentResults;
 
 namespace CarPark;
 
@@ -18,19 +21,19 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
-        
-        builder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy(AppIdentityConst.ManagerPolicy, policy => policy.RequireClaim(AppIdentityConst.ManagerIdClaim));
-        });
+
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(AppIdentityConst.ManagerPolicy, policy => policy.RequireClaim(AppIdentityConst.ManagerIdClaim));
 
         builder.Services.AddSimpleIdentity<IdentityUser>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+                            .AddEntityFrameworkStores<ApplicationDbContext>();
 
         builder.Services.AddProblemDetails();
 
         builder.Services.AddAntiforgery();
         builder.Services.AddSingleton<ValidateAntiforgeryTokenAuthorizationFilter>();
+
+        builder.Services.AddCommandQueriesServices();
 
         if (builder.Environment.IsDevelopment())
         {
@@ -121,6 +124,19 @@ public class Program
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddCommandQueriesServices(this IServiceCollection services)
+    {
+        services.AddScoped<ICommandHandler<CreateModelCommand, Result<int>>, CreateModelCommand.Handler>();
+        services.AddScoped<ICommandHandler<UpdateModelCommand, Result<int>>, UpdateModelCommand.Handler>();
+        services.AddScoped<ICommandHandler<DeleteModelCommand, Result>, DeleteModelCommand.Handler>();
+
+        services.AddScoped<ICommandHandler<CreateVehicleCommand, Result<int>>, CreateVehicleCommand.Handler>();
+        services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result<int>>, UpdateVehicleCommand.Handler>();
+        services.AddScoped<ICommandHandler<DeleteVehicleCommand, Result>, DeleteVehicleCommand.Handler>();
+
+        return services;
+    }
+
     public static IServiceCollection AddDataProvidersServices(this WebApplicationBuilder builder)
     {
         string connectionString = builder.Configuration.GetConnectionString("Default")

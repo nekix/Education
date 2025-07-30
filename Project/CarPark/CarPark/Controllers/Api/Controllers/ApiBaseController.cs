@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace CarPark.Areas.Api.Api;
+namespace CarPark.Controllers.Api.Controllers;
 
 [Route("api/[controller]")]
 [Area("Api")]

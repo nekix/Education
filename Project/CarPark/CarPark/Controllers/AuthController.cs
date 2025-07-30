@@ -1,9 +1,6 @@
 using CarPark.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using CarPark.Identity;
 using Microsoft.Build.Framework;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using CarPark.Attributes;
@@ -90,42 +87,5 @@ public class AuthController : Controller
         public required string Password { get; set; }
 
         public required string? ReturnUrl { get; set; }
-    }
-
-    private async Task<SignInResult> PasswordSignInAsync(
-        string userName,
-        string password,
-        bool isPersistent, 
-        bool lockoutOnFailure)
-    {
-        IdentityUser? user = await _userManager.FindByNameAsync(userName);
-        if (user == null)
-        {
-            return SignInResult.Failed;
-        }
-
-        IList<Claim> claims = await _userManager.GetClaimsAsync(user);
-
-        int managerId = await _context.Managers
-            .Where(m => m.IdentityUserId == user!.Id)
-            .Select(m => m.Id)
-            .SingleAsync();
-
-        await _userManager.AddClaimAsync(user, new Claim(AppIdentityConst.ManagerIdClaim, managerId.ToString()));
-
-        SignInResult attempt = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
-        if (!attempt.Succeeded)
-        {
-            return attempt;
-        }
-
-        await _signInManager.SignInWithClaimsAsync(user, isPersistent, 
-            new Claim[]
-            {
-                new Claim("amr", "pwd"),
-                new Claim(AppIdentityConst.ManagerIdClaim, managerId.ToString())
-            });
-
-        return SignInResult.Success;
     }
 }  

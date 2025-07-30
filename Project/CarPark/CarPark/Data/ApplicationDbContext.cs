@@ -1,11 +1,15 @@
-﻿using CarPark.Models;
+﻿using CarPark.Models.Drivers;
+using CarPark.Models.Enterprises;
+using CarPark.Models.Managers;
+using CarPark.Models.Models;
+using CarPark.Models.Vehicles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarPark.Data;
 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDbSet, IEnterprisesDbSet
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -40,7 +44,7 @@ public class ApplicationDbContext : IdentityDbContext
             .WithOne()
             .HasForeignKey(v => v.ModelId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Enterprise>()
             .ToTable("enterprise");
@@ -54,14 +58,14 @@ public class ApplicationDbContext : IdentityDbContext
             .WithOne()
             .HasForeignKey(v => v.EnterpriseId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Enterprise>()
             .HasMany<Driver>()
             .WithOne()
             .HasForeignKey(d => d.EnterpriseId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Driver>()
             .ToTable("driver");
@@ -79,7 +83,8 @@ public class ApplicationDbContext : IdentityDbContext
             .HasOne(d => d.ActiveAssignedVehicle)
             .WithOne(v => v.ActiveAssignedDriver)
             .HasForeignKey<Driver>("assigned_vehicle_id")
-            .IsRequired(false);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Manager>()
             .ToTable("manager");
@@ -92,7 +97,8 @@ public class ApplicationDbContext : IdentityDbContext
             .HasOne<IdentityUser>()
             .WithMany()
             .HasForeignKey(m => m.IdentityUserId)
-            .IsRequired();
+            .IsRequired()
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Manager>()
             .HasMany(m => m.Enterprises)
@@ -153,7 +159,7 @@ public class ApplicationDbContext : IdentityDbContext
         });
     }
 
-    private bool CheckHasAnyData(DbContext context)
+    private static bool CheckHasAnyData(DbContext context)
     {
         return context.Set<Model>().Any()
                || context.Set<Vehicle>().Any()
@@ -163,13 +169,14 @@ public class ApplicationDbContext : IdentityDbContext
                || context.Set<Manager>().Any();
     }
 
-    private IReadOnlyList<Model> GetSeedModels()
+    private static IReadOnlyList<Model> GetSeedModels()
     {
         List<Model> models = new List<Model>
                 {
                     // NoName модель
                     new Model()
                     {
+                        Id = default,
                         ModelName = "NoName",
                         VehicleType = string.Empty,
                         SeatsCount = default,
@@ -182,6 +189,7 @@ public class ApplicationDbContext : IdentityDbContext
                     // Легковые автомобили
                     new Model
                     {
+                        Id = default,
                         ModelName = "Toyota Camry",
                         VehicleType = "Легковой автомобиль",
                         SeatsCount = 5,
@@ -194,6 +202,7 @@ public class ApplicationDbContext : IdentityDbContext
                     // Грузовые автомобили
                     new Model
                     {
+                        Id = default,
                         ModelName = "Газель Next",
                         VehicleType = "Грузовой автомобиль",
                         SeatsCount = 3,
@@ -206,6 +215,7 @@ public class ApplicationDbContext : IdentityDbContext
                     // Автобусы
                     new Model
                     {
+                        Id = default,
                         ModelName = "Mercedes-Benz Sprinter",
                         VehicleType = "Автобус",
                         SeatsCount = 19,
@@ -218,6 +228,7 @@ public class ApplicationDbContext : IdentityDbContext
                     // Мотоциклы
                     new Model
                     {
+                        Id = default,
                         ModelName = "Honda CB300R",
                         VehicleType = "Мотоцикл",
                         SeatsCount = 2,
@@ -230,6 +241,7 @@ public class ApplicationDbContext : IdentityDbContext
                     // Тяжелые грузовики
                     new Model
                     {
+                        Id = default,
                         ModelName = "КАМАЗ 5320",
                         VehicleType = "Грузовой автомобиль",
                         SeatsCount = 3,
@@ -242,6 +254,7 @@ public class ApplicationDbContext : IdentityDbContext
                     // Тяжелые автобусы
                     new Model
                     {
+                        Id = default,
                         ModelName = "ПАЗ 3205",
                         VehicleType = "Автобус",
                         SeatsCount = 41,
@@ -256,13 +269,16 @@ public class ApplicationDbContext : IdentityDbContext
         return models;
     }
 
-    private IReadOnlyList<Vehicle> GetSeedVehicles()
+    private static IReadOnlyList<Vehicle> GetSeedVehicles()
     {
         List<Vehicle> vehicles = new List<Vehicle>
         {
             // Легковые автомобили
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 1, 
                 EnterpriseId = 1,
                 VinNumber = "VIN0001", 
@@ -273,6 +289,9 @@ public class ApplicationDbContext : IdentityDbContext
             },
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 1, 
                 EnterpriseId = 1,
                 VinNumber = "VIN0002", 
@@ -284,6 +303,9 @@ public class ApplicationDbContext : IdentityDbContext
             // Грузовые автомобили
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 3, 
                 EnterpriseId = 1,
                 VinNumber = "VIN0005", 
@@ -294,6 +316,9 @@ public class ApplicationDbContext : IdentityDbContext
             },
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 2, 
                 EnterpriseId = 2,
                 VinNumber = "VIN0003", 
@@ -304,6 +329,9 @@ public class ApplicationDbContext : IdentityDbContext
             },
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 2, 
                 EnterpriseId = 2,
                 VinNumber = "VIN0004", 
@@ -314,6 +342,9 @@ public class ApplicationDbContext : IdentityDbContext
             },
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 5, 
                 EnterpriseId = 2,
                 VinNumber = "VIN0009", 
@@ -325,6 +356,9 @@ public class ApplicationDbContext : IdentityDbContext
             // Мотоциклы
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 4, 
                 EnterpriseId = 3,
                 VinNumber = "VIN0007", 
@@ -335,6 +369,9 @@ public class ApplicationDbContext : IdentityDbContext
             },
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 4, 
                 EnterpriseId = 3,
                 VinNumber = "VIN0008", 
@@ -345,6 +382,9 @@ public class ApplicationDbContext : IdentityDbContext
             },
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 3, 
                 EnterpriseId = 3,
                 VinNumber = "VIN0006", 
@@ -356,6 +396,9 @@ public class ApplicationDbContext : IdentityDbContext
             // Тяжелые автобусы
             new Vehicle
             {
+                Id = default,
+                AssignedDrivers = new List<Driver>(0),
+                ActiveAssignedDriver = null,
                 ModelId = 6, 
                 EnterpriseId = 3,
                 VinNumber = "VIN0010", 
@@ -369,27 +412,35 @@ public class ApplicationDbContext : IdentityDbContext
         return vehicles;
     }
 
-    private IReadOnlyList<Enterprise> GetSeedEnterprises()
+    private static IReadOnlyList<Enterprise> GetSeedEnterprises()
     {
         List<Enterprise> enterprises = new List<Enterprise>
         {
             new Enterprise
             {
+                Id = default,
+                Managers = new List<Manager>(0),
                 Name = "Извозкин.Такси-Парк",
                 LegalAddress = "г. Москва, ул. Цифровая, д. 154"
             },
             new Enterprise
             {
+                Id = default,
+                Managers = new List<Manager>(0),
                 Name = "Delivery-Express",
                 LegalAddress = "г. Санкт-Петербург, пр. Курьерский, д. 15"
             },
             new Enterprise
             {
+                Id = default,
+                Managers = new List<Manager>(0),
                 Name = "DoStavka",
                 LegalAddress = "г. Москва, ул. Зеленая, д. 77"
             },
             new Enterprise
             {
+                Id = default,
+                Managers = new List<Manager>(0),
                 Name = "Red.Такси",
                 LegalAddress = "г. Москва, ул. Красная, д. 21"
             }
@@ -398,25 +449,34 @@ public class ApplicationDbContext : IdentityDbContext
         return enterprises;
     }
 
-    private IReadOnlyList<Driver> GetSeedDrivers(DbContext context)
+    private static IReadOnlyList<Driver> GetSeedDrivers(DbContext context)
     {
         List<Driver> drivers = new List<Driver>
         {
             // Водители для Извозкин.Такси-Парк (Enterprise Id = 1)
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 1,
                 FullName = "Иванов Иван Иванович",
                 DriverLicenseNumber = "7777 123456"
             },
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 1,
                 FullName = "Петров Петр Петрович",
                 DriverLicenseNumber = "7777 234567"
             },
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 1,
                 FullName = "Сидоров Сидор Сидорович",
                 DriverLicenseNumber = "7777 345678"
@@ -424,18 +484,27 @@ public class ApplicationDbContext : IdentityDbContext
             // Водители для Delivery-Express (Enterprise Id = 2)
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 2,
                 FullName = "Александров Александр Александрович",
                 DriverLicenseNumber = "7778 123456"
             },
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 2,
                 FullName = "Михайлов Михаил Михайлович",
                 DriverLicenseNumber = "7778 234567"
             },
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 2,
                 FullName = "Николаев Николай Николаевич",
                 DriverLicenseNumber = "7778 345678"
@@ -443,12 +512,18 @@ public class ApplicationDbContext : IdentityDbContext
             // Водители для DoStavka (Enterprise Id = 3)
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 3,
                 FullName = "Сергеев Сергей Сергеевич",
                 DriverLicenseNumber = "7779 123456"
             },
             new Driver
             {
+                Id = default,
+                AssignedVehicles = new List<Vehicle>(0),
+                ActiveAssignedVehicle = null,
                 EnterpriseId = 3,
                 FullName = "Андреев Андрей Андреевич",
                 DriverLicenseNumber = "7779 234567"
@@ -501,7 +576,7 @@ public class ApplicationDbContext : IdentityDbContext
         return drivers;
     }
 
-    private IReadOnlyList<IdentityUser> SeedIdentityUsers()
+    private static IReadOnlyList<IdentityUser> SeedIdentityUsers()
     {
         PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
         
@@ -532,7 +607,7 @@ public class ApplicationDbContext : IdentityDbContext
         return users;
     }
 
-    private IReadOnlyList<Manager> GetSeedManagers(DbContext context)
+    private static IReadOnlyList<Manager> GetSeedManagers(DbContext context)
     {
         List<Enterprise> existingEnterprises = context.Set<Enterprise>().ToList();
         
@@ -540,11 +615,13 @@ public class ApplicationDbContext : IdentityDbContext
         {
             new Manager
             {
+                Id = default,
                 IdentityUserId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                 Enterprises = existingEnterprises.Where(e => e.Id == 1 || e.Id == 2).ToList()
             },
             new Manager
             {
+                Id = default,
                 IdentityUserId = "b2c3d4e5-f6g7-8901-bcde-f23456789012", 
                 Enterprises = existingEnterprises.Where(e => e.Id == 2 || e.Id == 3).ToList()
             }

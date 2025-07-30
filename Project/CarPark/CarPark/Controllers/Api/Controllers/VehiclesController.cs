@@ -3,25 +3,40 @@ using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
-using CarPark.Models;
 using CarPark.Identity;
 using Microsoft.Build.Framework;
 using CarPark.Attributes;
+using CarPark.Models.Vehicles;
+using FluentResults;
+using CarPark.Shared.CQ;
 
-namespace CarPark.Areas.Api.Api;
+namespace CarPark.Controllers.Api.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class VehiclesController : ApiBaseController
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IVehiclesDbSet _set;
+    private readonly IEnterprisesDbSet _enterprisesSet;
+    private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createVehicleHandler;
+    private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateVehicleHandler;
+    private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteVehicleHandler;
 
-    public VehiclesController(ApplicationDbContext context)
+    public VehiclesController(IVehiclesDbSet set,
+        IEnterprisesDbSet enterprisesSet,
+        ICommandHandler<CreateVehicleCommand, Result<int>> createVehicleHandler,
+        ICommandHandler<UpdateVehicleCommand, Result<int>> updateVehicleHandler,
+        ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler)
     {
-        _context = context;
+        _set = set;
+        _enterprisesSet = enterprisesSet;
+        _createVehicleHandler = createVehicleHandler;
+        _updateVehicleHandler = updateVehicleHandler;
+        _deleteVehicleHandler = deleteVehicleHandler;
     }
 
     // GET: api/Vehicles
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VehicleViewModel>))]
     public async Task<ActionResult<IEnumerable<VehicleViewModel>>> GetVehicles()
     {
         int managerId = GetCurrentManagerId();
@@ -30,14 +45,13 @@ public class VehiclesController : ApiBaseController
 
         IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
 
-        return await viewModelQuery.OrderBy(x => x.Id).ToListAsync();
+        return Ok(await viewModelQuery.OrderBy(x => x.Id).ToListAsync());
     }
 
     // GET: api/Vehicles/5
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleViewModel))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
     public async Task<ActionResult<VehicleViewModel>> GetVehicle(int id)
     {
         int managerId = GetCurrentManagerId();
@@ -63,58 +77,35 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
     public async Task<IActionResult> PutVehicle(int id, CreateUpdateVehicleRequest request)
     {
-        Vehicle? vehicle = await _context.Vehicles
-            .Include(d => d.AssignedDrivers)
-            .Include(d => d.ActiveAssignedDriver)
-            .FirstOrDefaultAsync(v => v.Id == id);
+        UpdateVehicleCommand command = new UpdateVehicleCommand
+        {
+            Id = id,
+            ModelId = request.ModelId,
+            EnterpriseId = request.EnterpriseId,
+            VinNumber = request.VinNumber,
+            Price = request.Price,
+            ManufactureYear = request.ManufactureYear,
+            Mileage = request.Mileage,
+            Color = request.Color,
+            DriverIds = request.DriversAssignments.DriversIds,
+            ActiveDriverId = request.DriversAssignments.ActiveDriverId
+        };
 
-        if (vehicle == null)
+        Result<int> result = await _updateVehicleHandler.Handle(command);
+
+        // Success flow
+        if (!result.IsFailed)
+            return NoContent();
+
+        // Errors handling
+        if (result.HasError(e => e.Message == UpdateVehicleCommand.Errors.NotFound))
         {
             return NotFound();
         }
-
-        if (request.DriversAssignments.DriversIds.Any())
-        {
-            List<Driver> drivers = await _context.Drivers
-                .Where(d => d.EnterpriseId == request.EnterpriseId)
-                .Where(d => request.DriversAssignments.DriversIds.Contains(d.Id))
-                .ToListAsync();
-
-            if (drivers.Count != request.DriversAssignments.DriversIds.Count)
-            {
-                return BadRequest();
-            }
-
-            vehicle.AssignedDrivers = drivers;
-
-            if (request.DriversAssignments.ActiveDriverId != null)
-            {
-                int activeDriverId = request.DriversAssignments.ActiveDriverId.Value;
-
-                if (!request.DriversAssignments.DriversIds.Contains(activeDriverId))
-                {
-                    return BadRequest();
-                }
-
-                vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == request.DriversAssignments.ActiveDriverId);
-            }
-        }
-
-        vehicle.ModelId = request.ModelId;
-        vehicle.EnterpriseId = request.EnterpriseId;
-        vehicle.VinNumber = request.VinNumber;
-        vehicle.Price = request.Price;
-        vehicle.ManufactureYear = request.ManufactureYear;
-        vehicle.Mileage = request.Mileage;
-        vehicle.Color = request.Color;
-
-        _context.Vehicles.Update(vehicle);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        // Undefined errors
+        return BadRequest();
     }
 
     // POST: api/Vehicles
@@ -122,10 +113,9 @@ public class VehiclesController : ApiBaseController
     [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesDefaultResponseType]
     public async Task<ActionResult> PostVehicle(CreateUpdateVehicleRequest request)
     {
-        Vehicle vehicle = new Vehicle
+        CreateVehicleCommand command = new CreateVehicleCommand
         {
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
@@ -134,42 +124,20 @@ public class VehiclesController : ApiBaseController
             ManufactureYear = request.ManufactureYear,
             Mileage = request.Mileage,
             Color = request.Color,
+            DriverIds = request.DriversAssignments.DriversIds,
+            ActiveDriverId = request.DriversAssignments.ActiveDriverId
         };
 
-        if (request.DriversAssignments.DriversIds.Any())
+        Result<int> result = await _createVehicleHandler.Handle(command);
+
+        // Success flow
+        if (result.IsSuccess)
         {
-            List<Driver> drivers = await _context.Drivers
-                .Where(d => d.EnterpriseId == request.EnterpriseId)
-                .Where(d => request.DriversAssignments.DriversIds.Contains(d.Id))
-                .ToListAsync();
-
-            if (drivers.Count != request.DriversAssignments.DriversIds.Count)
-            {
-                return BadRequest();
-            }
-
-            vehicle.AssignedDrivers = drivers;
-
-            if (request.DriversAssignments.ActiveDriverId != null)
-            {
-                int activeDriverId = request.DriversAssignments.ActiveDriverId.Value;
-
-                if (!request.DriversAssignments.DriversIds.Contains(activeDriverId))
-                {
-                    return BadRequest();
-                }
-
-                vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == request.DriversAssignments.ActiveDriverId);
-            }
+            return CreatedAtAction("GetVehicle", new { id = result.Value }, null);
         }
 
-        _context.Vehicles.Add(vehicle);
-
-        await _context.SaveChangesAsync();
-
-        VehicleViewModel viewModel = MapToViewModel(vehicle);
-
-        return CreatedAtAction("GetVehicle", new { id = vehicle.Id }, viewModel);
+        // Undefined errors
+        return BadRequest();
     }
 
     // DELETE: api/Vehicles/5
@@ -177,19 +145,31 @@ public class VehiclesController : ApiBaseController
     [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesDefaultResponseType]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
-        Vehicle? vehicle = await _context.Vehicles.FindAsync(id);
-        if (vehicle == null)
+        DeleteVehicleCommand command = new DeleteVehicleCommand { Id = id };
+        
+        Result result = await _deleteVehicleHandler.Handle(command);
+
+        // Success flow
+        if (!result.IsFailed) 
+            return NoContent();
+
+        // Errors handling
+        if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.NotFound))
         {
             return NotFound();
         }
 
-        _context.Vehicles.Remove(vehicle);
-        await _context.SaveChangesAsync();
+        if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.Conflict))
+        {
+            return Conflict();
+        }
 
-        return NoContent();
+        // Undefined errors
+        return BadRequest();
     }
 
 
@@ -229,38 +209,18 @@ public class VehiclesController : ApiBaseController
         }
     }
 
-    private VehicleViewModel MapToViewModel(Vehicle vehicle)
-    {
-        return new VehicleViewModel
-        {
-            Id = vehicle.Id,
-            ModelId = vehicle.ModelId,
-            EnterpriseId = vehicle.EnterpriseId,
-            VinNumber = vehicle.VinNumber,
-            Price = vehicle.Price,
-            ManufactureYear = vehicle.ManufactureYear,
-            Mileage = vehicle.Mileage,
-            Color = vehicle.Color,
-            DriversAssignments = new VehicleViewModel.DriversAssignmentsViewModel
-            {
-                DriversIds = vehicle.AssignedDrivers.Select(x => x.Id),
-                ActiveDriverId = vehicle.ActiveAssignedDriver?.Id
-            }
-        };
-    }
-
     private IQueryable<Vehicle> GetFilteredByManagerQuery(int managerId)
     {
         IQueryable<Vehicle> filteredQuery =
-            from e in _context.Enterprises
-            join v in _context.Vehicles on e.Id equals v.EnterpriseId
+            from e in _enterprisesSet.Enterprises
+            join v in _set.Vehicles on e.Id equals v.EnterpriseId
             where e.Managers.Any(m => m.Id == managerId)
             select v;
 
         return filteredQuery;
     }
 
-    private IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
+    private static IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
     {
         IQueryable<VehicleViewModel> vehiclesQuery =
             from v in query
@@ -281,7 +241,7 @@ public class VehiclesController : ApiBaseController
                 DriversAssignments = new VehicleViewModel.DriversAssignmentsViewModel
                 {
                     DriversIds = assignments,
-                    ActiveDriverId = v.ActiveAssignedDriver.Id
+                    ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : null,
                 }
             };
 

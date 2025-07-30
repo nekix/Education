@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
-using CarPark.Models;
 using CarPark.Attributes;
+using CarPark.Models.Models;
+using CarPark.Models.Vehicles;
 
 namespace CarPark.Controllers
 {

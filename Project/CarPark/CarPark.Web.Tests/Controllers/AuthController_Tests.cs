@@ -8,7 +8,7 @@ using CarPark.Attributes;
 using Microsoft.AspNetCore.Mvc;
 using CarPark.Controllers;
 
-namespace CarPark.Web.IntegrationTests.Controllers;
+namespace CarPark.Web.Tests.Controllers;
 
 public class AuthController_Tests
 {

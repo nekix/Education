@@ -1,9 +1,9 @@
-﻿using CarPark.Controllers.Api.Controllers;
+﻿using System.Reflection;
+using CarPark.Controllers.Api.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using System.Reflection;
 
-namespace CarPark.Web.IntegrationTests;
+namespace CarPark.Web.Tests;
 
 public class StatusCodesDeclatrion_Tests
 {

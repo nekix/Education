@@ -7,7 +7,7 @@ using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarPark.Web.IntegrationTests.Controllers;
+namespace CarPark.Web.Tests.Controllers;
 
 public class VehiclesController_Tests
 {

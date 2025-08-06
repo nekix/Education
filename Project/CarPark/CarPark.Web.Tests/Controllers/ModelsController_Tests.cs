@@ -7,7 +7,7 @@ using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarPark.Web.IntegrationTests.Controllers;
+namespace CarPark.Web.Tests.Controllers;
 
 public class ModelsController_Tests
 {
@@ -62,6 +62,7 @@ public class ModelsController_Tests
 
         // Assert
         CreatedAtActionResult? createdAtResult = result.Result as CreatedAtActionResult;
+        Assert.True(createdAtResult != null, $"Returned action result must be '{nameof(CreatedAtActionResult)}' but was '{result.Result}'.");
         Assert.NotNull(createdAtResult);
         Assert.Equal(201, createdAtResult.StatusCode);
         Assert.Equal("GetModel", createdAtResult.ActionName);

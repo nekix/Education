@@ -1,10 +1,13 @@
-﻿using System.CommandLine;
+﻿using CarPark.Data;
 using CarPark.Models.Drivers;
 using CarPark.Models.Enterprises;
+using CarPark.Models.Managers;
 using CarPark.Models.Models;
 using CarPark.Models.Vehicles;
-using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.CommandLine;
+using System.Text.Json;
 
 namespace CarPark.DataGenerator;
 
@@ -12,14 +15,14 @@ internal class Program
 {
     static int Main(string[] args)
     {
-        var rootCommand = new RootCommand("Утилита генерации тестовых данных для CarPark");
+        RootCommand rootCommand = new RootCommand("Утилита генерации тестовых данных для CarPark");
 
         // Команда для генерации в файл
-        var enterprisesFileOption = new Option<int>("--enterprises", "-e") { Description = "Количество предприятий", Required = true };
-        var vehiclesPerEnterpriseFileOption = new Option<int>("--vehicles-per-enterprise", "-v") { Description = "Количество машин на предприятие", Required = true };
-        var outputOption = new Option<string>("--output", "-o") { Description = "Путь к выходному файлу", Required = true };
+        Option<int> enterprisesFileOption = new Option<int>("--enterprises", "-e") { Description = "Количество предприятий", Required = true };
+        Option<int> vehiclesPerEnterpriseFileOption = new Option<int>("--vehicles-per-enterprise", "-v") { Description = "Количество машин на предприятие", Required = true };
+        Option<string> outputOption = new Option<string>("--output", "-o") { Description = "Путь к выходному файлу", Required = true };
 
-        var generateFileCommand = new Command("generate-file", "Генерировать данные в файл")
+        Command generateFileCommand = new Command("generate-file", "Генерировать данные в файл")
         {
             enterprisesFileOption,
             vehiclesPerEnterpriseFileOption,
@@ -29,14 +32,14 @@ internal class Program
         generateFileCommand.SetAction(parseResult => GenerateToFile(
             parseResult.GetValue(enterprisesFileOption),
             parseResult.GetValue(vehiclesPerEnterpriseFileOption),
-            parseResult.GetValue(outputOption)));
+            parseResult.GetValue(outputOption)!));
 
         // Команда для генерации в БД
-        var enterprisesDbOption = new Option<int>("--enterprises", "-e") { Description = "Количество предприятий", Required = true };
-        var vehiclesPerEnterpriseDbOption = new Option<int>("--vehicles-per-enterprise", "-v") { Description = "Количество машин на предприятие", Required = true };
-        var connectionStringOption = new Option<string>("--connection-string", "-c") { Description = "Строка подключения к БД", Required = true };
+        Option<int> enterprisesDbOption = new Option<int>("--enterprises", "-e") { Description = "Количество предприятий", Required = true };
+        Option<int> vehiclesPerEnterpriseDbOption = new Option<int>("--vehicles-per-enterprise", "-v") { Description = "Количество машин на предприятие", Required = true };
+        Option<string> connectionStringOption = new Option<string>("--connection-string", "-c") { Description = "Строка подключения к БД", Required = true };
 
-        var generateDbCommand = new Command("generate-db", "Генерировать данные в базу данных")
+        Command generateDbCommand = new Command("generate-db", "Генерировать данные в базу данных")
         {
             enterprisesDbOption,
             vehiclesPerEnterpriseDbOption,
@@ -46,7 +49,7 @@ internal class Program
         generateDbCommand.SetAction(parseResult => GenerateToDatabase(
             parseResult.GetValue(enterprisesDbOption),
             parseResult.GetValue(vehiclesPerEnterpriseDbOption),
-            parseResult.GetValue(connectionStringOption)));
+            parseResult.GetValue(connectionStringOption)!));
 
         rootCommand.Add(generateFileCommand);
         rootCommand.Add(generateDbCommand);
@@ -63,8 +66,8 @@ internal class Program
         Console.WriteLine($"- Выходной файл: {outputPath}");
         Console.WriteLine();
 
-        var generator = new DataGenerator();
-        var data = generator.GenerateAll(enterprisesCount, vehiclesPerEnterprise);
+        DataGenerator generator = new DataGenerator();
+        GeneratedData data = generator.GenerateAll(enterprisesCount, 20, vehiclesPerEnterprise);
 
         PrintResults(data);
         SaveToFile(data, outputPath);
@@ -78,11 +81,12 @@ internal class Program
         Console.WriteLine($"- Всего машин: {enterprisesCount * vehiclesPerEnterprise}");
         Console.WriteLine();
 
-        var generator = new DataGenerator();
-        var data = generator.GenerateAll(enterprisesCount, vehiclesPerEnterprise);
+        DataGenerator generator = new DataGenerator();
+        GeneratedData data = generator.GenerateAll(enterprisesCount, 20, vehiclesPerEnterprise);
 
         PrintResults(data);
-        InsertToDatabase(data, connectionString);
+        InsertToDatabaseV2(data, connectionString);
+        //InsertToDatabase(data, connectionString);
     }
 
     static void PrintResults(GeneratedData data)
@@ -90,45 +94,51 @@ internal class Program
         Console.WriteLine("=== СГЕНЕРИРОВАННЫЕ ДАННЫЕ ===");
         
         Console.WriteLine($"\nПредприятия ({data.Enterprises.Count}):");
-        foreach (var enterprise in data.Enterprises)
+        foreach (Enterprise enterprise in data.Enterprises)
         {
             Console.WriteLine($"  Название: {enterprise.Name}, Адрес: {enterprise.LegalAddress}");
         }
 
         Console.WriteLine($"\nМодели ({data.Models.Count}):");
-        foreach (var model in data.Models)
+        foreach (Model model in data.Models)
         {
             Console.WriteLine($"  Модель: {model.ModelName}, Тип: {model.VehicleType}");
         }
 
         Console.WriteLine($"\nМашины ({data.Vehicles.Count}):");
-        foreach (var vehicle in data.Vehicles)
+        foreach (Vehicle vehicle in data.Vehicles)
         {
-            var activeDriver = vehicle.ActiveAssignedDriver != null ? $" (Водитель: {vehicle.ActiveAssignedDriver.FullName})" : "";
+            string activeDriver = vehicle.ActiveAssignedDriver != null 
+                ? $" (Водитель: {vehicle.ActiveAssignedDriver.FullName})" 
+                : "";
+
             Console.WriteLine($"  VIN: {vehicle.VinNumber}, Цвет: {vehicle.Color}, Цена: {vehicle.Price:C}{activeDriver}");
         }
 
         Console.WriteLine($"\nВодители ({data.Drivers.Count}):");
-        foreach (var driver in data.Drivers)
+        foreach (Driver driver in data.Drivers)
         {
-            var activeVehicle = driver.ActiveAssignedVehicle != null ? $" (Машина: {driver.ActiveAssignedVehicle.VinNumber})" : "";
+            string activeVehicle = driver.ActiveAssignedVehicle != null 
+                ? $" (Машина: {driver.ActiveAssignedVehicle.VinNumber})" 
+                : "";
+
             Console.WriteLine($"  ФИО: {driver.FullName}, Права: {driver.DriverLicenseNumber}{activeVehicle}");
         }
 
-        var activeVehicles = data.Vehicles.Count(v => v.ActiveAssignedDriver != null);
-        var activeDrivers = data.Drivers.Count(d => d.ActiveAssignedVehicle != null);
+        int activeVehiclesCount = data.Vehicles.Count(v => v.ActiveAssignedDriver != null);
+        var activeDriversCount = data.Drivers.Count(d => d.ActiveAssignedVehicle != null);
         
         Console.WriteLine($"\nСтатистика:");
-        Console.WriteLine($"  Активных машин с водителями: {activeVehicles}");
-        Console.WriteLine($"  Активных водителей с машинами: {activeDrivers}");
-        Console.WriteLine($"  Процент активных машин: {(double)activeVehicles / data.Vehicles.Count * 100:F1}%");
+        Console.WriteLine($"  Активных машин с водителями: {activeVehiclesCount}");
+        Console.WriteLine($"  Активных водителей с машинами: {activeDriversCount}");
+        Console.WriteLine($"  Процент активных машин: {(double)activeVehiclesCount / data.Vehicles.Count * 100:F1}%");
     }
 
     static void SaveToFile(GeneratedData data, string filePath)
     {
         try
         {
-            var serializableData = new SerializableData
+            SerializableData serializableData = new SerializableData
             {
                 Enterprises = data.Enterprises.Select(e => new EnterpriseDto
                 {
@@ -173,9 +183,9 @@ internal class Program
                 }).ToList()
             };
 
-            var json = System.Text.Json.JsonSerializer.Serialize(serializableData, new System.Text.Json.JsonSerializerOptions
+            string json = JsonSerializer.Serialize(serializableData, new JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
             });
             
             File.WriteAllText(filePath, json);
@@ -187,128 +197,154 @@ internal class Program
         }
     }
 
-    static void InsertToDatabase(GeneratedData data, string connectionString)
+    static void InsertToDatabaseV2(GeneratedData data, string connectionString)
     {
         try
         {
             Console.WriteLine("Подключение к базе данных...");
 
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseNpgsql(connectionString)
                          .UseSnakeCaseNamingConvention();
 
-            using var context = new ApplicationDbContext(optionsBuilder.Options);
+            using ApplicationDbContext context = new ApplicationDbContext(optionsBuilder.Options);
 
             Console.WriteLine("Вставка данных в базу данных...");
 
+            using IDbContextTransaction transaction = context.Database.BeginTransaction();
+
             // Вставляем модели
             Console.WriteLine($"Вставка {data.Models.Count} моделей...");
-            var modelsToInsert = data.Models.Select(m => new Model
-            {
-                Id = default,
-                ModelName = m.ModelName,
-                VehicleType = m.VehicleType,
-                SeatsCount = m.SeatsCount,
-                MaxLoadingWeightKg = m.MaxLoadingWeightKg,
-                EnginePowerKW = m.EnginePowerKW,
-                TransmissionType = m.TransmissionType,
-                FuelSystemType = m.FuelSystemType,
-                FuelTankVolumeLiters = m.FuelTankVolumeLiters
-            }).ToList();
 
-            context.Models.AddRange(modelsToInsert);
-            context.SaveChanges();
+            List<Model> newModels = new List<Model>(data.Models.Count);
+            Dictionary<int, int> originalToNewModelsIdsMap = new Dictionary<int, int>();
+
+            foreach (Model originalModel in data.Models)
+            {
+                Model newModel = new Model
+                {
+                    Id = default,
+                    ModelName = originalModel.ModelName,
+                    VehicleType = originalModel.VehicleType,
+                    SeatsCount = originalModel.SeatsCount,
+                    MaxLoadingWeightKg = originalModel.MaxLoadingWeightKg,
+                    EnginePowerKW = originalModel.EnginePowerKW,
+                    TransmissionType = originalModel.TransmissionType,
+                    FuelSystemType = originalModel.FuelSystemType,
+                    FuelTankVolumeLiters = originalModel.FuelTankVolumeLiters
+                };
+
+                context.Models.Add(newModel);
+                context.SaveChanges();
+
+                newModels.Add(newModel);
+                originalToNewModelsIdsMap.Add(originalModel.Id, newModel.Id);
+            }    
 
             // Вставляем предприятия
-            Console.WriteLine($"Вставка {data.Enterprises.Count} предприятий...");
-            var enterprisesToInsert = data.Enterprises.Select(e => new Enterprise
-            {
-                Id = default,
-                Name = e.Name,
-                LegalAddress = e.LegalAddress,
-                Managers = new List<CarPark.Models.Managers.Manager>()
-            }).ToList();
+            Console.WriteLine($"Вставка {data.Enterprises.Count} предприятий и связанных сущностей...");
 
-            context.Enterprises.AddRange(enterprisesToInsert);
-            context.SaveChanges();
-
-            // Вставляем машины
-            Console.WriteLine($"Вставка {data.Vehicles.Count} машин...");
-            var vehiclesToInsert = new List<Vehicle>();
-            
-            for (int i = 0; i < data.Vehicles.Count; i++)
+            foreach (Enterprise originalEnterpise in data.Enterprises)
             {
-                var originalVehicle = data.Vehicles[i];
-                var enterpriseIndex = i / data.Vehicles.Count * enterprisesToInsert.Count;
-                var modelIndex = i % modelsToInsert.Count;
-                
-                var vehicle = new Vehicle
+                Enterprise newEnterprise = new Enterprise
                 {
                     Id = default,
-                    ModelId = modelsToInsert[modelIndex].Id,
-                    EnterpriseId = enterprisesToInsert[enterpriseIndex].Id,
-                    VinNumber = originalVehicle.VinNumber,
-                    Price = originalVehicle.Price,
-                    ManufactureYear = originalVehicle.ManufactureYear,
-                    Mileage = originalVehicle.Mileage,
-                    Color = originalVehicle.Color,
-                    AssignedDrivers = new List<Driver>(),
-                    ActiveAssignedDriver = null
+                    Name = originalEnterpise.Name,
+                    LegalAddress = originalEnterpise.LegalAddress,
+                    Managers = new List<Manager>()
                 };
-                
-                vehiclesToInsert.Add(vehicle);
-            }
 
-            context.Vehicles.AddRange(vehiclesToInsert);
-            context.SaveChanges();
+                context.Enterprises.Add(newEnterprise);
+                context.SaveChanges();
 
-            // Вставляем водителей
-            Console.WriteLine($"Вставка {data.Drivers.Count} водителей...");
-            var driversToInsert = new List<Driver>();
-            
-            for (int i = 0; i < data.Drivers.Count; i++)
-            {
-                var originalDriver = data.Drivers[i];
-                var enterpriseIndex = i % enterprisesToInsert.Count;
-                
-                var driver = new Driver
+                List<Vehicle> originalVehicles = data.Vehicles
+                    .Where(v => v.EnterpriseId == originalEnterpise.Id)
+                    .ToList();
+                List<Vehicle> newVehicles = new List<Vehicle>(originalVehicles.Count);
+                Dictionary<int, int> originalToNewVehiclesIdsMap = new Dictionary<int, int>();
+
+                foreach (Vehicle originalVehicle in originalVehicles)
                 {
-                    Id = default,
-                    EnterpriseId = enterprisesToInsert[enterpriseIndex].Id,
-                    FullName = originalDriver.FullName,
-                    DriverLicenseNumber = originalDriver.DriverLicenseNumber,
-                    AssignedVehicles = new List<Vehicle>(),
-                    ActiveAssignedVehicle = null
-                };
-                
-                driversToInsert.Add(driver);
-            }
+                    int originalModelId = originalVehicle.ModelId;
+                    int newModelId = originalToNewModelsIdsMap[originalModelId];
 
-            context.Drivers.AddRange(driversToInsert);
-            context.SaveChanges();
-
-            // Обновляем связи между водителями и машинами
-            Console.WriteLine("Обновление связей между водителями и машинами...");
-            var dbVehicles = context.Vehicles.ToList();
-            var dbDrivers = context.Drivers.ToList();
-            
-            for (int i = 0; i < data.Vehicles.Count; i++)
-            {
-                var originalVehicle = data.Vehicles[i];
-                var dbVehicle = dbVehicles[i];
-                
-                if (originalVehicle.ActiveAssignedDriver != null)
-                {
-                    var driverIndex = data.Drivers.IndexOf(originalVehicle.ActiveAssignedDriver);
-                    if (driverIndex >= 0 && driverIndex < dbDrivers.Count)
+                    Vehicle newVehicle = new Vehicle
                     {
-                        var dbDriver = dbDrivers[driverIndex];
-                        dbVehicle.ActiveAssignedDriver = dbDriver;
-                        dbDriver.ActiveAssignedVehicle = dbVehicle;
+                        Id = default,
+                        ModelId = newModelId,
+                        EnterpriseId = newEnterprise.Id,
+                        VinNumber = originalVehicle.VinNumber,
+                        Price = originalVehicle.Price,
+                        ManufactureYear = originalVehicle.ManufactureYear,
+                        Mileage = originalVehicle.Mileage,
+                        Color = originalVehicle.Color,
+                        AssignedDrivers = new List<Driver>(),
+                        ActiveAssignedDriver = null
+                    };
+
+                    context.Vehicles.Add(newVehicle);
+                    context.SaveChanges();
+
+                    newVehicles.Add(newVehicle);
+                    originalToNewVehiclesIdsMap.Add(originalVehicle.Id, newVehicle.Id);
+                }
+                
+                List<Driver> originalDrivers = data.Drivers
+                    .Where(d => d.EnterpriseId == originalEnterpise.Id)
+                    .ToList();
+                List<Driver> newDrivers = new List<Driver>(originalDrivers.Count);
+                Dictionary<int, int> originalToNewDriverIdsMap = new Dictionary<int, int>();
+
+                foreach (Driver originalDriver in originalDrivers)
+                {
+                    Driver newDriver = new Driver
+                    {
+                        Id = default,
+                        EnterpriseId = newEnterprise.Id,
+                        FullName = originalDriver.FullName,
+                        DriverLicenseNumber = originalDriver.DriverLicenseNumber,
+                        AssignedVehicles = new List<Vehicle>(),
+                        ActiveAssignedVehicle = null
+                    };
+
+                    context.Drivers.Add(newDriver);
+                    context.SaveChanges();
+
+                    newDrivers.Add(newDriver);
+                    originalToNewDriverIdsMap.Add(originalDriver.Id, newDriver.Id);
+                }
+
+                foreach (Vehicle originalVehicle in originalVehicles)
+                {
+                    int newVehicleId = originalToNewVehiclesIdsMap[originalVehicle.Id];
+                    Vehicle newVehicle = newVehicles.First(v => v.Id == newVehicleId);
+
+                    if (originalVehicle.AssignedDrivers.Count != 0)
+                    {
+                        foreach (Driver originalAssignedDriver in originalVehicle.AssignedDrivers)
+                        {
+                            int newAssignedDriverId = originalToNewDriverIdsMap[originalAssignedDriver.Id];
+                            Driver newAssignedDriver = newDrivers.First(d => d.Id == newAssignedDriverId);
+
+                            newVehicle.AssignedDrivers.Add(newAssignedDriver);
+                        }
                     }
+
+                    if (originalVehicle.ActiveAssignedDriver != null)
+                    {
+                        Driver originalActiveAssignedDriver = originalVehicle.ActiveAssignedDriver;
+
+                        int newActiveAssignedDriverId = originalToNewDriverIdsMap[originalActiveAssignedDriver.Id];
+                        Driver newActiveAssignedDriver = newDrivers.First(d => d.Id == newActiveAssignedDriverId);
+
+                        newVehicle.ActiveAssignedDriver = newActiveAssignedDriver;
+                    }
+
+                    context.SaveChanges();
                 }
             }
-            context.SaveChanges();
+
+            transaction.Commit();
 
             Console.WriteLine("Данные успешно вставлены в базу данных!");
         }

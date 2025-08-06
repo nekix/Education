@@ -37,8 +37,8 @@ namespace CarPark.DataGenerator
             // Настройка генератора машин
             _vehicleFaker = new Faker<Vehicle>("ru")
                 .RuleFor(v => v.Id, f => f.IndexGlobal)
-                .RuleFor(v => v.ModelId, f => f.Random.Int(1, 20)) // Будет переопределено
-                .RuleFor(v => v.EnterpriseId, f => f.Random.Int(1, 100)) // Будет переопределено
+                .RuleFor(v => v.ModelId, f => f.Random.Int(1, 20))
+                .RuleFor(v => v.EnterpriseId, f => f.Random.Int(1, 100))
                 .RuleFor(v => v.VinNumber, f => f.Vehicle.Vin())
                 .RuleFor(v => v.Price, f => f.Random.Decimal(500000, 5000000))
                 .RuleFor(v => v.ManufactureYear, f => f.Random.Int(2010, 2024))
@@ -50,28 +50,28 @@ namespace CarPark.DataGenerator
             // Настройка генератора водителей
             _driverFaker = new Faker<Driver>("ru")
                 .RuleFor(d => d.Id, f => f.IndexGlobal)
-                .RuleFor(d => d.EnterpriseId, f => f.Random.Int(1, 100)) // Будет переопределено
+                .RuleFor(d => d.EnterpriseId, f => f.Random.Int(1, 100))
                 .RuleFor(d => d.FullName, f => f.Name.FullName())
                 .RuleFor(d => d.DriverLicenseNumber, f => f.Random.Replace("## ## ######"))
                 .RuleFor(d => d.AssignedVehicles, f => new List<Vehicle>())
                 .RuleFor(d => d.ActiveAssignedVehicle, f => (Vehicle?)null);
         }
 
-        public GeneratedData GenerateAll(int enterprisesCount, int vehiclesPerEnterprise)
+        public GeneratedData GenerateAll(int enterprisesCount, int modelsCount, int vehiclesPerEnterprise)
         {
-            var enterprises = _enterpriseFaker.Generate(enterprisesCount);
-            var models = _modelFaker.Generate(20); // Генерируем 20 моделей
-            var vehicles = new List<Vehicle>();
-            var drivers = new List<Driver>();
+            List<Enterprise> enterprises = _enterpriseFaker.Generate(enterprisesCount);
+            List<Model> models = _modelFaker.Generate(modelsCount);
+            List<Vehicle> vehicles = new List<Vehicle>();
+            List<Driver> drivers = new List<Driver>();
 
-            var driverId = 1;
-            var vehicleId = 1;
+            int driverId = 1;
+            int vehicleId = 1;
 
-            foreach (var enterprise in enterprises)
+            foreach (Enterprise enterprise in enterprises)
             {
                 // Генерируем машины для предприятия
-                var enterpriseVehicles = _vehicleFaker.Generate(vehiclesPerEnterprise);
-                foreach (var vehicle in enterpriseVehicles)
+                List<Vehicle> enterpriseVehicles = _vehicleFaker.Generate(vehiclesPerEnterprise);
+                foreach (Vehicle vehicle in enterpriseVehicles)
                 {
                     vehicle.Id = vehicleId++;
                     vehicle.EnterpriseId = enterprise.Id;
@@ -80,8 +80,8 @@ namespace CarPark.DataGenerator
                 }
 
                 // Генерируем водителей для предприятия (примерно 1 водитель на 10 машин)
-                var driversCount = Math.Max(1, vehiclesPerEnterprise / 10);
-                var enterpriseDrivers = _driverFaker.Generate(driversCount);
+                int driversCount = Math.Max(1, vehiclesPerEnterprise / 10);
+                List<Driver> enterpriseDrivers = _driverFaker.Generate(driversCount);
                 foreach (var driver in enterpriseDrivers)
                 {
                     driver.Id = driverId++;
@@ -90,12 +90,12 @@ namespace CarPark.DataGenerator
                 }
 
                 // Назначаем водителей машинам (примерно каждая 10-я машина с активным водителем)
-                var enterpriseVehiclesList = vehicles.Where(v => v.EnterpriseId == enterprise.Id).ToList();
-                var enterpriseDriversList = drivers.Where(d => d.EnterpriseId == enterprise.Id).ToList();
+                List<Vehicle> enterpriseVehiclesList = vehicles.Where(v => v.EnterpriseId == enterprise.Id).ToList();
+                List<Driver> enterpriseDriversList = drivers.Where(d => d.EnterpriseId == enterprise.Id).ToList();
 
                 for (int i = 0; i < enterpriseVehiclesList.Count; i++)
                 {
-                    var vehicle = enterpriseVehiclesList[i];
+                    Vehicle vehicle = enterpriseVehiclesList[i];
                 
                     // Каждая 10-я машина получает активного водителя
                     if (i % 10 == 0 && enterpriseDriversList.Any())

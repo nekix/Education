@@ -12,6 +12,8 @@ public class CreateVehicleCommand : ICommand<Result<int>>
 
     public required int EnterpriseId { get; set; }
 
+    public required int RequestingManagerId { get; set; }
+
     public required string VinNumber { get; set; }
 
     public required decimal Price { get; set; }
@@ -37,6 +39,16 @@ public class CreateVehicleCommand : ICommand<Result<int>>
 
         public async Task<Result<int>> Handle(CreateVehicleCommand command)
         {
+            // Проверка доступа к предприятию
+            bool hasAccess = await _context.Enterprises
+                .AnyAsync(e => e.Id == command.EnterpriseId && 
+                              e.Managers.Any(m => m.Id == command.RequestingManagerId));
+
+            if (!hasAccess)
+            {
+                return Result.Fail(Errors.AccessDenied);
+            }
+
             Vehicle vehicle = new Vehicle
             {
                 Id = default,
@@ -89,5 +101,6 @@ public class CreateVehicleCommand : ICommand<Result<int>>
     {
         public const string InvalidDrivers = "InvalidDrivers";
         public const string InvalidActiveDriver = "InvalidActiveDriver";
+        public const string AccessDenied = "AccessDenied";
     }
 } 

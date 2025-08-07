@@ -1,6 +1,5 @@
-﻿using Bogus;
+using Bogus;
 using CarPark.Models.Drivers;
-using CarPark.Models.Enterprises;
 using CarPark.Models.Models;
 using CarPark.Models.Vehicles;
 
@@ -8,37 +7,14 @@ namespace CarPark.DataGenerator
 {
     public class DataGenerator
     {
-        private readonly Faker<Enterprise> _enterpriseFaker;
-        private readonly Faker<Model> _modelFaker;
         private readonly Faker<Vehicle> _vehicleFaker;
         private readonly Faker<Driver> _driverFaker;
-
+        
         public DataGenerator()
         {
-            // Настройка генератора предприятий
-            _enterpriseFaker = new Faker<Enterprise>("ru")
-                .RuleFor(e => e.Id, f => f.IndexGlobal)
-                .RuleFor(e => e.Name, f => f.Company.CompanyName())
-                .RuleFor(e => e.LegalAddress, f => f.Address.FullAddress())
-                .RuleFor(e => e.Managers, f => new List<CarPark.Models.Managers.Manager>());
-
-            // Настройка генератора моделей
-            _modelFaker = new Faker<Model>("ru")
-                .RuleFor(m => m.Id, f => f.IndexGlobal)
-                .RuleFor(m => m.ModelName, f => f.Vehicle.Model())
-                .RuleFor(m => m.VehicleType, f => f.PickRandom("Легковой", "Грузовой", "Автобус", "Микроавтобус"))
-                .RuleFor(m => m.SeatsCount, f => f.Random.Int(2, 50))
-                .RuleFor(m => m.MaxLoadingWeightKg, f => f.Random.Double(500, 5000))
-                .RuleFor(m => m.EnginePowerKW, f => f.Random.Double(50, 500))
-                .RuleFor(m => m.TransmissionType, f => f.PickRandom("Механическая", "Автоматическая", "Робот", "Вариатор"))
-                .RuleFor(m => m.FuelSystemType, f => f.PickRandom("Бензин", "Дизель", "Гибрид", "Электро"))
-                .RuleFor(m => m.FuelTankVolumeLiters, f => f.Random.Int(30, 100).ToString());
-
             // Настройка генератора машин
             _vehicleFaker = new Faker<Vehicle>("ru")
-                .RuleFor(v => v.Id, f => f.IndexGlobal)
-                .RuleFor(v => v.ModelId, f => f.Random.Int(1, 20))
-                .RuleFor(v => v.EnterpriseId, f => f.Random.Int(1, 100))
+                .RuleFor(v => v.Id, f => default)
                 .RuleFor(v => v.VinNumber, f => f.Vehicle.Vin())
                 .RuleFor(v => v.Price, f => f.Random.Decimal(500000, 5000000))
                 .RuleFor(v => v.ManufactureYear, f => f.Random.Int(2010, 2024))
@@ -49,75 +25,156 @@ namespace CarPark.DataGenerator
 
             // Настройка генератора водителей
             _driverFaker = new Faker<Driver>("ru")
-                .RuleFor(d => d.Id, f => f.IndexGlobal)
-                .RuleFor(d => d.EnterpriseId, f => f.Random.Int(1, 100))
+                .RuleFor(d => d.Id, f => default)
                 .RuleFor(d => d.FullName, f => f.Name.FullName())
                 .RuleFor(d => d.DriverLicenseNumber, f => f.Random.Replace("## ## ######"))
                 .RuleFor(d => d.AssignedVehicles, f => new List<Vehicle>())
                 .RuleFor(d => d.ActiveAssignedVehicle, f => (Vehicle?)null);
         }
 
-        public GeneratedData GenerateAll(int enterprisesCount, int modelsCount, int vehiclesPerEnterprise)
+        /// <summary>
+        /// Генерирует коллекцию автомобилей для указанного предприятия
+        /// </summary>
+        /// <param name="enterpriseId">ID предприятия</param>
+        /// <param name="models">Список доступных моделей</param>
+        /// <returns>Коллекция сгенерированных автомобилей</returns>
+        public IEnumerable<Vehicle> GenerateVehicles(int enterpriseId, List<Model> models)
         {
-            List<Enterprise> enterprises = _enterpriseFaker.Generate(enterprisesCount);
-            List<Model> models = _modelFaker.Generate(modelsCount);
-            List<Vehicle> vehicles = new List<Vehicle>();
-            List<Driver> drivers = new List<Driver>();
+            return _vehicleFaker
+                .RuleFor(v => v.EnterpriseId, f => enterpriseId)
+                .RuleFor(v => v.ModelId, f => f.PickRandom(models).Id)
+                .GenerateForever();
+        }
 
-            int driverId = 1;
-            int vehicleId = 1;
+        /// <summary>
+        /// Генерирует коллекцию водителей для указанного предприятия
+        /// </summary>
+        /// <param name="enterpriseId">ID предприятия</param>
+        /// <returns>Коллекция сгенерированных водителей</returns>
+        public IEnumerable<Driver> GenerateDrivers(int enterpriseId)
+        {
+            return _driverFaker
+                .RuleFor(d => d.EnterpriseId, f => enterpriseId)
+                .GenerateForever();
+        }
 
-            foreach (Enterprise enterprise in enterprises)
+        /// <summary>
+        /// Устанавливает связи между автомобилями и водителями
+        /// </summary>
+        /// <param name="vehicles">Список автомобилей</param>
+        /// <param name="drivers">Список водителей</param>
+        /// <param name="activeDriverRatio">Коэффициент автомобилей с активными водителями (0.0 - 1.0)</param>
+        /// <param name="assignmentRatio">Коэффициент автомобилей с назначенными водителями (0.0 - 1.0)</param>
+        /// <param name="minDriversPerVehicle">Минимальное количество водителей на автомобиль</param>
+        /// <param name="maxDriversPerVehicle">Максимальное количество водителей на автомобиль</param>
+        public void EstablishVehicleDriverRelationships(
+            List<Vehicle> vehicles, 
+            List<Driver> drivers, 
+            double activeDriverRatio,
+            double assignmentRatio,
+            int minDriversPerVehicle,
+            int maxDriversPerVehicle)
+        {
+            if (vehicles == null || drivers == null)
             {
-                // Генерируем машины для предприятия
-                List<Vehicle> enterpriseVehicles = _vehicleFaker.Generate(vehiclesPerEnterprise);
+                throw new ArgumentNullException("Списки автомобилей и водителей не могут быть null");
+            }
+
+            if (activeDriverRatio < 0.0 || activeDriverRatio > 1.0)
+            {
+                throw new ArgumentException("Коэффициент активных водителей должен быть от 0.0 до 1.0", nameof(activeDriverRatio));
+            }
+
+            if (assignmentRatio < 0.0 || assignmentRatio > 1.0)
+            {
+                throw new ArgumentException("Коэффициент назначенных водителей должен быть от 0.0 до 1.0", nameof(assignmentRatio));
+            }
+
+            if (minDriversPerVehicle < 0)
+            {
+                throw new ArgumentException("Минимальное количество водителей на автомобиль должно быть не менее 0", nameof(minDriversPerVehicle));
+            }
+
+            if (maxDriversPerVehicle < minDriversPerVehicle)
+            {
+                throw new ArgumentException("Максимальное количество водителей должно быть не менее минимального", nameof(maxDriversPerVehicle));
+            }
+
+            // Группируем автомобили и водителей по предприятиям
+            Dictionary<int, List<Vehicle>> vehiclesByEnterprise = vehicles
+                .GroupBy(v => v.EnterpriseId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            Dictionary<int, List<Driver>> driversByEnterprise = drivers
+                .GroupBy(d => d.EnterpriseId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Обрабатываем каждое предприятие отдельно
+            foreach (int enterpriseId in vehiclesByEnterprise.Keys.Intersect(driversByEnterprise.Keys))
+            {
+                List<Vehicle> enterpriseVehicles = vehiclesByEnterprise[enterpriseId];
+                List<Driver> enterpriseDrivers = driversByEnterprise[enterpriseId];
+
+                if (!enterpriseDrivers.Any())
+                {
+                    continue; // Пропускаем предприятия без водителей
+                }
+
+                // 1. Создаем назначения водителей на автомобили
                 foreach (Vehicle vehicle in enterpriseVehicles)
                 {
-                    vehicle.Id = vehicleId++;
-                    vehicle.EnterpriseId = enterprise.Id;
-                    vehicle.ModelId = models[Random.Shared.Next(models.Count)].Id;
-                    vehicles.Add(vehicle);
-                }
-
-                // Генерируем водителей для предприятия (примерно 1 водитель на 10 машин)
-                int driversCount = Math.Max(1, vehiclesPerEnterprise / 10);
-                List<Driver> enterpriseDrivers = _driverFaker.Generate(driversCount);
-                foreach (var driver in enterpriseDrivers)
-                {
-                    driver.Id = driverId++;
-                    driver.EnterpriseId = enterprise.Id;
-                    drivers.Add(driver);
-                }
-
-                // Назначаем водителей машинам (примерно каждая 10-я машина с активным водителем)
-                List<Vehicle> enterpriseVehiclesList = vehicles.Where(v => v.EnterpriseId == enterprise.Id).ToList();
-                List<Driver> enterpriseDriversList = drivers.Where(d => d.EnterpriseId == enterprise.Id).ToList();
-
-                for (int i = 0; i < enterpriseVehiclesList.Count; i++)
-                {
-                    Vehicle vehicle = enterpriseVehiclesList[i];
-                
-                    // Каждая 10-я машина получает активного водителя
-                    if (i % 10 == 0 && enterpriseDriversList.Any())
+                    // Применяем коэффициент назначенных водителей
+                    if (Random.Shared.NextDouble() < assignmentRatio && enterpriseDrivers.Any())
                     {
-                        var driver = enterpriseDriversList[Random.Shared.Next(enterpriseDriversList.Count)];
-                    
-                        vehicle.ActiveAssignedDriver = driver;
-                        vehicle.AssignedDrivers.Add(driver);
-                    
-                        driver.ActiveAssignedVehicle = vehicle;
-                        driver.AssignedVehicles.Add(vehicle);
+                        // Случайное количество водителей на автомобиль
+                        int selectedDriversCount = Random.Shared.Next(
+                            minDriversPerVehicle, 
+                            Math.Min(maxDriversPerVehicle + 1, enterpriseDrivers.Count + 1)
+                        );
+                        List<Driver> selectedDrivers = enterpriseDrivers
+                            .OrderBy(x => Random.Shared.Next())
+                            .Take(selectedDriversCount)
+                            .ToList();
+
+                        foreach (Driver driver in selectedDrivers)
+                        {
+                            if (!vehicle.AssignedDrivers.Contains(driver))
+                            {
+                                vehicle.AssignedDrivers.Add(driver);
+                                driver.AssignedVehicles.Add(vehicle);
+                            }
+                        }
+                    }
+                }
+
+                // 2. Назначаем активных водителей
+                List<Vehicle> vehiclesWithDrivers = enterpriseVehicles
+                    .Where(v => v.AssignedDrivers.Any())
+                    .OrderBy(x => Random.Shared.Next())
+                    .ToList();
+
+                HashSet<int> usedDriverIds = new HashSet<int>();
+
+                double fixedActiveDriverRation =
+                    (double)enterpriseVehicles.Count / vehiclesWithDrivers.Count * activeDriverRatio;
+
+                foreach (Vehicle vehicle in vehiclesWithDrivers)
+                {
+                    // Применяем коэффициент активных водителей
+                    if (Random.Shared.NextDouble() < fixedActiveDriverRation)
+                    {
+                        Driver? availableDriver = vehicle.AssignedDrivers
+                            .FirstOrDefault(d => !usedDriverIds.Contains(d.Id));
+
+                        if (availableDriver != null)
+                        {
+                            vehicle.ActiveAssignedDriver = availableDriver;
+                            availableDriver.ActiveAssignedVehicle = vehicle;
+                            usedDriverIds.Add(availableDriver.Id);
+                        }
                     }
                 }
             }
-
-            return new GeneratedData
-            {
-                Enterprises = enterprises,
-                Models = models,
-                Vehicles = vehicles,
-                Drivers = drivers
-            };
         }
     }
 }

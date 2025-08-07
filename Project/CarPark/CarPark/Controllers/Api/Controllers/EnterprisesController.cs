@@ -5,17 +5,24 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseViewModel.RelatedEntitiesViewModel;
+using CarPark.Attributes;
+using CarPark.Shared.CQ;
+using FluentResults;
+using CarPark.Identity;
 
 namespace CarPark.Controllers.Api.Controllers;
 
-[Authorize("Manager")]
+[Authorize(AppIdentityConst.ManagerPolicy)]
 public class EnterprisesController : ApiBaseController
 {
     private readonly ApplicationDbContext _context;
+    private readonly ICommandHandler<DeleteEnterpriseCommand, Result> _deleteEnterpriseHandler;
 
-    public EnterprisesController(ApplicationDbContext context)
+    public EnterprisesController(ApplicationDbContext context,
+        ICommandHandler<DeleteEnterpriseCommand, Result> deleteEnterpriseHandler)
     {
-                    _context = context;
+        _context = context;
+        _deleteEnterpriseHandler = deleteEnterpriseHandler;
     }
 
     // GET: api/Enterprises
@@ -108,5 +115,52 @@ public class EnterprisesController : ApiBaseController
             };
 
         return viewModelQuery;
+    }
+
+    // DELETE: api/Enterprises/5
+    [HttpDelete("{id}")]
+    [AppValidateAntiForgeryToken]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteEnterprise(int id)
+    {
+        int managerId = GetCurrentManagerId();
+
+        DeleteEnterpriseCommand command = new DeleteEnterpriseCommand
+        {
+            Id = id,
+            RequestingManagerId = managerId
+        };
+
+        Result result = await _deleteEnterpriseHandler.Handle(command);
+
+        // Success flow
+        if (result.IsSuccess)
+            return NoContent();
+
+        // Errors handling
+        if (result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.NotFound))
+        {
+            return NotFound();
+        }
+
+        if (result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.AccessDenied))
+        {
+            return Forbid();
+        }
+
+        if (result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.VisibleToOtherManagers) ||
+            result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.HasVehicles) ||
+            result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.HasDrivers) ||
+            result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.Conflict))
+        {
+            return Conflict();
+        }
+
+        // Undefined errors
+        return BadRequest();
     }
 }

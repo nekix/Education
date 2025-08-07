@@ -17,6 +17,7 @@ public class CsrfController : ApiBaseController
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetTokenResponse))]
+    [IgnoreAntiforgeryToken]
     public ActionResult<GetTokenResponse> GetToken()
     {
         AntiforgeryTokenSet token = _antiforgery.GetAndStoreTokens(HttpContext);

@@ -10,6 +10,7 @@ namespace CarPark.Models.Vehicles;
 public class DeleteVehicleCommand : ICommand<Result>
 {
     public required int Id { get; set; }
+    public required int RequestingManagerId { get; set; }
 
     public class Handler : ICommandHandler<DeleteVehicleCommand, Result>
     {
@@ -22,11 +23,21 @@ public class DeleteVehicleCommand : ICommand<Result>
 
         public async Task<Result> Handle(DeleteVehicleCommand command)
         {
-            Vehicle? vehicle = await _context.Vehicles.FindAsync(command.Id);
+            Vehicle? vehicle = await _context.Vehicles
+                .FirstOrDefaultAsync(v => v.Id == command.Id);
 
             if (vehicle == null)
             {
                 return Result.Fail(Errors.NotFound);
+            }
+
+            // Проверка доступа к автомобилю
+            bool hasAccess = await _context.Enterprises
+                .AnyAsync(e => e.Id == vehicle.EnterpriseId && 
+                              e.Managers.Any(m => m.Id == command.RequestingManagerId));
+            if (!hasAccess)
+            {
+                return Result.Fail(Errors.AccessDenied);
             }
 
             try
@@ -48,7 +59,7 @@ public class DeleteVehicleCommand : ICommand<Result>
     public static class Errors
     {
         public const string NotFound = "NotFound";
-
         public const string Conflict = "Conflict";
+        public const string AccessDenied = "AccessDenied";
     }
 } 

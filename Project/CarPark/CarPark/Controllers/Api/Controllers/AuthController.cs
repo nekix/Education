@@ -1,18 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using CarPark.Attributes;
+using CarPark.Data;
+using CarPark.Identity;
+using CarPark.Models.Managers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace CarPark.Controllers.Api.Controllers;
 
 public class AuthController : ApiBaseController
 {
+    private readonly ApplicationDbContext _context;
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public AuthController(SignInManager<IdentityUser> signInManager)
+    public AuthController(SignInManager<IdentityUser> signInManager, ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
         _signInManager = signInManager;
+        _context = context;
+        _userManager = userManager;
     }
 
     [HttpPost("login")]
@@ -32,6 +41,12 @@ public class AuthController : ApiBaseController
                 Detail = result.ToString()
             });
         }
+
+        IdentityUser user = (await _userManager.FindByNameAsync(request.Username))!;
+
+        Manager? manager = await _context.Managers.FirstOrDefaultAsync(m => m.IdentityUserId == user.Id);
+        if (manager != null)
+            await _userManager.AddClaimAsync(user, new Claim(AppIdentityConst.ManagerIdClaim, manager.Id.ToString()));
 
         return Created();
     }

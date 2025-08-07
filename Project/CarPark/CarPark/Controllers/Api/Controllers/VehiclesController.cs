@@ -76,14 +76,18 @@ public class VehiclesController : ApiBaseController
     [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutVehicle(int id, CreateUpdateVehicleRequest request)
     {
+        int managerId = GetCurrentManagerId();
+
         UpdateVehicleCommand command = new UpdateVehicleCommand
         {
             Id = id,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
+            RequestingManagerId = managerId,
             VinNumber = request.VinNumber,
             Price = request.Price,
             ManufactureYear = request.ManufactureYear,
@@ -104,6 +108,12 @@ public class VehiclesController : ApiBaseController
         {
             return NotFound();
         }
+
+        if (result.HasError(e => e.Message == UpdateVehicleCommand.Errors.AccessDenied))
+        {
+            return Forbid();
+        }
+
         // Undefined errors
         return BadRequest();
     }
@@ -113,12 +123,16 @@ public class VehiclesController : ApiBaseController
     [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult> PostVehicle(CreateUpdateVehicleRequest request)
     {
+        int managerId = GetCurrentManagerId();
+
         CreateVehicleCommand command = new CreateVehicleCommand
         {
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
+            RequestingManagerId = managerId,
             VinNumber = request.VinNumber,
             Price = request.Price,
             ManufactureYear = request.ManufactureYear,
@@ -136,6 +150,12 @@ public class VehiclesController : ApiBaseController
             return CreatedAtAction("GetVehicle", new { id = result.Value }, null);
         }
 
+        // Errors handling
+        if (result.HasError(e => e.Message == CreateVehicleCommand.Errors.AccessDenied))
+        {
+            return Forbid();
+        }
+
         // Undefined errors
         return BadRequest();
     }
@@ -144,12 +164,19 @@ public class VehiclesController : ApiBaseController
     [HttpDelete("{id}")]
     [AppValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
-        DeleteVehicleCommand command = new DeleteVehicleCommand { Id = id };
+        int managerId = GetCurrentManagerId();
+
+        DeleteVehicleCommand command = new DeleteVehicleCommand 
+        { 
+            Id = id,
+            RequestingManagerId = managerId
+        };
         
         Result result = await _deleteVehicleHandler.Handle(command);
 
@@ -161,6 +188,11 @@ public class VehiclesController : ApiBaseController
         if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.NotFound))
         {
             return NotFound();
+        }
+
+        if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.AccessDenied))
+        {
+            return Forbid();
         }
 
         if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.Conflict))

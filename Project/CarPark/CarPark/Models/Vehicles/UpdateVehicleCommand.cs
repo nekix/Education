@@ -14,6 +14,8 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
 
     public required int EnterpriseId { get; set; }
 
+    public required int RequestingManagerId { get; set; }
+
     public required string VinNumber { get; set; }
 
     public required decimal Price { get; set; }
@@ -49,7 +51,28 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
                 return Result.Fail(Errors.NotFound);
             }
 
-            // Entity Framework отслеживает изменения автоматически
+            // Проверка доступа к текущему автомобилю
+            bool hasAccessToCurrent = await _context.Enterprises
+                .AnyAsync(e => e.Id == vehicle.EnterpriseId && 
+                              e.Managers.Any(m => m.Id == command.RequestingManagerId));
+            if (!hasAccessToCurrent)
+            {
+                return Result.Fail(Errors.AccessDenied);
+            }
+
+            // Если меняется предприятие, проверить доступ к новому предприятию
+            if (vehicle.EnterpriseId != command.EnterpriseId)
+            {
+                bool hasAccessToNew = await _context.Enterprises
+                    .AnyAsync(e => e.Id == command.EnterpriseId && 
+                                  e.Managers.Any(m => m.Id == command.RequestingManagerId));
+
+                if (!hasAccessToNew)
+                {
+                    return Result.Fail(Errors.AccessDenied);
+                }
+            }
+            
             vehicle.ModelId = command.ModelId;
             vehicle.EnterpriseId = command.EnterpriseId;
             vehicle.VinNumber = command.VinNumber;
@@ -105,5 +128,6 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
         public const string NotFound = "NotFound";
         public const string InvalidDrivers = "InvalidDrivers";
         public const string InvalidActiveDriver = "InvalidActiveDriver";
+        public const string AccessDenied = "AccessDenied";
     }
 } 

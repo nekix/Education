@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using CarPark.Attributes;
 using CarPark.Models.Models;
 using CarPark.Models.Vehicles;
+using CarPark.Models.Enterprises;
 using CarPark.Shared.CQ;
 using Microsoft.OpenApi.Models;
 using FluentResults;
@@ -126,6 +127,10 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCommandQueriesServices(this IServiceCollection services)
     {
+        services.AddScoped<IVehiclesDbSet, ApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IModelsDbSet, ApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IEnterprisesDbSet, ApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+
         services.AddScoped<ICommandHandler<CreateModelCommand, Result<int>>, CreateModelCommand.Handler>();
         services.AddScoped<ICommandHandler<UpdateModelCommand, Result<int>>, UpdateModelCommand.Handler>();
         services.AddScoped<ICommandHandler<DeleteModelCommand, Result>, DeleteModelCommand.Handler>();
@@ -133,6 +138,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommandHandler<CreateVehicleCommand, Result<int>>, CreateVehicleCommand.Handler>();
         services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result<int>>, UpdateVehicleCommand.Handler>();
         services.AddScoped<ICommandHandler<DeleteVehicleCommand, Result>, DeleteVehicleCommand.Handler>();
+
+        services.AddScoped<ICommandHandler<DeleteEnterpriseCommand, Result>, DeleteEnterpriseCommand.Handler>();
 
         return services;
     }

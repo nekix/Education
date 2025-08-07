@@ -1,9 +1,13 @@
+using System.Security.Claims;
 using CarPark.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Framework;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using CarPark.Attributes;
+using CarPark.Identity;
+using CarPark.Models.Managers;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarPark.Controllers;
 
@@ -52,6 +56,12 @@ public class AuthController : Controller
             ViewData["ReturnUrl"] = request.ReturnUrl;
             return View();
         }
+
+        IdentityUser user = (await _userManager.FindByNameAsync(request.Username))!;
+
+        Manager? manager = await _context.Managers.FirstOrDefaultAsync(m => m.IdentityUserId == user.Id);
+        if (manager != null)
+            await _userManager.AddClaimAsync(user, new Claim(AppIdentityConst.ManagerIdClaim, manager.Id.ToString()));
 
         // The signInManager already produced the needed response in the form of a cookie or bearer token.
         if (request.ReturnUrl != null)

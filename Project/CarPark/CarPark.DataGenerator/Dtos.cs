@@ -2,8 +2,6 @@
 {
     public class SerializableData
     {
-        public required List<EnterpriseDto> Enterprises { get; set; }
-        public required List<ModelDto> Models { get; set; }
         public required List<VehicleDto> Vehicles { get; set; }
         public required List<DriverDto> Drivers { get; set; }
     }
@@ -39,6 +37,7 @@
         public required int Mileage { get; set; }
         public required string Color { get; set; }
         public required int? ActiveDriverId { get; set; }
+        public required List<int> AssignedDriverIds { get; set; }
     }
 
     public class DriverDto
@@ -48,5 +47,6 @@
         public required string FullName { get; set; }
         public required string DriverLicenseNumber { get; set; }
         public required int? ActiveVehicleId { get; set; }
+        public required List<int> AssignedVehicleIds { get; set; }
     }
 }

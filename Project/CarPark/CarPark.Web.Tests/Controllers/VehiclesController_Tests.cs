@@ -6,6 +6,9 @@ using CarPark.Models.Vehicles;
 using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using CarPark.Identity;
+using Microsoft.AspNetCore.Http;
 
 namespace CarPark.Web.Tests.Controllers;
 
@@ -27,6 +30,30 @@ public class VehiclesController_Tests
         _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateVehicleCommand, Result<int>>>();
         
         _controller = new VehiclesController(_mockSet, _mockEnterprisesSet, _mockCreateHandler, _mockUpdateHandler, _mockDeleteHandler);
+        
+        // Настраиваем авторизацию для тестов
+        SetupAuthorization();
+    }
+
+    private void SetupAuthorization()
+    {
+        // Создаем claims для менеджера с ID = 1
+        var claims = new List<Claim>
+        {
+            new Claim(AppIdentityConst.ManagerIdClaim, "1")
+        };
+
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Устанавливаем User для контроллера
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = principal
+            }
+        };
     }
 
     [Fact]
@@ -51,6 +78,7 @@ public class VehiclesController_Tests
 
         CreateVehicleCommand expectedCommand = new CreateVehicleCommand
         {
+            RequestingManagerId = 1,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
             VinNumber = request.VinNumber,
@@ -109,6 +137,7 @@ public class VehiclesController_Tests
 
         UpdateVehicleCommand expectedCommand = new UpdateVehicleCommand
         {
+            RequestingManagerId = 1,
             Id = vehicleId,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
@@ -149,7 +178,7 @@ public class VehiclesController_Tests
     {
         // Arrange
         int vehicleId = 1;
-        DeleteVehicleCommand expectedCommand = new DeleteVehicleCommand { Id = vehicleId };
+        DeleteVehicleCommand expectedCommand = new DeleteVehicleCommand { Id = vehicleId, RequestingManagerId = 1};
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Ok());
 

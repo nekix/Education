@@ -1,0 +1,34 @@
+﻿@using CarPark.ViewModels;
+@model IEnumerable<EnterpriseViewModel>
+
+@{
+    ViewData["Title"] = "Enterprises";
+}
+
+<h1>Enterprises</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (EnterpriseViewModel item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

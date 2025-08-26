@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using CarPark.Identity
 @inject SignInManager<IdentityUser> SignInManager
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,12 +27,15 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" asp-authorize-policy="@AppIdentityConst.ManagerPolicy">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Enterprises" asp-action="Index">Enterprises</a>
+                        </li>
+@*                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Vehicles" asp-action="Index">Vehicles</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Models" asp-action="Index">Models</a>
-                        </li>
+                        </li> *@
                     </ul>
                     <ul class="navbar-nav">
                         @if (SignInManager.IsSignedIn(User))

@@ -53,7 +53,7 @@ public class AuthController : Controller
 
         if (!result.Succeeded)
         {
-            ModelState.AddModelError("", result.ToString());
+            ModelState.AddModelError("", "Username or password is invalid");
             ViewData["ReturnUrl"] = request.ReturnUrl;
             return View();
         }

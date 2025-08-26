@@ -1,7 +1,5 @@
 ﻿using CarPark.Data;
 using CarPark.Models.Drivers;
-using CarPark.Models.Enterprises;
-using CarPark.Models.Managers;
 using CarPark.Models.Models;
 using CarPark.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;

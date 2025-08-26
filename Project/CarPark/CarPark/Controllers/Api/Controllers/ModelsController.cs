@@ -6,7 +6,6 @@ using CarPark.Models.Models;
 using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.Build.Framework;
-using CarPark.Models.Vehicles;
 
 namespace CarPark.Controllers.Api.Controllers;
 

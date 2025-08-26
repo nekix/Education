@@ -1,33 +1,34 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CarPark.Data;
 using CarPark.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
 using CarPark.Identity;
-using Microsoft.Build.Framework;
 using CarPark.Attributes;
 using CarPark.Models.Vehicles;
 using FluentResults;
 using CarPark.Shared.CQ;
+using CarPark.Controllers.Api.Abstract;
 
 namespace CarPark.Controllers.Api.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class VehiclesController : ApiBaseController
 {
-    private readonly IVehiclesDbSet _set;
+    private readonly IVehiclesDbSet _vehiclesSet;
     private readonly IEnterprisesDbSet _enterprisesSet;
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createVehicleHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateVehicleHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteVehicleHandler;
 
-    public VehiclesController(IVehiclesDbSet set,
+    public VehiclesController(IVehiclesDbSet vehiclesSet,
         IEnterprisesDbSet enterprisesSet,
         ICommandHandler<CreateVehicleCommand, Result<int>> createVehicleHandler,
         ICommandHandler<UpdateVehicleCommand, Result<int>> updateVehicleHandler,
         ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler)
     {
-        _set = set;
+        _vehiclesSet = vehiclesSet;
         _enterprisesSet = enterprisesSet;
         _createVehicleHandler = createVehicleHandler;
         _updateVehicleHandler = updateVehicleHandler;
@@ -37,15 +38,43 @@ public class VehiclesController : ApiBaseController
     // GET: api/Vehicles
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VehicleViewModel>))]
-    public async Task<ActionResult<IEnumerable<VehicleViewModel>>> GetVehicles()
+    public async Task<ActionResult<GetVehiclesResponse>> GetVehicles([FromQuery] GetVehiclesRequest request)
     {
         int managerId = GetCurrentManagerId();
 
         IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
 
-        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+        IQueryable<Vehicle> orderedQuery = originalQuery
+            .OrderBy(x => x.EnterpriseId)
+            .ThenBy(x => x.Color)
+            .ThenBy(x => x.VinNumber);
 
-        return Ok(await viewModelQuery.OrderBy(x => x.Id).ToListAsync());
+        uint total = (uint)orderedQuery.Count();
+
+        IQueryable<Vehicle> paginatedQuery = orderedQuery
+            .Skip((int)request.Offset)
+            .Take((int)request.Limit);
+
+        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(paginatedQuery);
+
+        List<VehicleViewModel> viewModels = await viewModelQuery
+            .OrderBy(x => x.EnterpriseId)
+            .ThenBy(x => x.Color)
+            .ThenBy(x => x.VinNumber)
+            .ToListAsync();
+
+        GetVehiclesResponse response = new GetVehiclesResponse
+        {
+            Data = viewModels,
+            Meta = new GetVehiclesResponse.Metadata()
+            {
+                Limit = request.Limit,
+                Offset = request.Offset,
+                Total = total
+            }
+        };
+
+        return Ok(response);
     }
 
     // GET: api/Vehicles/5
@@ -204,6 +233,32 @@ public class VehiclesController : ApiBaseController
         return BadRequest();
     }
 
+    public class GetVehiclesRequest : IPaginationRequest
+    {
+        [Required]
+        [Range(1, 1000)]
+        public required uint Limit { get; init; }
+
+        [Required]
+        [Range(0, int.MaxValue)]
+        public required uint Offset { get; init; }
+    }
+
+    public class GetVehiclesResponse : IPaginationModel<VehicleViewModel, GetVehiclesResponse.Metadata>
+    {
+        public required Metadata Meta { get; init; }
+
+        public required IEnumerable<VehicleViewModel> Data { get; init; }
+
+        public class Metadata : IPaginationMetadata
+        {
+            public uint Offset { get; init; }
+
+            public uint Limit { get; init; }
+
+            public uint Total { get; init; }
+        }
+    }
 
     public class CreateUpdateVehicleRequest
     {
@@ -243,37 +298,48 @@ public class VehiclesController : ApiBaseController
 
     private IQueryable<Vehicle> GetFilteredByManagerQuery(int managerId)
     {
-        IQueryable<Vehicle> filteredQuery =
-            from e in _enterprisesSet.Enterprises
-            join v in _set.Vehicles on e.Id equals v.EnterpriseId
-            where e.Managers.Any(m => m.Id == managerId)
-            select v;
+        IQueryable<int> enterpriseIds = _enterprisesSet.Enterprises
+            .Where(e => e.Managers.Any(m => m.Id == managerId))
+            .Select(e => e.Id);
 
-        return filteredQuery;
+        return _vehiclesSet.Vehicles
+            .Where(v => enterpriseIds.Contains(v.EnterpriseId));
     }
 
-    private static IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
+    private IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
     {
         IQueryable<VehicleViewModel> vehiclesQuery =
             from v in query
-            let assignments = v.AssignedDrivers
-                .Select(ad => ad.Id)
-                .Order()
-                .ToList()
+            from d in v.AssignedDrivers.DefaultIfEmpty()
+            group d by new
+            {
+                v.Id,
+                v.ModelId,
+                v.EnterpriseId,
+                v.VinNumber,
+                v.Price,
+                v.ManufactureYear,
+                v.Mileage,
+                v.Color,
+                ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : (int?)null
+            } into g
             select new VehicleViewModel
             {
-                Id = v.Id,
-                ModelId = v.ModelId,
-                EnterpriseId = v.EnterpriseId,
-                VinNumber = v.VinNumber,
-                Price = v.Price,
-                ManufactureYear = v.ManufactureYear,
-                Mileage = v.Mileage,
-                Color = v.Color,
+                Id = g.Key.Id,
+                ModelId = g.Key.ModelId,
+                EnterpriseId = g.Key.EnterpriseId,
+                VinNumber = g.Key.VinNumber,
+                Price = g.Key.Price,
+                ManufactureYear = g.Key.ManufactureYear,
+                Mileage = g.Key.Mileage,
+                Color = g.Key.Color,
                 DriversAssignments = new VehicleViewModel.DriversAssignmentsViewModel
                 {
-                    DriversIds = assignments,
-                    ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : null,
+                    DriversIds = EF.Functions.ArrayAgg(
+                        g.Where(x => x != null)
+                            .Select(x => x.Id)
+                            .Order()),
+                    ActiveDriverId = g.Key.ActiveDriverId
                 }
             };
 

@@ -8,6 +8,7 @@ using CarPark.Attributes;
 using CarPark.Identity;
 using CarPark.Models.Managers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
 
 namespace CarPark.Controllers;
 
@@ -78,7 +79,7 @@ public class AuthController : Controller
     [AppValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = null)
     {
-        await _signInManager.SignOutAsync();
+        await HttpContext.SignOutAsync(_signInManager.AuthenticationScheme);
 
         if (returnUrl != null)
         {

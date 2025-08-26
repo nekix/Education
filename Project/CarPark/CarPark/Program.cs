@@ -11,6 +11,7 @@ using CarPark.Models.Enterprises;
 using CarPark.Shared.CQ;
 using Microsoft.OpenApi.Models;
 using FluentResults;
+using System.ComponentModel.DataAnnotations;
 
 namespace CarPark;
 
@@ -161,40 +162,43 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddAuthentication(IdentityConstants.ApplicationScheme)
-            .AddCookie(IdentityConstants.ApplicationScheme, o =>
+            .AddIdentityCookies(builder =>
             {
-                o.LoginPath = new PathString("/Auth/Login");
-                o.LogoutPath = new PathString("/Auth/Logout");
-                o.ExpireTimeSpan = TimeSpan.FromHours(24);
-                o.Cookie.HttpOnly = true;
-                o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                o.Cookie.SameSite = SameSiteMode.Strict;
-                o.Events = new CookieAuthenticationEvents
+                builder!.ApplicationCookie!.Configure(o =>
                 {
-                    OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync,
-                    OnRedirectToLogin = context =>
+                    o.LoginPath = new PathString("/Auth/Login");
+                    o.LogoutPath = new PathString("/Auth/Logout");
+                    o.ExpireTimeSpan = TimeSpan.FromHours(24);
+                    o.Cookie.HttpOnly = true;
+                    o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    o.Cookie.SameSite = SameSiteMode.Strict;
+                    o.Events = new CookieAuthenticationEvents
                     {
-                        if (IsApiRequest(context.Request))
+                        OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync,
+                        OnRedirectToLogin = context =>
                         {
-                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            if (IsApiRequest(context.Request))
+                            {
+                                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                                return Task.CompletedTask;
+                            }
+
+                            context.Response.Redirect(context.RedirectUri);
+                            return Task.CompletedTask;
+                        },
+                        OnRedirectToAccessDenied = context =>
+                        {
+                            if (IsApiRequest(context.Request))
+                            {
+                                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                                return Task.CompletedTask;
+                            }
+
+                            context.Response.Redirect(context.RedirectUri);
                             return Task.CompletedTask;
                         }
-                        
-                        context.Response.Redirect(context.RedirectUri);
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToAccessDenied = context =>
-                    {
-                        if (IsApiRequest(context.Request))
-                        {
-                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                            return Task.CompletedTask;
-                        }
-                        
-                        context.Response.Redirect(context.RedirectUri);
-                        return Task.CompletedTask;
-                    }
-                };
+                    };
+                });
             });
 
         return services.AddIdentityCore<TUser>(_ => { })

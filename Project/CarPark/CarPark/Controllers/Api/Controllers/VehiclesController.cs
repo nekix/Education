@@ -133,14 +133,9 @@ public class VehiclesController : ApiBaseController
             return NoContent();
 
         // Errors handling
-        if (result.HasError(e => e.Message == UpdateVehicleCommand.Errors.NotFound))
+        if (result.HasError(e => e.Message == UpdateVehicleCommand.Errors.VehicleNotFound))
         {
             return NotFound();
-        }
-
-        if (result.HasError(e => e.Message == UpdateVehicleCommand.Errors.AccessDenied))
-        {
-            return Forbid();
         }
 
         // Undefined errors
@@ -210,7 +205,7 @@ public class VehiclesController : ApiBaseController
         Result result = await _deleteVehicleHandler.Handle(command);
 
         // Success flow
-        if (!result.IsFailed) 
+        if (result.IsSuccess) 
             return NoContent();
 
         // Errors handling

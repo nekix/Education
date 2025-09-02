@@ -1,5 +1,5 @@
-﻿@using CarPark.ViewModels.Vehicles
-@model VehicleViewModel
+﻿@using CarPark.Models.Vehicles
+@model Vehicle
 
 @{
     ViewData["Title"] = "Edit";
@@ -19,36 +19,32 @@
                 <span asp-validation-for="Id" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Enterprise.Id" class="control-label">Enterprise</label>
-                <select name="EnterpriseId" asp-for="Enterprise.Id" class="form-control" asp-items="@(new SelectList(ViewBag.Enterprises, "Id", "EnterpriseName", Model.Enterprise.Id))"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Model.Id" class="control-label">Model</label>
-                <select name="ModelId" asp-for="Model.Id" class="form-control" asp-items="@(new SelectList(ViewBag.Models, "Id", "ModelName", Model.Model.Id))"></select>
+                <label asp-for="ModelId" class="control-label">Model</label>
+                <select asp-for="ModelId" class="form-control" asp-items="@(new SelectList(ViewBag.Models, "Id", "ModelName"))"></select>
             </div>
             <div class="form-group">
                 <label asp-for="VinNumber" class="control-label"></label>
-                <input name="VinNumber" asp-for="VinNumber" class="form-control" />
+                <input asp-for="VinNumber" class="form-control" />
                 <span asp-validation-for="VinNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Price" class="control-label"></label>
-                <input name="Price" asp-for="Price" type="number" step="0.01" class="form-control" />
+                <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="ManufactureYear" class="control-label"></label>
-                <input name="ManufactureYear" asp-for="ManufactureYear" type="number" class="form-control" />
+                <input asp-for="ManufactureYear" class="form-control" />
                 <span asp-validation-for="ManufactureYear" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Mileage" class="control-label"></label>
-                <input name="Mileage" asp-for="Mileage" type="number" class="form-control" />
+                <input asp-for="Mileage" class="form-control" />
                 <span asp-validation-for="Mileage" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Color" class="control-label"></label>
-                <input name="Color" asp-for="Color" class="form-control" />
+                <input asp-for="Color" class="form-control" />
                 <span asp-validation-for="Color" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -63,7 +59,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

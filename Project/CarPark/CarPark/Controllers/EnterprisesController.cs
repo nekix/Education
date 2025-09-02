@@ -1,15 +1,14 @@
 ﻿using CarPark.Data;
 using CarPark.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using CarPark.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using CarPark.ViewModels.Enterprises;
 
 namespace CarPark.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
-public class EnterprisesController : Controller
+public class EnterprisesController : BaseController
 {
     private readonly ApplicationDbContext _context;
 
@@ -18,6 +17,7 @@ public class EnterprisesController : Controller
         _context = context;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         int managerId = GetCurrentManagerId();
@@ -31,10 +31,42 @@ public class EnterprisesController : Controller
         return View(enterprises);
     }
 
-    private int GetCurrentManagerId()
+    [HttpGet]
+    public async Task<IActionResult> Details(int? id)
     {
-        string? managerIdText = User.FindFirstValue(AppIdentityConst.ManagerIdClaim);
+        if (id == null)
+        {
+            return NotFound();
+        }
 
-        return int.Parse(managerIdText!);
+        int managerId = GetCurrentManagerId();
+
+        EnterpriseDetailsViewModel? enterprise = await _context
+            .Enterprises
+            .Where(e => e.Managers.Any(m => m.Id == managerId))
+            .Where(e => e.Id == id)
+            .Select(e => new EnterpriseDetailsViewModel
+            {
+                Id = e.Id,
+                Name = e.Name,
+                LegalAddress = e.LegalAddress,
+                Vehicles = _context.Vehicles
+                    .Where(v => v.EnterpriseId == e.Id)
+                    .Select(v => new EnterpriseDetailsViewModel.VehicleViewModel
+                    {
+                        Id = v.Id,
+                        VinNumber = v.VinNumber
+                    })
+                    .OrderBy(v => v.Id)
+                    .ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        if (enterprise == null)
+        {
+            return NotFound();
+        }
+
+        return View(enterprise);
     }
 }

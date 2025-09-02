@@ -1,4 +1,4 @@
-﻿@using CarPark.ViewModels;
+﻿@using CarPark.ViewModels.Enterprises
 @model IEnumerable<EnterpriseViewModel>
 
 @{
@@ -16,6 +16,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -27,6 +28,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
             </td>
         </tr>
     }

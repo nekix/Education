@@ -3,6 +3,8 @@ using FluentResults;
 using CarPark.Models.Drivers;
 using Microsoft.EntityFrameworkCore;
 using CarPark.Shared.CQ;
+using CarPark.Models.Enterprises;
+using CarPark.Models.Managers;
 
 namespace CarPark.Models.Vehicles;
 
@@ -39,14 +41,15 @@ public class CreateVehicleCommand : ICommand<Result<int>>
 
         public async Task<Result<int>> Handle(CreateVehicleCommand command)
         {
-            // Проверка доступа к предприятию
-            bool hasAccess = await _context.Enterprises
-                .AnyAsync(e => e.Id == command.EnterpriseId && 
-                              e.Managers.Any(m => m.Id == command.RequestingManagerId));
+            // Управляет ли текущий менеджер предприятием, в котором меняет автомобиль
+            Manager manager = await _context.Managers.FirstAsync(m => m.Id == command.RequestingManagerId);
+            Enterprise enterprise = await _context.Enterprises
+                .Include(e => e.Managers)
+                .FirstAsync(e => e.Id == command.EnterpriseId);
 
-            if (!hasAccess)
+            if (!enterprise.Managers.Contains(manager))
             {
-                return Result.Fail(Errors.AccessDenied);
+                return Result.Fail<int>(Errors.ManagerNotInVehicleEnterprise);
             }
 
             Vehicle vehicle = new Vehicle
@@ -63,30 +66,42 @@ public class CreateVehicleCommand : ICommand<Result<int>>
                 Color = command.Color
             };
 
+            // Если есть назначенные водители
             if (command.DriverIds.Count != 0)
             {
-                List<Driver> drivers = await _context.Drivers
-                    .Where(d => d.EnterpriseId == command.EnterpriseId)
-                    .Where(d => command.DriverIds.Contains(d.Id))
+                List<Driver> newAssignedDrivers = await _context.Drivers
+                    .Where(d => command.DriverIds.Any(id => id == d.Id))
                     .ToListAsync();
 
-                if (drivers.Count != command.DriverIds.Count)
+                // Если не нашел часть водителей
+                if (newAssignedDrivers.Count != command.DriverIds.Count)
                 {
-                    return Result.Fail(Errors.InvalidDrivers);
+                    return Result.Fail<int>(Errors.NewAssignedDriversNotFounded);
                 }
 
-                vehicle.AssignedDrivers.AddRange(drivers);
-
-                if (command.ActiveDriverId != null)
+                // Бизнес проверки на смена назначенных водителей
+                Result changeAssignedDrivers = SetAssignedDrivers(vehicle, newAssignedDrivers);
+                if (changeAssignedDrivers.IsFailed)
                 {
-                    int activeDriverId = command.ActiveDriverId.Value;
+                    return Result.Fail<int>(changeAssignedDrivers.Errors);
+                }
+            }
 
-                    if (!command.DriverIds.Contains(activeDriverId))
-                    {
-                        return Result.Fail(Errors.InvalidActiveDriver);
-                    }
+            // Если есть назначенный водитель
+            if (command.ActiveDriverId != null)
+            {
+                Driver? newActiveAssignedDriver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == command.ActiveDriverId);
 
-                    vehicle.ActiveAssignedDriver = drivers.First(d => d.Id == activeDriverId);
+                // Если не нашел нового активного водителя
+                if (newActiveAssignedDriver == null)
+                {
+                    return Result.Fail<int>(Errors.NewActiveAssignedDriverNotFounded);
+                }
+
+                Result changeActiveAssignedDriver = SetActiveAssignedDriver(vehicle, newActiveAssignedDriver);
+                if (changeActiveAssignedDriver.IsFailed)
+                {
+                    return Result.Fail<int>(changeActiveAssignedDriver.Errors);
                 }
             }
 
@@ -95,12 +110,50 @@ public class CreateVehicleCommand : ICommand<Result<int>>
 
             return vehicle.Id;
         }
+
+        private Result SetAssignedDrivers(Vehicle vehicle, List<Driver> newAssignedDrivers)
+        {
+            // Нет водителей из других предприятий
+            bool isDriversFromAnotherEnterprises = newAssignedDrivers.Any(d => d.EnterpriseId != vehicle.EnterpriseId);
+            if (isDriversFromAnotherEnterprises)
+            {
+                return Result.Fail(Errors.AssignedDriversFromAnotherEnterprise);
+            }
+
+            vehicle.AssignedDrivers = newAssignedDrivers;
+
+            return Result.Ok();
+        }
+
+        private Result SetActiveAssignedDriver(Vehicle vehicle, Driver? newActiveDriver)
+        {
+            if (newActiveDriver != null)
+            {
+                if (newActiveDriver.ActiveAssignedVehicle != null)
+                {
+                    return Result.Fail(Errors.DriverAlsoActiveAssignedToAnotherVehicle);
+                }
+
+                if (!vehicle.AssignedDrivers.Contains(newActiveDriver))
+                {
+                    return Result.Fail(Errors.NewActiveAssignedDriverNotInAssignedDrivers);
+                }
+            }
+
+            vehicle.ActiveAssignedDriver = newActiveDriver;
+
+            return Result.Ok();
+        }
     }
 
     public static class Errors
     {
-        public const string InvalidDrivers = "InvalidDrivers";
-        public const string InvalidActiveDriver = "InvalidActiveDriver";
         public const string AccessDenied = "AccessDenied";
+        public const string ManagerNotInVehicleEnterprise = "ManagerNotInCurrentVehicleEnterprise";
+        public const string AssignedDriversFromAnotherEnterprise = "AssignedDriversFromAnotherEnterprise";
+        public const string NewAssignedDriversNotFounded = "NewAssignedDriversNotFounded";
+        public const string NewActiveAssignedDriverNotFounded = "NewActiveAssignedDriverNotFounded";
+        public const string NewActiveAssignedDriverNotInAssignedDrivers = "NewActiveAssignedDriverNotInAssignedDrivers";
+        public const string DriverAlsoActiveAssignedToAnotherVehicle = "DriverAlsoActiveAssignedToAnotherVehicle";
     }
 } 

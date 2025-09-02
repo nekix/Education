@@ -1,4 +1,4 @@
-﻿namespace CarPark.ViewModels;
+﻿namespace CarPark.ViewModels.Enterprises;
 
 public class EnterpriseViewModel
 {

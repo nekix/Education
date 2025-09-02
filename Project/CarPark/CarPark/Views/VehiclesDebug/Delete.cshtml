@@ -1,5 +1,5 @@
-﻿@using CarPark.ViewModels.Vehicles
-@model VehicleViewModel
+﻿@using CarPark.Models.Vehicles
+@model Vehicle
 
 @{
     ViewData["Title"] = "Delete";
@@ -12,23 +12,17 @@
     <h4>Vehicle</h4>
     <hr />
     <dl class="row">
-        <dt class="col-sm-2">
+        <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Id)
         </dt>
-        <dd class="col-sm-10">
+        <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Id)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Model.Name)
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ModelId)
         </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Model.Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Enterprise.Name)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Enterprise.Name)
+        <dd class = "col-sm-10">
+            @Html.ActionLink(Model.ModelId.ToString(), "Details", "Models", new { Id = Model.ModelId })
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.VinNumber)
@@ -61,7 +55,7 @@
             @Html.DisplayFor(model => model.Color)
         </dd>
     </dl>
-
+    
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |

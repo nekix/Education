@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using CarPark.Identity;
 using Microsoft.AspNetCore.Http;
+using CarPark.Controllers;
 
 namespace CarPark.Web.Tests.Controllers;
 
@@ -277,7 +278,7 @@ public class VehiclesController_Tests
             }
         };
 
-        _mockUpdateHandler.Handle(Arg.Any<UpdateVehicleCommand>()).Returns(Result.Fail(UpdateVehicleCommand.Errors.NotFound));
+        _mockUpdateHandler.Handle(Arg.Any<UpdateVehicleCommand>()).Returns(Result.Fail(UpdateVehicleCommand.Errors.VehicleNotFound));
 
         // Act
         IActionResult result = await _controller.PutVehicle(vehicleId, request);

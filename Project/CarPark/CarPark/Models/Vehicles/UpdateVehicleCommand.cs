@@ -33,6 +33,8 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
 
     public required int? ActiveDriverId { get; set; }
 
+    public required DateTimeOffset AddedToEnterpriseAt { get; set; }
+
     public class Handler : ICommandHandler<UpdateVehicleCommand, Result<int>>
     {
         private readonly ApplicationDbContext _context;
@@ -44,6 +46,9 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
 
         public async Task<Result<int>> Handle(UpdateVehicleCommand command)
         {
+            if (command.AddedToEnterpriseAt < DateTimeOffset.Now)
+                return Result.Fail<int>(Errors.AddedToEnterpriseDateGraterThenNow);
+
             // Сущетсвует ли эта машина
             Vehicle? vehicle = await _context.Vehicles
                 .Include(v => v.AssignedDrivers)
@@ -143,6 +148,7 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
             vehicle.ManufactureYear = command.ManufactureYear;
             vehicle.Mileage = command.Mileage;
             vehicle.Color = command.Color;
+            vehicle.AddedToEnterpriseAt = command.AddedToEnterpriseAt;
 
             await _context.SaveChangesAsync();
 
@@ -226,5 +232,6 @@ public class UpdateVehicleCommand : ICommand<Result<int>>
         public const string ManagerNotInNewEnterprise = "ManagerNotInNewEnterprise";
         public const string HasAssignedDrivers = "HasAssignedDrivers";
         public const string NewModelNotFounded = "NewModelNotFounded";
+        public const string AddedToEnterpriseDateGraterThenNow = "AddedToEnterpriseDateGraterThenNow";
     }
 } 

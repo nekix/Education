@@ -62,61 +62,6 @@ public class EnterprisesController : ApiBaseController
         return viewModel;
     }
 
-    private IQueryable<Enterprise> GetFilteredByManagerQuery(int managerId)
-    {
-        IQueryable<Enterprise> filteredQuery =
-            from e in _context.Enterprises
-            where e.Managers.Any(m => m.Id == managerId)
-            select e;
-
-        return filteredQuery;
-    }
-
-    private IQueryable<EnterpriseViewModel> TransformToViewModelQuery(IQueryable<Enterprise> query)
-    {
-        var driversQuery =
-            from d in _context.Drivers
-            select new
-            {
-                d.EnterpriseId,
-                d.Id
-            };
-
-        var vehiclesQuery =
-            from v in _context.Vehicles
-            select new
-            {
-                v.EnterpriseId,
-                v.Id
-            };
-
-        IQueryable<EnterpriseViewModel> viewModelQuery =
-            from e in query
-            let drivers = driversQuery
-                .Where(d => d.EnterpriseId == e.Id)
-                .Select(d => d.Id)
-                .OrderBy(id => id)
-                .ToList()
-            let vehicles = vehiclesQuery
-                .Where(v => v.EnterpriseId == e.Id)
-                .Select(v => v.Id)
-                .OrderBy(id => id)
-                .ToList()
-            select new EnterpriseViewModel
-            {
-                Id = e.Id,
-                Name = e.Name,
-                LegalAddress = e.LegalAddress,
-                RelatedEntities = new RelatedEntitiesViewModel
-                {
-                    DriversIds = drivers,
-                    VehiclesIds = vehicles
-                }
-            };
-
-        return viewModelQuery;
-    }
-
     // DELETE: api/Enterprises/5
     [HttpDelete("{id}")]
     [AppValidateAntiForgeryToken]
@@ -162,5 +107,61 @@ public class EnterprisesController : ApiBaseController
 
         // Undefined errors
         return BadRequest();
+    }
+
+    private IQueryable<Enterprise> GetFilteredByManagerQuery(int managerId)
+    {
+        IQueryable<Enterprise> filteredQuery =
+            from e in _context.Enterprises
+            where e.Managers.Any(m => m.Id == managerId)
+            select e;
+
+        return filteredQuery;
+    }
+
+    private IQueryable<EnterpriseViewModel> TransformToViewModelQuery(IQueryable<Enterprise> query)
+    {
+        var driversQuery =
+            from d in _context.Drivers
+            select new
+            {
+                d.EnterpriseId,
+                d.Id
+            };
+
+        var vehiclesQuery =
+            from v in _context.Vehicles
+            select new
+            {
+                v.EnterpriseId,
+                v.Id
+            };
+
+        IQueryable<EnterpriseViewModel> viewModelQuery =
+            from e in query
+            let drivers = driversQuery
+                .Where(d => d.EnterpriseId == e.Id)
+                .Select(d => d.Id)
+                .OrderBy(id => id)
+                .ToList()
+            let vehicles = vehiclesQuery
+                .Where(v => v.EnterpriseId == e.Id)
+                .Select(v => v.Id)
+                .OrderBy(id => id)
+                .ToList()
+            select new EnterpriseViewModel
+            {
+                Id = e.Id,
+                Name = e.Name,
+                LegalAddress = e.LegalAddress,
+                TimeZoneId = e.TimeZone.Id,
+                RelatedEntities = new RelatedEntitiesViewModel
+                {
+                    DriversIds = drivers,
+                    VehiclesIds = vehicles
+                }
+            };
+
+        return viewModelQuery;
     }
 }

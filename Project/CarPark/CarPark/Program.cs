@@ -1,5 +1,6 @@
 using CarPark.Data;
 using CarPark.Identity;
+using CarPark.Models.TzInfos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -153,6 +154,12 @@ public static class ServiceCollectionExtensions
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention());
+
+        // Регистрируем timezone service как singleton для кеширования
+        builder.Services.AddSingleton<LocalIcuTimezoneService>();
+        
+        // Регистрируем timezone conversion service
+        builder.Services.AddScoped(typeof(CarPark.Services.TimeZoneConversionService));
 
         return builder.Services;
     }

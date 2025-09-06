@@ -1,6 +1,7 @@
 ﻿using CarPark.Data;
 using CarPark.Models.Drivers;
 using CarPark.Models.Models;
+using CarPark.Models.TzInfos;
 using CarPark.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -47,13 +48,13 @@ internal class Program
         return rootCommand.Parse(args).Invoke();
     }
 
-    static ApplicationDbContext CreateDbContext(string connectionString)
+    static ApplicationDbContext CreateDbContext(string connectionString, LocalIcuTimezoneService tzService)
     {
         DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention();
 
-        return new ApplicationDbContext(optionsBuilder.Options);
+        return new ApplicationDbContext(optionsBuilder.Options, tzService);
     }
 
     static List<Model> LoadModelsFromDatabase(ApplicationDbContext context)
@@ -103,7 +104,8 @@ internal class Program
         Console.WriteLine();
 
         // Создаем контекст БД
-        using ApplicationDbContext dbContext = CreateDbContext(connectionString);
+        using LocalIcuTimezoneService tzService = new LocalIcuTimezoneService();
+        using ApplicationDbContext dbContext = CreateDbContext(connectionString, tzService);
 
         using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
 

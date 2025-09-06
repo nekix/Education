@@ -2,24 +2,19 @@
 @model CreateUpdateVehicleRequest
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = $"Add Vehicle - {ViewBag.Enterprise.Name}";
 }
 
-<h1>Create</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Add Vehicle - @ViewBag.Enterprise.Name</h1>
+</div>
 
-<h4>Vehicle</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="EnterpriseId" class="control-label">Enterprise</label>
-                <select asp-for="EnterpriseId" class="form-control" asp-items="@(new SelectList(ViewBag.Enterprises, "Id", "EnterpriseName", ViewBag.SelectedEnterpriseId))">
-                    <option value="">Select Enterprise</option>
-                </select>
-                <span asp-validation-for="EnterpriseId" class="text-danger"></span>
-            </div>
+            <input type="hidden" asp-for="EnterpriseId" value="@ViewBag.Enterprise.Id" />
             <div class="form-group">
                 <label asp-for="ModelId" class="control-label">Model</label>
                 <select asp-for="ModelId" class="form-control" asp-items="@(new SelectList(ViewBag.Models, "Id", "ModelName"))">
@@ -60,7 +55,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" asp-route-enterpriseId="@ViewBag.Enterprise.Id" class="btn btn-secondary">Back to List</a>
 </div>
 
 @section Scripts {

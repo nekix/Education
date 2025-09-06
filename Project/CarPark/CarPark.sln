@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarPark.Web.Tests", "CarPar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarPark.DataGenerator", "CarPark.DataGenerator\CarPark.DataGenerator.csproj", "{821D6F71-5867-4A6B-9A97-3B8D82FA86C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarPark.TimeZoneResxGenerator", "CarPark.TimeZoneResxGenerator\CarPark.TimeZoneResxGenerator.csproj", "{BFFED4A8-2F2F-464C-A5C8-4B5CF28C12FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{821D6F71-5867-4A6B-9A97-3B8D82FA86C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{821D6F71-5867-4A6B-9A97-3B8D82FA86C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{821D6F71-5867-4A6B-9A97-3B8D82FA86C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFFED4A8-2F2F-464C-A5C8-4B5CF28C12FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFFED4A8-2F2F-464C-A5C8-4B5CF28C12FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFFED4A8-2F2F-464C-A5C8-4B5CF28C12FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFFED4A8-2F2F-464C-A5C8-4B5CF28C12FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

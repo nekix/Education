@@ -20,6 +20,8 @@ public class VehicleViewModel
 
     public required string Color { get; set; }
 
+    public required DateTimeOffset AddedToEnterpriseAt { get; set; }
+
     public class ModelViewModel
     {
         public required int Id { get; set; }

@@ -30,6 +30,8 @@ public class CreateVehicleCommand : ICommand<Result<int>>
 
     public required int? ActiveDriverId { get; set; }
 
+    public required DateTimeOffset AddedToEnterpriseAt { get; set; }
+
     public class Handler : ICommandHandler<CreateVehicleCommand, Result<int>>
     {
         private readonly ApplicationDbContext _context;
@@ -41,6 +43,9 @@ public class CreateVehicleCommand : ICommand<Result<int>>
 
         public async Task<Result<int>> Handle(CreateVehicleCommand command)
         {
+            if (command.AddedToEnterpriseAt < DateTimeOffset.Now)
+                return Result.Fail<int>(Errors.AddedToEnterpriseDateGraterThenNow);
+
             // Управляет ли текущий менеджер предприятием, в котором меняет автомобиль
             Manager manager = await _context.Managers.FirstAsync(m => m.Id == command.RequestingManagerId);
             Enterprise enterprise = await _context.Enterprises
@@ -63,7 +68,8 @@ public class CreateVehicleCommand : ICommand<Result<int>>
                 Price = command.Price,
                 ManufactureYear = command.ManufactureYear,
                 Mileage = command.Mileage,
-                Color = command.Color
+                Color = command.Color,
+                AddedToEnterpriseAt = command.AddedToEnterpriseAt.ToUniversalTime()
             };
 
             // Если есть назначенные водители
@@ -155,5 +161,6 @@ public class CreateVehicleCommand : ICommand<Result<int>>
         public const string NewActiveAssignedDriverNotFounded = "NewActiveAssignedDriverNotFounded";
         public const string NewActiveAssignedDriverNotInAssignedDrivers = "NewActiveAssignedDriverNotInAssignedDrivers";
         public const string DriverAlsoActiveAssignedToAnotherVehicle = "DriverAlsoActiveAssignedToAnotherVehicle";
+        public const string AddedToEnterpriseDateGraterThenNow = "AddedToEnterpriseDateGraterThenNow";
     }
 } 

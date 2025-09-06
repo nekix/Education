@@ -10,6 +10,7 @@ using System.Security.Claims;
 using CarPark.Identity;
 using Microsoft.AspNetCore.Http;
 using CarPark.Controllers;
+using VehiclesController = CarPark.Controllers.Api.Controllers.VehiclesController;
 
 namespace CarPark.Web.Tests.Controllers;
 
@@ -70,6 +71,7 @@ public class VehiclesController_Tests
             ManufactureYear = 2020,
             Mileage = 50000,
             Color = "Красный",
+            AddedToEnterpriseAt = 
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
                 DriversIds = new List<int> { 1, 2 },

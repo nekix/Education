@@ -1,4 +1,6 @@
-﻿namespace CarPark.ViewModels.Enterprises;
+﻿using System.ComponentModel;
+
+namespace CarPark.ViewModels.Enterprises;
 
 public class EnterpriseDetailsViewModel
 {
@@ -6,14 +8,16 @@ public class EnterpriseDetailsViewModel
 
     public required string Name { get; set; }
 
+    [DisplayName("Legal Address")]
     public required string LegalAddress { get; set; }
 
-    public required List<VehicleViewModel> Vehicles { get; set; }
+    [DisplayName("Time Zone")]
+    public required TimeZoneViewModel? TimeZone { get; set; }
 
-    public class VehicleViewModel
+    public class TimeZoneViewModel
     {
         public required int Id { get; set; }
 
-        public required string VinNumber { get; set; }
+        public required string Name { get; set; }
     }
 }

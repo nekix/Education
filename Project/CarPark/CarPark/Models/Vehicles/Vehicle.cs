@@ -23,4 +23,6 @@ public sealed class Vehicle
     public required List<Driver> AssignedDrivers { get; set; }
 
     public required Driver? ActiveAssignedDriver { get; set; }
+
+    public required DateTimeOffset AddedToEnterpriseAt { get; set; }
 }

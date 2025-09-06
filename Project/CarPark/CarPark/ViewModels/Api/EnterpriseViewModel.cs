@@ -8,6 +8,8 @@ public class EnterpriseViewModel
 
     public required string LegalAddress { get; set; }
 
+    public required int TimeZoneId { get; set; }
+
     public required RelatedEntitiesViewModel RelatedEntities { get; set; }
 
     public class RelatedEntitiesViewModel

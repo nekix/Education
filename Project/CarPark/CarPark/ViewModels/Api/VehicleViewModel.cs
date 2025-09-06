@@ -20,6 +20,8 @@ public class VehicleViewModel
 
     public required DriversAssignmentsViewModel DriversAssignments { get; set; }
 
+    public required DateTimeOffset AddedToEnterpriseAt { get; set; }
+
     public class DriversAssignmentsViewModel
     {
         public required IEnumerable<int> DriversIds { get; set; }

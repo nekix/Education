@@ -10,6 +10,8 @@ using CarPark.Models.Vehicles;
 using FluentResults;
 using CarPark.Shared.CQ;
 using CarPark.Controllers.Api.Abstract;
+using CarPark.Models.TzInfos;
+using CarPark.Services;
 
 namespace CarPark.Controllers.Api.Controllers;
 
@@ -21,18 +23,21 @@ public class VehiclesController : ApiBaseController
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createVehicleHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateVehicleHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteVehicleHandler;
+    private readonly TimeZoneConversionService _timeZoneConversionService;
 
     public VehiclesController(IVehiclesDbSet vehiclesSet,
         IEnterprisesDbSet enterprisesSet,
         ICommandHandler<CreateVehicleCommand, Result<int>> createVehicleHandler,
         ICommandHandler<UpdateVehicleCommand, Result<int>> updateVehicleHandler,
-        ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler)
+        ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler,
+        TimeZoneConversionService timeZoneConversionService)
     {
         _vehiclesSet = vehiclesSet;
         _enterprisesSet = enterprisesSet;
         _createVehicleHandler = createVehicleHandler;
         _updateVehicleHandler = updateVehicleHandler;
         _deleteVehicleHandler = deleteVehicleHandler;
+        _timeZoneConversionService = timeZoneConversionService;
     }
 
     // GET: api/Vehicles
@@ -62,6 +67,23 @@ public class VehiclesController : ApiBaseController
             .ThenBy(x => x.Color)
             .ThenBy(x => x.VinNumber)
             .ToListAsync();
+
+        // Get enterprises for timezone info
+        Dictionary<int, TzInfo?> enterpriseTimeZones = await _enterprisesSet.Enterprises
+            .Where(e => viewModels.Select(v => v.EnterpriseId).Contains(e.Id))
+            .Select(e => new { e.Id, e.TimeZone })
+            .ToDictionaryAsync(e => e.Id, e => e.TimeZone);
+
+        // Convert dates to enterprise timezone
+        foreach (VehicleViewModel model in viewModels)
+        {
+            if (enterpriseTimeZones.TryGetValue(model.EnterpriseId, out TzInfo? timeZoneInfo))
+            {
+                model.AddedToEnterpriseAt = _timeZoneConversionService.ConvertToEnterpriseTimeZone(
+                    model.AddedToEnterpriseAt,
+                    timeZoneInfo);
+            }
+        }
 
         GetVehiclesResponse response = new GetVehiclesResponse
         {
@@ -97,6 +119,17 @@ public class VehiclesController : ApiBaseController
             return NotFound();
         }
 
+        // Get enterprise timezone info
+        TzInfo? enterpriseTimeZone = await _enterprisesSet.Enterprises
+            .Where(e => e.Id == viewModel.EnterpriseId)
+            .Select(e => e.TimeZone)
+            .FirstOrDefaultAsync();
+
+        // Convert date to enterprise timezone
+        viewModel.AddedToEnterpriseAt = _timeZoneConversionService.ConvertToEnterpriseTimeZone(
+            viewModel.AddedToEnterpriseAt,
+            enterpriseTimeZone);
+
         return viewModel;
     }
 
@@ -123,7 +156,8 @@ public class VehiclesController : ApiBaseController
             Mileage = request.Mileage,
             Color = request.Color,
             DriverIds = request.DriversAssignments.DriversIds,
-            ActiveDriverId = request.DriversAssignments.ActiveDriverId
+            ActiveDriverId = request.DriversAssignments.ActiveDriverId,
+            AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
         Result<int> result = await _updateVehicleHandler.Handle(command);
@@ -163,7 +197,8 @@ public class VehiclesController : ApiBaseController
             Mileage = request.Mileage,
             Color = request.Color,
             DriverIds = request.DriversAssignments.DriversIds,
-            ActiveDriverId = request.DriversAssignments.ActiveDriverId
+            ActiveDriverId = request.DriversAssignments.ActiveDriverId,
+            AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
         Result<int> result = await _createVehicleHandler.Handle(command);
@@ -281,6 +316,9 @@ public class VehiclesController : ApiBaseController
         [Required]
         public required DriversAssignmentsViewModel DriversAssignments { get; set; }
 
+        [Required]
+        public required DateTimeOffset AddedToEnterpriseAt { get; set; }
+
         public class DriversAssignmentsViewModel
         {
             [Required]
@@ -305,6 +343,7 @@ public class VehiclesController : ApiBaseController
     {
         IQueryable<VehicleViewModel> vehiclesQuery =
             from v in query
+            join e in _enterprisesSet.Enterprises on v.EnterpriseId equals e.Id
             from d in v.AssignedDrivers.DefaultIfEmpty()
             group d by new
             {
@@ -316,6 +355,7 @@ public class VehiclesController : ApiBaseController
                 v.ManufactureYear,
                 v.Mileage,
                 v.Color,
+                v.AddedToEnterpriseAt,
                 ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : (int?)null
             } into g
             select new VehicleViewModel
@@ -328,12 +368,13 @@ public class VehiclesController : ApiBaseController
                 ManufactureYear = g.Key.ManufactureYear,
                 Mileage = g.Key.Mileage,
                 Color = g.Key.Color,
+                AddedToEnterpriseAt = g.Key.AddedToEnterpriseAt,
                 DriversAssignments = new VehicleViewModel.DriversAssignmentsViewModel
                 {
-                    DriversIds = EF.Functions.ArrayAgg(
-                        g.Where(x => x != null)
-                            .Select(x => x.Id)
-                            .Order()),
+                DriversIds = EF.Functions.ArrayAgg(
+                    g.Where(x => x != null)
+                        .Select(x => x.Id)
+                        .Order()),
                     ActiveDriverId = g.Key.ActiveDriverId
                 }
             };

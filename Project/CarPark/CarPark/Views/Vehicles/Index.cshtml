@@ -1,79 +1,126 @@
 ﻿@using CarPark.ViewModels.Vehicles
-@model IEnumerable<VehicleViewModel>
+@using CarPark.ViewModels.Common
+@model PaginatedList<VehicleViewModel>
 
 @{
-    ViewData["Title"] = "Vehicles";
+    ViewData["Title"] = $"Vehicles - {ViewBag.Enterprise.Name}";
 }
 
-<h1>Vehicles</h1>
-
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Enterprise.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.VinNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ManufactureYear)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Mileage)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Color)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (VehicleViewModel item in Model)
-        {
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1>Vehicles - @ViewBag.Enterprise.Name</h1>
+        <small class="text-muted">
+            Showing @((Model.PageIndex - 1) * Model.PageSize + 1) to @(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount)) of @Model.TotalCount vehicles
+        </small>
+    </div>
+    <div>
+        <a asp-controller="Enterprises" asp-action="Details" asp-route-id="@ViewBag.Enterprise.Id" class="btn btn-secondary">Back to Enterprise</a>
+        <a asp-action="Create" asp-route-enterpriseId="@ViewBag.Enterprise.Id" class="btn btn-primary">Create New</a>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table">
+        <thead>
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Id)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Model.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Enterprise.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.VinNumber)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ManufactureYear)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Mileage)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Color)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.Id)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.Model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.Enterprise.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.VinNumber)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.Price)
+                    Price
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.ManufactureYear)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.Mileage)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.Color)
+                </th>
+                <th>
+                    @Html.DisplayNameForInnerType((VehicleViewModel model) => model.AddedToEnterpriseAt)
+                </th>
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (VehicleViewModel item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Id)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Model.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Enterprise.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.VinNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Price)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ManufactureYear)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Mileage) km
+                    </td>
+                    <td>
+                         @Html.DisplayFor(modelItem => item.Color)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.AddedToEnterpriseAt)
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-enterpriseId="@ViewBag.Enterprise.Id" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                        <a asp-action="Edit" asp-route-enterpriseId="@ViewBag.Enterprise.Id" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="Delete" asp-route-enterpriseId="@ViewBag.Enterprise.Id" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Vehicles pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-enterpriseId="@ViewBag.Enterprise.Id" asp-route-page="@(Model.PageIndex - 1)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            
+            @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-enterpriseId="@ViewBag.Enterprise.Id" asp-route-page="@i">@i</a>
+                </li>
+            }
+            
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-enterpriseId="@ViewBag.Enterprise.Id" asp-route-page="@(Model.PageIndex + 1)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <div class="text-center text-muted">
+        <small>Page @Model.PageIndex of @Model.TotalPages</small>
+    </div>
+}

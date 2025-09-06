@@ -2,6 +2,7 @@
 using CarPark.Models.Enterprises;
 using CarPark.Models.Managers;
 using CarPark.Models.Models;
+using CarPark.Models.TzInfos;
 using CarPark.Models.Vehicles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -11,8 +12,11 @@ namespace CarPark.Data;
 
 public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDbSet, IEnterprisesDbSet
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    private readonly LocalIcuTimezoneService _localIcuTimezoneService;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, LocalIcuTimezoneService localIcuTimezoneService) : base(options)
     {
+        _localIcuTimezoneService = localIcuTimezoneService;
     }
 
     public DbSet<Vehicle> Vehicles { get; set; } = default!;
@@ -20,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     public DbSet<Driver> Drivers { get; set; } = default!;
     public DbSet<Enterprise> Enterprises { get; set; } = default!;
     public DbSet<Manager> Managers { get; set; } = default!;
+    public DbSet<TzInfo> TzInfos { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,6 +72,12 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
             .IsRequired()
             .OnDelete(DeleteBehavior.NoAction);
 
+        modelBuilder.Entity<Enterprise>()
+            .HasOne<TzInfo>(e => e.TimeZone)
+            .WithMany()
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Driver>()
             .ToTable("driver");
 
@@ -104,6 +115,13 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
             .HasMany(m => m.Enterprises)
             .WithMany(e => e.Managers)
             .UsingEntity("enterprise_manager");
+
+        modelBuilder.Entity<TzInfo>()
+            .ToTable("time_zone");
+
+        modelBuilder.Entity<TzInfo>()
+            .Property(tz => tz.Id)
+            .UseIdentityColumn();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -114,6 +132,9 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
         {
             if (!CheckHasAnyData(context))
             {
+                context.Set<TzInfo>().AddRange(GetSeedTzInfos(context));
+                context.SaveChanges();
+
                 context.Set<Model>().AddRange(GetSeedModels());
                 context.SaveChanges();
 
@@ -138,6 +159,9 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
         {
             if (!CheckHasAnyData(context))
             {
+                await context.Set<TzInfo>().AddRangeAsync(GetSeedTzInfos(context), cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
+
                 await context.Set<Model>().AddRangeAsync(GetSeedModels(), cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
@@ -285,7 +309,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 10000, 
                 ManufactureYear = 2015, 
                 Mileage = 50000,
-                Color = "Красный"
+                Color = "Красный",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             new Vehicle
             {
@@ -298,7 +323,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 12000, 
                 ManufactureYear = 2017, 
                 Mileage = 30000,
-                Color = "Синий"
+                Color = "Синий",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             // Грузовые автомобили
             new Vehicle
@@ -312,7 +338,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 11000, 
                 ManufactureYear = 2016, 
                 Mileage = 45000,
-                Color = "Зелёный"
+                Color = "Зелёный",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             new Vehicle
             {
@@ -325,7 +352,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 9000, 
                 ManufactureYear = 2013, 
                 Mileage = 70000,
-                Color = "Чёрный"
+                Color = "Чёрный",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             new Vehicle
             {
@@ -338,7 +366,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 15000, 
                 ManufactureYear = 2019, 
                 Mileage = 20000,
-                Color = "Белый"
+                Color = "Белый",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             new Vehicle
             {
@@ -351,7 +380,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 12500, 
                 ManufactureYear = 2017, 
                 Mileage = 40000,
-                Color = "Коричневый"
+                Color = "Коричневый",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             // Мотоциклы
             new Vehicle
@@ -365,7 +395,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 9500, 
                 ManufactureYear = 2014, 
                 Mileage = 60000,
-                Color = "Серый"
+                Color = "Серый",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             new Vehicle
             {
@@ -378,7 +409,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 14000, 
                 ManufactureYear = 2020, 
                 Mileage = 15000,
-                Color = "Бежевый"
+                Color = "Бежевый",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             new Vehicle
             {
@@ -391,7 +423,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 13000, 
                 ManufactureYear = 2018, 
                 Mileage = 35000,
-                Color = "Серебристый"
+                Color = "Серебристый",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             },
             // Тяжелые автобусы
             new Vehicle
@@ -405,7 +438,8 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Price = 16000, 
                 ManufactureYear = 2021, 
                 Mileage = 10000,
-                Color = "Фиолетовый"
+                Color = "Фиолетовый",
+                AddedToEnterpriseAt = DateTimeOffset.Parse("13/10/2024 13:02:03 00:00")
             }
         };
 
@@ -421,28 +455,32 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
                 Id = default,
                 Managers = new List<Manager>(0),
                 Name = "Извозкин.Такси-Парк",
-                LegalAddress = "г. Москва, ул. Цифровая, д. 154"
+                LegalAddress = "г. Москва, ул. Цифровая, д. 154",
+                TimeZone = null
             },
             new Enterprise
             {
                 Id = default,
                 Managers = new List<Manager>(0),
                 Name = "Delivery-Express",
-                LegalAddress = "г. Санкт-Петербург, пр. Курьерский, д. 15"
+                LegalAddress = "г. Санкт-Петербург, пр. Курьерский, д. 15",
+                TimeZone = null
             },
             new Enterprise
             {
                 Id = default,
                 Managers = new List<Manager>(0),
                 Name = "DoStavka",
-                LegalAddress = "г. Москва, ул. Зеленая, д. 77"
+                LegalAddress = "г. Москва, ул. Зеленая, д. 77",
+                TimeZone = null
             },
             new Enterprise
             {
                 Id = default,
                 Managers = new List<Manager>(0),
                 Name = "Red.Такси",
-                LegalAddress = "г. Москва, ул. Красная, д. 21"
+                LegalAddress = "г. Москва, ул. Красная, д. 21",
+                TimeZone = null
             }
         };
 
@@ -607,7 +645,7 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
         return users;
     }
 
-    private static IReadOnlyList<Manager> GetSeedManagers(DbContext context)
+    private IReadOnlyList<Manager> GetSeedManagers(DbContext context)
     {
         List<Enterprise> existingEnterprises = context.Set<Enterprise>().ToList();
         
@@ -628,5 +666,16 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
         };
 
         return managers;
+    }
+
+    private IReadOnlyList<TzInfo> GetSeedTzInfos(DbContext context)
+    {
+        IReadOnlyCollection<string> ianaIds = _localIcuTimezoneService.GetAvailableIanaIds();
+
+        return _localIcuTimezoneService
+            .MapIanaIdsToWindowsIds(ianaIds)
+            .Select(x => new TzInfo(x.Key, x.Value))
+            .ToList()
+            .AsReadOnly();
     }
 }

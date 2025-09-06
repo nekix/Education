@@ -9,42 +9,78 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehicleViewModel = CarPark.ViewModels.Vehicles.VehicleViewModel;
+using CarPark.Models.Enterprises;
+using CarPark.Services;
+using CarPark.ViewModels.Common;
 
 namespace CarPark.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
+[Route("enterprises/{enterpriseId}/[controller]")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class VehiclesController : BaseController
 {
     private readonly ApplicationDbContext _context;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateHandler;
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createHandler;
+    private readonly TimeZoneConversionService _timeZoneConversionService;
 
     public VehiclesController(ApplicationDbContext context,
         ICommandHandler<DeleteVehicleCommand, Result> deleteHandler,
         ICommandHandler<UpdateVehicleCommand, Result<int>> updateHandler,
-        ICommandHandler<CreateVehicleCommand, Result<int>> createHandler)
+        ICommandHandler<CreateVehicleCommand, Result<int>> createHandler,
+        TimeZoneConversionService timeZoneConversionService)
     {
         _context = context;
         _deleteHandler = deleteHandler;
         _updateHandler = updateHandler;
         _createHandler = createHandler;
+        _timeZoneConversionService = timeZoneConversionService;
     }
 
-    public async Task<IActionResult> Index()
+    [HttpGet("")]
+    public async Task<IActionResult> Index([FromRoute] int enterpriseId, int? page)
     {
         int managerId = GetCurrentManagerId();
+        int pageSize = 10; // Количество записей на страницу
+        int pageNumber = page ?? 1;
 
-        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
+        IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
-        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery)
+            .OrderBy(v => v.Id);
 
-        List<VehicleViewModel> viewModels = await viewModelQuery.ToListAsync();
+        PaginatedList<VehicleViewModel> paginatedViewModels = await PaginatedList<VehicleViewModel>.CreateAsync(
+            viewModelQuery, pageNumber, pageSize);
+        
+        // Get enterprise for timezone info
+        Enterprise? enterprise = await _context.Enterprises
+            .Include(e => e.TimeZone)
+            .FirstOrDefaultAsync(e => e.Id == enterpriseId);
 
-        return View(viewModels);
+        if (enterprise == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.Enterprise = new { Id = enterprise.Id, Name = enterprise.Name };
+
+        // Convert dates to appropriate timezone
+        int? clientTimeZoneOffset = GetClientTimeZoneOffset();
+        foreach (VehicleViewModel model in paginatedViewModels)
+        {
+            model.AddedToEnterpriseAt = _timeZoneConversionService.ConvertForClientDisplay(
+                model.AddedToEnterpriseAt,
+                enterprise.TimeZone,
+                clientTimeZoneOffset);
+        }
+
+        return View(paginatedViewModels);
     }
 
-    public async Task<IActionResult> Details(int? id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Details([FromRoute] int enterpriseId, int? id)
     {
         if (id == null)
         {
@@ -53,7 +89,7 @@ public class VehiclesController : BaseController
 
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
+        IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
         IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
 
@@ -65,10 +101,30 @@ public class VehiclesController : BaseController
             return NotFound();
         }
 
+        // Get enterprise for timezone info and ViewBag
+        Enterprise? enterprise = await _context.Enterprises
+            .Include(e => e.TimeZone)
+            .FirstOrDefaultAsync(e => e.Id == enterpriseId);
+
+        if (enterprise == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.Enterprise = new { Id = enterprise.Id, Name = enterprise.Name };
+
+        // Convert date to appropriate timezone
+        int? clientTimeZoneOffset = GetClientTimeZoneOffset();
+        viewModel.AddedToEnterpriseAt = _timeZoneConversionService.ConvertForClientDisplay(
+            viewModel.AddedToEnterpriseAt,
+            enterprise.TimeZone,
+            clientTimeZoneOffset);
+
         return View(viewModel);
     }
 
-    public async Task<IActionResult> Create(int? enterpriseId)
+    [HttpGet("create")]
+    public async Task<IActionResult> Create([FromRoute] int enterpriseId)
     {
         int managerId = GetCurrentManagerId();
 
@@ -82,25 +138,21 @@ public class VehiclesController : BaseController
             .ToListAsync();
 
         ViewBag.Models = models;
-
-        List<EnterpriseOverview> enterprises = await _context.Enterprises
-            .Where(e => e.Managers.Any(m => m.Id == managerId))
-            .OrderBy(e => e.Name)
-            .Select(e => new EnterpriseOverview
-            {
-                Id = e.Id,
-                EnterpriseName = e.Name
-            })
-            .ToListAsync();
-
-        ViewBag.Enterprises = enterprises;
         
-        ViewBag.SelectedEnterpriseId = enterpriseId;
+        Enterprise? enterprise = await _context.Enterprises
+            .FirstOrDefaultAsync(e => e.Id == enterpriseId);
+
+        if (enterprise == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.Enterprise = new { Id = enterprise.Id, Name = enterprise.Name };
 
         return View();
     }
 
-    [HttpPost]
+    [HttpPost("create")]
     [AppValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateUpdateVehicleRequest request)
     {
@@ -117,7 +169,8 @@ public class VehiclesController : BaseController
             Mileage = request.Mileage,
             Color = request.Color,
             DriverIds = new List<int>(0),
-            ActiveDriverId = null
+            ActiveDriverId = null,
+            AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
         Result<int> result = await _createHandler.Handle(command);
@@ -126,10 +179,11 @@ public class VehiclesController : BaseController
             return BadRequest();
         }
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { enterpriseId = request.EnterpriseId });
     }
 
-    public async Task<IActionResult> Edit(int? id)
+    [HttpGet("{id}/edit")]
+    public async Task<IActionResult> Edit([FromRoute] int enterpriseId, int? id)
     {
         if (id == null)
         {
@@ -138,7 +192,7 @@ public class VehiclesController : BaseController
 
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
+        IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
         IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
 
@@ -161,22 +215,20 @@ public class VehiclesController : BaseController
 
         ViewBag.Models = models;
 
-        List<EnterpriseOverview> enterprises = await _context.Enterprises
-            .Where(e => e.Managers.Any(m => m.Id == managerId))
-            .OrderBy(e => e.Name)
-            .Select(e => new EnterpriseOverview
-            {
-                Id = e.Id,
-                EnterpriseName = e.Name
-            })
-            .ToListAsync();
+        Enterprise? enterprise = await _context.Enterprises
+            .FirstOrDefaultAsync(e => e.Id == enterpriseId);
 
-        ViewBag.Enterprises = enterprises;
+        if (enterprise == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.Enterprise = new { Id = enterprise.Id, Name = enterprise.Name };
 
         return View(viewModel);
     }
 
-    [HttpPost]
+    [HttpPost("{id}/edit")]
     [AppValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, CreateUpdateVehicleRequest request)
     {
@@ -204,7 +256,8 @@ public class VehiclesController : BaseController
             Mileage = request.Mileage,
             Color = request.Color,
             DriverIds = vehicle.AssignedDrivers.Select(d => d.Id).ToList(),
-            ActiveDriverId = vehicle.ActiveAssignedDriver?.Id
+            ActiveDriverId = vehicle.ActiveAssignedDriver?.Id,
+            AddedToEnterpriseAt = vehicle.AddedToEnterpriseAt
         };
 
         Result<int> result = await _updateHandler.Handle(command);
@@ -217,10 +270,11 @@ public class VehiclesController : BaseController
         }
 
         // Success flow
-        return await Edit(id);
+        return RedirectToAction(nameof(Edit), new { enterpriseId = command.EnterpriseId, id = id });
     }
 
-    public async Task<IActionResult> Delete(int? id)
+    [HttpGet("{id}/delete")]
+    public async Task<IActionResult> Delete([FromRoute] int enterpriseId, int? id)
     {
         if (id == null)
         {
@@ -229,7 +283,7 @@ public class VehiclesController : BaseController
 
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
+        IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
         IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
 
@@ -241,12 +295,23 @@ public class VehiclesController : BaseController
             return NotFound();
         }
 
+        // Get enterprise details for the view
+        Enterprise? enterprise = await _context.Enterprises
+            .FirstOrDefaultAsync(e => e.Id == enterpriseId);
+
+        if (enterprise == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.Enterprise = new { Id = enterprise.Id, Name = enterprise.Name };
+
         return View(viewModel);
     }
 
-    [HttpPost, ActionName("Delete")]
+    [HttpPost("{id}/delete")]
     [AppValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<IActionResult> DeleteConfirmed([FromRoute] int enterpriseId, int id)
     {
         int managerId = GetCurrentManagerId();
 
@@ -260,17 +325,17 @@ public class VehiclesController : BaseController
 
         if (result.IsSuccess)
         {
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { enterpriseId = enterpriseId });
         }
 
         // Errors handling
         return BadRequest();
     }
 
-    private IQueryable<Vehicle> GetFilteredByManagerQuery(int managerId)
+    private IQueryable<Vehicle> GetFilteredByManagerAndEnterpriseQuery(int managerId, [FromRoute] int enterpriseId)
     {
         IQueryable<int> enterpriseIds = _context.Enterprises
-            .Where(e => e.Managers.Any(m => m.Id == managerId))
+            .Where(e => e.Managers.Any(m => m.Id == managerId) && e.Id == enterpriseId)
             .Select(e => e.Id);
 
         return _context.Vehicles
@@ -300,9 +365,33 @@ public class VehiclesController : BaseController
                 Price = v.Price,
                 ManufactureYear = v.ManufactureYear,
                 Mileage = v.Mileage,
-                Color = v.Color
+                Color = v.Color,
+                AddedToEnterpriseAt = v.AddedToEnterpriseAt
             };
 
         return vehiclesQuery;
+    }
+
+    private int? GetClientTimeZoneOffset()
+    {
+        // Try to get timezone offset from request headers or cookies
+        if (Request.Headers.TryGetValue("X-Client-Timezone-Offset", out Microsoft.Extensions.Primitives.StringValues offsetHeader))
+        {
+            if (int.TryParse(offsetHeader.FirstOrDefault(), out int offset))
+            {
+                return offset;
+            }
+        }
+
+        // Try to get from cookie
+        if (Request.Cookies.TryGetValue("client-timezone-offset", out string? offsetCookie))
+        {
+            if (int.TryParse(offsetCookie, out int offset))
+            {
+                return offset;
+            }
+        }
+
+        return null;
     }
 }

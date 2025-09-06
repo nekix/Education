@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarPark.ViewModels.Vehicles
 {
@@ -8,6 +9,7 @@ namespace CarPark.ViewModels.Vehicles
         public required int ModelId { get; set; }
 
         [Required]
+        [FromRoute(Name = "enterpriseId")]
         public required int EnterpriseId { get; set; }
 
         [Required]
@@ -24,6 +26,9 @@ namespace CarPark.ViewModels.Vehicles
 
         [Required]
         public required string Color { get; set; }
+
+        [Required]
+        public required DateTimeOffset AddedToEnterpriseAt { get; set; }
     }
 
     public class ModelOverview

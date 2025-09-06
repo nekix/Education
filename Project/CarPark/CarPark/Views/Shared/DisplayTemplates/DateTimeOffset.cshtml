@@ -1,0 +1,13 @@
+﻿@model DateTimeOffset?
+
+@{
+    string format = "yyyy-MM-dd HH:mm (zzz)";
+}
+
+@if (Model != null)
+{
+    <time datetime="@Model!.Value.ToString("o")" 
+          title="@Model.Value.UtcDateTime.ToString("u")">
+        @Model.Value.ToString(format)
+    </time>
+}

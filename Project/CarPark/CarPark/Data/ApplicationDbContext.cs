@@ -4,6 +4,7 @@ using CarPark.Models.Managers;
 using CarPark.Models.Models;
 using CarPark.Models.TzInfos;
 using CarPark.Models.Vehicles;
+using CarPark.Shared.DateTimes;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -122,6 +123,30 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
         modelBuilder.Entity<TzInfo>()
             .Property(tz => tz.Id)
             .UseIdentityColumn();
+
+        modelBuilder.Entity<VehicleGeoTimePoint>()
+            .ToTable("vehicle_get_time");
+
+        modelBuilder.Entity<VehicleGeoTimePoint>()
+            .Property(g => g.Id)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<VehicleGeoTimePoint>()
+            .Property(g => g.Location)
+            .HasColumnType("geometry (point, 4326)");
+
+        modelBuilder.Entity<VehicleGeoTimePoint>()
+            .HasOne(p => p.Vehicle)
+            .WithMany()
+            .HasForeignKey("vehicle_id")
+            .IsRequired();
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        configurationBuilder.UseUtcDateTimeOffset();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

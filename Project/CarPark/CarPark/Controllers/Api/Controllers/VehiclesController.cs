@@ -381,4 +381,28 @@ public class VehiclesController : ApiBaseController
 
         return vehiclesQuery;
     }
+
+
+    #region Geo track
+
+    public ActionResult<GetTrackResponse> GetTrack(GetTrackRequest request)
+    {
+        return Ok();
+    }
+
+    public class GetTrackRequest
+    {
+        [Required]
+        public DateTimeOffset StartTime { get; set; }
+
+        [Required]
+        public DateTimeOffset EndTime { get; set; }
+    }
+
+    public class GetTrackResponse
+    {
+        
+    }
+
+    #endregion
 }

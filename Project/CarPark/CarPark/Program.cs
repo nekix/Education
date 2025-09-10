@@ -13,6 +13,7 @@ using CarPark.Shared.CQ;
 using Microsoft.OpenApi.Models;
 using FluentResults;
 using System.ComponentModel.DataAnnotations;
+using CarPark.Services;
 
 namespace CarPark;
 
@@ -29,7 +30,7 @@ public class Program
             .AddPolicy(AppIdentityConst.ManagerPolicy, policy => policy.RequireClaim(AppIdentityConst.ManagerIdClaim));
 
         builder.Services.AddSimpleIdentity<IdentityUser>()
-                            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
         builder.Services.AddProblemDetails();
 
@@ -37,6 +38,8 @@ public class Program
         builder.Services.AddSingleton<ValidateAntiforgeryTokenAuthorizationFilter>();
 
         builder.Services.AddCommandQueriesServices();
+
+        builder.Services.AddTimezoneServices();
 
         if (builder.Environment.IsDevelopment())
         {
@@ -152,16 +155,18 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException("Unable to find database connection string. 'ConnectionStrings:Default' must be defined in configuration.");
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString)
+            options.UseNpgsql(connectionString, o => o.UseNetTopologySuite())
                 .UseSnakeCaseNamingConvention());
 
-        // Регистрируем timezone service как singleton для кеширования
-        builder.Services.AddSingleton<LocalIcuTimezoneService>();
-        
-        // Регистрируем timezone conversion service
-        builder.Services.AddScoped(typeof(CarPark.Services.TimeZoneConversionService));
-
         return builder.Services;
+    }
+
+    public static IServiceCollection AddTimezoneServices(this IServiceCollection services)
+    {
+        services.AddSingleton<LocalIcuTimezoneService>();
+        services.AddScoped<TimeZoneConversionService>();
+
+        return services;
     }
 
     public static IdentityBuilder AddSimpleIdentity<TUser>(this IServiceCollection services)

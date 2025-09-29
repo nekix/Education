@@ -1,5 +1,4 @@
-﻿@using CarPark.Models.Vehicles
-@model IEnumerable<Vehicle>
+﻿@model IEnumerable<CarPark.Vehicles.Vehicle>
 
 @{
     ViewData["Title"] = "Vehicles";
@@ -17,7 +16,7 @@
                 @Html.DisplayNameFor(model => model.Id)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ModelId)
+                @Html.DisplayNameFor(model => model.Model.Id)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.VinNumber)
@@ -44,7 +43,7 @@
             @Html.DisplayFor(modelItem => item.Id)
         </td>
         <th>
-            @Html.ActionLink(item.ModelId.ToString(), "Details", "Models", new { Id = item.ModelId })
+            @Html.ActionLink(item.Model.Id.ToString(), "Details", "Models", new { Id = item.Model.Id })
         </th>
         <td>
             @Html.DisplayFor(modelItem => item.VinNumber)

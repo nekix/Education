@@ -1,5 +1,4 @@
-﻿@using CarPark.Models.Vehicles
-@model Vehicle
+﻿@model CarPark.Vehicles.Vehicle
 
 @{
     ViewData["Title"] = "Details";
@@ -18,10 +17,10 @@
             @Html.DisplayFor(model => model.Id)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ModelId)
+            @Html.DisplayNameFor(model => model.Model.Id)
         </dt>
         <dd class="col-sm-10">
-            @Html.ActionLink(Model.ModelId.ToString(), "Details", "Models", new { Id = Model.ModelId })
+            @Html.ActionLink(Model.Model.Id.ToString(), "Details", "Models", new { Id = Model.Model.Id })
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.VinNumber)

@@ -1,8 +1,9 @@
 ﻿using CarPark.Data;
+using CarPark.Enterprises;
 using CarPark.Identity;
-using CarPark.Models.TzInfos;
-using CarPark.Models.Enterprises;
-using CarPark.Models.Managers;
+using CarPark.Managers;
+using CarPark.Services.TimeZones;
+using CarPark.TimeZones;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;

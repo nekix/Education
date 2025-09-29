@@ -1,12 +1,12 @@
 ﻿using CarPark.Data;
-using CarPark.Models.Drivers;
-using CarPark.Models.Models;
-using CarPark.Models.TzInfos;
-using CarPark.Models.Vehicles;
+using CarPark.Models;
+using CarPark.Services.TimeZones;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.CommandLine;
 using System.Text.Json;
+using CarPark.Drivers;
+using CarPark.Vehicles;
 
 namespace CarPark.DataGenerator;
 
@@ -203,8 +203,8 @@ internal class Program
                 Vehicles = vehicles.Select(v => new VehicleDto
                 {
                     Id = v.Id,
-                    ModelId = v.ModelId,
-                    EnterpriseId = v.EnterpriseId,
+                    ModelId = v.Model.Id,
+                    EnterpriseId = v.Enterprise.Id,
                     VinNumber = v.VinNumber,
                     Price = v.Price,
                     ManufactureYear = v.ManufactureYear,

@@ -1,7 +1,7 @@
 using Bogus;
-using CarPark.Models.Drivers;
-using CarPark.Models.Models;
-using CarPark.Models.Vehicles;
+using CarPark.Drivers;
+using CarPark.Models;
+using CarPark.Vehicles;
 
 namespace CarPark.DataGenerator
 {
@@ -102,7 +102,7 @@ namespace CarPark.DataGenerator
 
             // Группируем автомобили и водителей по предприятиям
             Dictionary<int, List<Vehicle>> vehiclesByEnterprise = vehicles
-                .GroupBy(v => v.EnterpriseId)
+                .GroupBy(v => v.Enterprise.Id)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             Dictionary<int, List<Driver>> driversByEnterprise = drivers
@@ -140,7 +140,7 @@ namespace CarPark.DataGenerator
                         {
                             if (!vehicle.AssignedDrivers.Contains(driver))
                             {
-                                vehicle.AssignedDrivers.Add(driver);
+                                vehicle.AddAssignedDriver(driver);
                                 driver.AssignedVehicles.Add(vehicle);
                             }
                         }
@@ -168,7 +168,7 @@ namespace CarPark.DataGenerator
 
                         if (availableDriver != null)
                         {
-                            vehicle.ActiveAssignedDriver = availableDriver;
+                            vehicle.SetActiveAssignedDriver(availableDriver);
                             availableDriver.ActiveAssignedVehicle = vehicle;
                             usedDriverIds.Add(availableDriver.Id);
                         }

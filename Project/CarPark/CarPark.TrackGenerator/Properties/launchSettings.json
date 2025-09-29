@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "CarPark.TrackGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "Test": {
+      "commandName": "Project",
+      "commandLineArgs": "generate --vehicle-id 1 --connection-string \"Host=localhost;Port=5432;Database=education;Username=postgres;Password=fn2AH4qPbp7ReB7CUbri;Search Path=car_park;Include Error Detail=true;\" --api-key \"741ed884-ab50-473f-ae29-8000faf9f83d\" --center-lat 55,7558 --center-lon 37,6176 --radius-km 20 --target-length-km 50 --max-speed 80 --max-acceleration 25 --point-interval 10 --interval-variation 3 --update-interval 10 --force-write true"
+    }
+  }
+}

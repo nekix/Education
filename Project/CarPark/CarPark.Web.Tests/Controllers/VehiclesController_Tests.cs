@@ -1,16 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
-using CarPark.Controllers.Api.Controllers;
-using CarPark.Data;
-using CarPark.Models.Vehicles;
 using CarPark.Shared.CQ;
 using FluentResults;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using CarPark.Identity;
 using Microsoft.AspNetCore.Http;
-using CarPark.Controllers;
 using VehiclesController = CarPark.Controllers.Api.Controllers.VehiclesController;
+using CarPark.Data.Interfaces;
+using CarPark.ManagersOperations.Vehicles.Commands;
+using CarPark.Services.TimeZones;
 
 namespace CarPark.Web.Tests.Controllers;
 
@@ -18,20 +16,32 @@ public class VehiclesController_Tests
 {
     private readonly IVehiclesDbSet _mockSet;
     private readonly IEnterprisesDbSet _mockEnterprisesSet;
+    private readonly IVehicleGeoTimePointsDbSet _mockGetTimePointsSet;
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _mockCreateHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _mockDeleteHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _mockUpdateHandler;
+    private readonly ITimeZoneConversionService _mockTzConverionService;
     private readonly VehiclesController _controller;
 
     public VehiclesController_Tests()
     {
         _mockSet = Substitute.For<IVehiclesDbSet>();
         _mockEnterprisesSet = Substitute.For<IEnterprisesDbSet>();
+        _mockGetTimePointsSet = Substitute.For<IVehicleGeoTimePointsDbSet>();
         _mockCreateHandler = Substitute.For<ICommandHandler<CreateVehicleCommand, Result<int>>>();
         _mockDeleteHandler = Substitute.For<ICommandHandler<DeleteVehicleCommand, Result>>();
         _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateVehicleCommand, Result<int>>>();
-        
-        _controller = new VehiclesController(_mockSet, _mockEnterprisesSet, _mockCreateHandler, _mockUpdateHandler, _mockDeleteHandler);
+
+        _mockTzConverionService = Substitute.For<ITimeZoneConversionService>();
+
+        _controller = new VehiclesController(
+            _mockSet,
+            _mockEnterprisesSet,
+            _mockGetTimePointsSet, 
+            _mockCreateHandler, 
+            _mockUpdateHandler, 
+            _mockDeleteHandler,
+            _mockTzConverionService);
         
         // Настраиваем авторизацию для тестов
         SetupAuthorization();
@@ -71,7 +81,7 @@ public class VehiclesController_Tests
             ManufactureYear = 2020,
             Mileage = 50000,
             Color = "Красный",
-            AddedToEnterpriseAt = 
+            AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
                 DriversIds = new List<int> { 1, 2 },
@@ -89,6 +99,7 @@ public class VehiclesController_Tests
             ManufactureYear = request.ManufactureYear,
             Mileage = request.Mileage,
             Color = request.Color,
+            AddedToEnterpriseAt = request.AddedToEnterpriseAt,
             DriverIds = request.DriversAssignments.DriversIds,
             ActiveDriverId = request.DriversAssignments.ActiveDriverId
         };
@@ -131,6 +142,7 @@ public class VehiclesController_Tests
             ManufactureYear = 2021,
             Mileage = 30000,
             Color = "Синий",
+            AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
                 DriversIds = new List<int> { 3, 4 },
@@ -141,7 +153,7 @@ public class VehiclesController_Tests
         UpdateVehicleCommand expectedCommand = new UpdateVehicleCommand
         {
             RequestingManagerId = 1,
-            Id = vehicleId,
+            VehicleId = vehicleId,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
             VinNumber = request.VinNumber,
@@ -149,6 +161,7 @@ public class VehiclesController_Tests
             ManufactureYear = request.ManufactureYear,
             Mileage = request.Mileage,
             Color = request.Color,
+            AddedToEnterpriseAt = request.AddedToEnterpriseAt,
             DriverIds = request.DriversAssignments.DriversIds,
             ActiveDriverId = request.DriversAssignments.ActiveDriverId
         };
@@ -164,7 +177,7 @@ public class VehiclesController_Tests
         Assert.Equal(204, noContentResult.StatusCode);
         
         await _mockUpdateHandler.Received(1).Handle(Arg.Is<UpdateVehicleCommand>(cmd => 
-            cmd.Id == expectedCommand.Id &&
+            cmd.VehicleId == expectedCommand.VehicleId &&
             cmd.ModelId == expectedCommand.ModelId &&
             cmd.EnterpriseId == expectedCommand.EnterpriseId &&
             cmd.VinNumber == expectedCommand.VinNumber &&
@@ -181,7 +194,7 @@ public class VehiclesController_Tests
     {
         // Arrange
         int vehicleId = 1;
-        DeleteVehicleCommand expectedCommand = new DeleteVehicleCommand { Id = vehicleId, RequestingManagerId = 1};
+        DeleteVehicleCommand expectedCommand = new DeleteVehicleCommand { VehicleId = vehicleId, RequestingManagerId = 1};
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Ok());
 
@@ -193,7 +206,7 @@ public class VehiclesController_Tests
         Assert.NotNull(noContentResult);
         Assert.Equal(204, noContentResult.StatusCode);
         
-        await _mockDeleteHandler.Received(1).Handle(Arg.Is<DeleteVehicleCommand>(cmd => cmd.Id == expectedCommand.Id));
+        await _mockDeleteHandler.Received(1).Handle(Arg.Is<DeleteVehicleCommand>(cmd => cmd.VehicleId == expectedCommand.VehicleId));
     }
 
     [Fact]
@@ -209,6 +222,7 @@ public class VehiclesController_Tests
             ManufactureYear = 2020,
             Mileage = 50000,
             Color = "Красный",
+            AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
                 DriversIds = new List<int> { 1, 2 },
@@ -241,6 +255,7 @@ public class VehiclesController_Tests
             ManufactureYear = 2021,
             Mileage = 30000,
             Color = "Синий",
+            AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
                 DriversIds = new List<int> { 3, 4 },
@@ -273,6 +288,7 @@ public class VehiclesController_Tests
             ManufactureYear = 2021,
             Mileage = 30000,
             Color = "Синий",
+            AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
                 DriversIds = new List<int> { 3, 4 },

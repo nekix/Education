@@ -1,14 +1,15 @@
-﻿using CarPark.Data;
-using CarPark.Models.Enterprises;
+﻿using CarPark.Attributes;
+using CarPark.Data;
+using CarPark.Identity;
+using CarPark.ManagersOperations;
+using CarPark.ManagersOperations.Enterprises;
+using CarPark.ManagersOperations.Enterprises.Commands;
+using CarPark.ManagersOperations.Enterprises.Queries;
+using CarPark.Shared.CQ;
 using CarPark.ViewModels.Api;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RelatedEntitiesViewModel = CarPark.ViewModels.Api.EnterpriseViewModel.RelatedEntitiesViewModel;
-using CarPark.Attributes;
-using CarPark.Shared.CQ;
-using FluentResults;
-using CarPark.Identity;
 
 namespace CarPark.Controllers.Api.Controllers;
 
@@ -18,48 +19,86 @@ public class EnterprisesController : ApiBaseController
     private readonly ApplicationDbContext _context;
     private readonly ICommandHandler<DeleteEnterpriseCommand, Result> _deleteEnterpriseHandler;
 
+    private readonly IQueryHandler<GetEnterpriseQuery, Result<EnterpriseDto>> _getEnterpriseQueryHandler;
+    private readonly IQueryHandler<GetEnterprisesCollectionQuery, Result<List<EnterpriseDto>>> _getEnterprisesCollectionQuery;
+
     public EnterprisesController(ApplicationDbContext context,
-        ICommandHandler<DeleteEnterpriseCommand, Result> deleteEnterpriseHandler)
+        ICommandHandler<DeleteEnterpriseCommand, Result> deleteEnterpriseHandler,
+        IQueryHandler<GetEnterpriseQuery, Result<EnterpriseDto>> getEnterpriseQueryHandler,
+        IQueryHandler<GetEnterprisesCollectionQuery, Result<List<EnterpriseDto>>> getEnterprisesCollectionQuery)
     {
         _context = context;
+
         _deleteEnterpriseHandler = deleteEnterpriseHandler;
+
+        _getEnterpriseQueryHandler = getEnterpriseQueryHandler;
+        _getEnterprisesCollectionQuery = getEnterprisesCollectionQuery;
     }
 
     // GET: api/Enterprises
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<EnterpriseViewModel>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<EnterpriseDto>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<EnterpriseViewModel>>> GetEnterprises()
     {
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Enterprise> originalQuery = GetFilteredByManagerQuery(managerId);
+        GetEnterprisesCollectionQuery query = new GetEnterprisesCollectionQuery
+        {
+            RequestingManagerId = managerId
+        };
 
-        IQueryable<EnterpriseViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+        Result<List<EnterpriseDto>> getEnterprisesCollection = await _getEnterprisesCollectionQuery.Handle(query);
 
-        return Ok(await viewModelQuery.OrderBy(x => x.Id).ToListAsync());
+        if (getEnterprisesCollection.IsSuccess)
+        {
+            return Ok(getEnterprisesCollection.Value);
+        }
+
+        if (getEnterprisesCollection.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 
     // GET: api/Enterprises/5
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseViewModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EnterpriseViewModel>> GetEnterprise(int id)
     {
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Enterprise> originalQuery = GetFilteredByManagerQuery(managerId);
-
-        IQueryable<EnterpriseViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
-
-        EnterpriseViewModel? viewModel = await viewModelQuery
-            .SingleOrDefaultAsync(x => x.Id == id);
-
-        if (viewModel == null)
+        GetEnterpriseQuery query = new GetEnterpriseQuery()
         {
-            return NotFound();
+            RequestingManagerId = managerId,
+            EnterpriseId = id
+        };
+
+        Result<EnterpriseDto> getEnterprise = await _getEnterpriseQueryHandler.Handle(query);
+
+        if (getEnterprise.IsSuccess)
+        {
+            return Ok(getEnterprise.Value);
         }
 
-        return viewModel;
+        if (getEnterprise.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else if (getEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 
     // DELETE: api/Enterprises/5
@@ -76,92 +115,46 @@ public class EnterprisesController : ApiBaseController
 
         DeleteEnterpriseCommand command = new DeleteEnterpriseCommand
         {
-            Id = id,
-            RequestingManagerId = managerId
+            RequestingManagerId = managerId,
+            EnterpriseId = id,
         };
 
-        Result result = await _deleteEnterpriseHandler.Handle(command);
+        Result deleteEnterprise = await _deleteEnterpriseHandler.Handle(command);
 
         // Success flow
-        if (result.IsSuccess)
-            return NoContent();
-
-        // Errors handling
-        if (result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.NotFound))
+        if (deleteEnterprise.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
 
-        if (result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.AccessDenied))
+        // Errors handling
+        if (deleteEnterprise.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
         {
             return Forbid();
         }
-
-        if (result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.VisibleToOtherManagers) ||
-            result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.HasVehicles) ||
-            result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.HasDrivers) ||
-            result.HasError(e => e.Message == DeleteEnterpriseCommand.Errors.Conflict))
+        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.EnterpriseNotExist))
+        {
+            return NotFound();
+        }
+        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ForbidDeleteEnterpriseWithOtherManagers))
         {
             return Conflict();
         }
-
-        // Undefined errors
-        return BadRequest();
-    }
-
-    private IQueryable<Enterprise> GetFilteredByManagerQuery(int managerId)
-    {
-        IQueryable<Enterprise> filteredQuery =
-            from e in _context.Enterprises
-            where e.Managers.Any(m => m.Id == managerId)
-            select e;
-
-        return filteredQuery;
-    }
-
-    private IQueryable<EnterpriseViewModel> TransformToViewModelQuery(IQueryable<Enterprise> query)
-    {
-        var driversQuery =
-            from d in _context.Drivers
-            select new
-            {
-                d.EnterpriseId,
-                d.Id
-            };
-
-        var vehiclesQuery =
-            from v in _context.Vehicles
-            select new
-            {
-                v.EnterpriseId,
-                v.Id
-            };
-
-        IQueryable<EnterpriseViewModel> viewModelQuery =
-            from e in query
-            let drivers = driversQuery
-                .Where(d => d.EnterpriseId == e.Id)
-                .Select(d => d.Id)
-                .OrderBy(id => id)
-                .ToList()
-            let vehicles = vehiclesQuery
-                .Where(v => v.EnterpriseId == e.Id)
-                .Select(v => v.Id)
-                .OrderBy(id => id)
-                .ToList()
-            select new EnterpriseViewModel
-            {
-                Id = e.Id,
-                Name = e.Name,
-                LegalAddress = e.LegalAddress,
-                TimeZoneId = e.TimeZone.Id,
-                RelatedEntities = new RelatedEntitiesViewModel
-                {
-                    DriversIds = drivers,
-                    VehiclesIds = vehicles
-                }
-            };
-
-        return viewModelQuery;
+        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ForbidDeleteWithAnyVehicles))
+        {
+            return Conflict();
+        }
+        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ForbidDeleteWithAnyDrivers))
+        {
+            return Conflict();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 }

@@ -1,136 +1,144 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CarPark.Data;
-using CarPark.ViewModels.Api;
-using Microsoft.AspNetCore.Authorization;
-using CarPark.Identity;
-using CarPark.Attributes;
-using CarPark.Models.Vehicles;
-using FluentResults;
-using CarPark.Shared.CQ;
+﻿using CarPark.Attributes;
 using CarPark.Controllers.Api.Abstract;
-using CarPark.Models.TzInfos;
-using CarPark.Services;
+using CarPark.Identity;
+using CarPark.ManagersOperations;
+using CarPark.ManagersOperations.Rides;
+using CarPark.ManagersOperations.Rides.Queries;
+using CarPark.ManagersOperations.Tracks;
+using CarPark.ManagersOperations.Tracks.Queries;
+using CarPark.ManagersOperations.Tracks.Queries.Models;
+using CarPark.ManagersOperations.Vehicles;
+using CarPark.ManagersOperations.Vehicles.Commands;
+using CarPark.ManagersOperations.Vehicles.Queries;
+using CarPark.ManagersOperations.Vehicles.Queries.Models;
+using CarPark.Shared.CQ;
+using CarPark.Vehicles;
+using FluentResults;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CarPark.Controllers.Api.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class VehiclesController : ApiBaseController
 {
-    private readonly IVehiclesDbSet _vehiclesSet;
-    private readonly IEnterprisesDbSet _enterprisesSet;
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createVehicleHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateVehicleHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteVehicleHandler;
-    private readonly TimeZoneConversionService _timeZoneConversionService;
 
-    public VehiclesController(IVehiclesDbSet vehiclesSet,
-        IEnterprisesDbSet enterprisesSet,
+    private readonly IQueryHandler<GetVehicleQuery, Result<VehicleDto>> _getVehicleQueryHandler;
+    private readonly IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> _getVehiclesListQueryHandler;
+
+    private readonly IQueryHandler<GetTrackQuery, Result<TrackViewModel>> _getTrackQueryHandler;
+    private readonly IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>> _getTrackFeatureCollectionQueryHandler;
+    private readonly IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>> _getRidesTrackQueryHandler;
+    private readonly IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>> _getRidesTrackFeatureCollectionHandler;
+
+    private readonly IQueryHandler<GetRidesQuery, Result<RidesViewModel>> _getRidesQueryHandler;
+
+    public VehiclesController(
+        IQueryHandler<GetVehicleQuery, Result<VehicleDto>> getVehicleQueryHandler,
+        IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> getVehiclesListQueryHandler,
         ICommandHandler<CreateVehicleCommand, Result<int>> createVehicleHandler,
         ICommandHandler<UpdateVehicleCommand, Result<int>> updateVehicleHandler,
         ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler,
-        TimeZoneConversionService timeZoneConversionService)
+        IQueryHandler<GetTrackQuery, Result<TrackViewModel>> getTrackQueryHandler,
+        IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>> getTrackFeatureCollectionQueryHandler,
+        IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>> getRidesTrackQueryHandler,
+        IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>> getRidesTrackFeatureCollectionHandler,
+        IQueryHandler<GetRidesQuery, Result<RidesViewModel>> getRidesQueryHandler)
     {
-        _vehiclesSet = vehiclesSet;
-        _enterprisesSet = enterprisesSet;
+        _getVehicleQueryHandler = getVehicleQueryHandler;
+        _getVehiclesListQueryHandler = getVehiclesListQueryHandler;
+
         _createVehicleHandler = createVehicleHandler;
         _updateVehicleHandler = updateVehicleHandler;
         _deleteVehicleHandler = deleteVehicleHandler;
-        _timeZoneConversionService = timeZoneConversionService;
+
+        _getTrackQueryHandler = getTrackQueryHandler;
+        _getTrackFeatureCollectionQueryHandler = getTrackFeatureCollectionQueryHandler;
+
+        _getRidesTrackQueryHandler = getRidesTrackQueryHandler;
+        _getRidesTrackFeatureCollectionHandler = getRidesTrackFeatureCollectionHandler;
+
+        _getRidesQueryHandler = getRidesQueryHandler;
     }
 
     // GET: api/Vehicles
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VehicleViewModel>))]
-    public async Task<ActionResult<GetVehiclesResponse>> GetVehicles([FromQuery] GetVehiclesRequest request)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginatedVehicles))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PaginatedVehicles>> GetVehicles([FromQuery] GetVehiclesRequest request)
     {
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
-
-        IQueryable<Vehicle> orderedQuery = originalQuery
-            .OrderBy(x => x.EnterpriseId)
-            .ThenBy(x => x.Color)
-            .ThenBy(x => x.VinNumber);
-
-        uint total = (uint)orderedQuery.Count();
-
-        IQueryable<Vehicle> paginatedQuery = orderedQuery
-            .Skip((int)request.Offset)
-            .Take((int)request.Limit);
-
-        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(paginatedQuery);
-
-        List<VehicleViewModel> viewModels = await viewModelQuery
-            .OrderBy(x => x.EnterpriseId)
-            .ThenBy(x => x.Color)
-            .ThenBy(x => x.VinNumber)
-            .ToListAsync();
-
-        // Get enterprises for timezone info
-        Dictionary<int, TzInfo?> enterpriseTimeZones = await _enterprisesSet.Enterprises
-            .Where(e => viewModels.Select(v => v.EnterpriseId).Contains(e.Id))
-            .Select(e => new { e.Id, e.TimeZone })
-            .ToDictionaryAsync(e => e.Id, e => e.TimeZone);
-
-        // Convert dates to enterprise timezone
-        foreach (VehicleViewModel model in viewModels)
+        GetVehiclesListQuery query = new GetVehiclesListQuery
         {
-            if (enterpriseTimeZones.TryGetValue(model.EnterpriseId, out TzInfo? timeZoneInfo))
-            {
-                model.AddedToEnterpriseAt = _timeZoneConversionService.ConvertToEnterpriseTimeZone(
-                    model.AddedToEnterpriseAt,
-                    timeZoneInfo);
-            }
-        }
-
-        GetVehiclesResponse response = new GetVehiclesResponse
-        {
-            Data = viewModels,
-            Meta = new GetVehiclesResponse.Metadata()
-            {
-                Limit = request.Limit,
-                Offset = request.Offset,
-                Total = total
-            }
+            RequestingManagerId = managerId,
+            Limit = request.Limit,
+            Offset = request.Offset
         };
 
-        return Ok(response);
+        Result<PaginatedVehicles> getVehiclesList = await _getVehiclesListQueryHandler.Handle(query);
+
+        if (getVehiclesList.IsSuccess)
+        {
+            return Ok(getVehiclesList.Value);
+        }
+
+        if (getVehiclesList.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 
     // GET: api/Vehicles/5
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleViewModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<VehicleViewModel>> GetVehicle(int id)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<VehicleDto>> GetVehicle(int id)
     {
         int managerId = GetCurrentManagerId();
 
-        IQueryable<Vehicle> originalQuery = GetFilteredByManagerQuery(managerId);
+        GetVehicleQuery query = new GetVehicleQuery
+        {
+            RequestingManagerId = managerId,
+            VehicleId = id
+        };
 
-        IQueryable<VehicleViewModel> viewModelQuery = TransformToViewModelQuery(originalQuery);
+        Result<VehicleDto> getVehicle = await _getVehicleQueryHandler.Handle(query);
 
-        VehicleViewModel? viewModel = await viewModelQuery
-            .SingleOrDefaultAsync(v => v.Id == id);
+        if (getVehicle.IsSuccess)
+        {
+            return Ok(getVehicle.Value);
+        }
 
-        if (viewModel == null)
+        if (getVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else if (getVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToVehicle))
+        {
+            return Forbid();
+        }
+        else if (getVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
         {
             return NotFound();
         }
-
-        // Get enterprise timezone info
-        TzInfo? enterpriseTimeZone = await _enterprisesSet.Enterprises
-            .Where(e => e.Id == viewModel.EnterpriseId)
-            .Select(e => e.TimeZone)
-            .FirstOrDefaultAsync();
-
-        // Convert date to enterprise timezone
-        viewModel.AddedToEnterpriseAt = _timeZoneConversionService.ConvertToEnterpriseTimeZone(
-            viewModel.AddedToEnterpriseAt,
-            enterpriseTimeZone);
-
-        return viewModel;
+        else
+        {
+            return BadRequest();
+        }
     }
 
     // PUT: api/Vehicles/5
@@ -146,10 +154,10 @@ public class VehiclesController : ApiBaseController
 
         UpdateVehicleCommand command = new UpdateVehicleCommand
         {
-            Id = id,
+            RequestingManagerId = managerId,
+            VehicleId = id,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
-            RequestingManagerId = managerId,
             VinNumber = request.VinNumber,
             Price = request.Price,
             ManufactureYear = request.ManufactureYear,
@@ -160,20 +168,33 @@ public class VehiclesController : ApiBaseController
             AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
-        Result<int> result = await _updateVehicleHandler.Handle(command);
+        Result<int> updateVehicle = await _updateVehicleHandler.Handle(command);
 
-        // Success flow
-        if (!result.IsFailed)
+        if (updateVehicle.IsSuccess)
+        {
             return NoContent();
+        }
 
-        // Errors handling
-        if (result.HasError(e => e.Message == UpdateVehicleCommand.Errors.VehicleNotFound))
+        if (updateVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        } 
+        else if (updateVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
         {
             return NotFound();
         }
-
-        // Undefined errors
-        return BadRequest();
+        else if (updateVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+        else if (updateVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
+        {
+            return BadRequest();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 
     // POST: api/Vehicles
@@ -182,6 +203,7 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PostVehicle(CreateUpdateVehicleRequest request)
     {
         int managerId = GetCurrentManagerId();
@@ -201,22 +223,35 @@ public class VehiclesController : ApiBaseController
             AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
-        Result<int> result = await _createVehicleHandler.Handle(command);
+        Result<int> createVehicle = await _createVehicleHandler.Handle(command);
 
         // Success flow
-        if (result.IsSuccess)
+        if (createVehicle.IsSuccess)
         {
-            return CreatedAtAction("GetVehicle", new { id = result.Value }, null);
+            return CreatedAtAction("GetVehicle", new { id = createVehicle.Value }, null);
         }
 
         // Errors handling
-        if (result.HasError(e => e.Message == CreateVehicleCommand.Errors.AccessDenied))
+        if (createVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
         {
             return Forbid();
         }
-
-        // Undefined errors
-        return BadRequest();
+        else if (createVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
+        {
+            return NotFound();
+        }
+        else if (createVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+        else if (createVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
+        {
+            return BadRequest();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 
     // DELETE: api/Vehicles/5
@@ -232,35 +267,44 @@ public class VehiclesController : ApiBaseController
         int managerId = GetCurrentManagerId();
 
         DeleteVehicleCommand command = new DeleteVehicleCommand 
-        { 
-            Id = id,
-            RequestingManagerId = managerId
+        {
+            RequestingManagerId = managerId,
+            VehicleId = id
         };
         
-        Result result = await _deleteVehicleHandler.Handle(command);
+        Result deleteVehicle = await _deleteVehicleHandler.Handle(command);
 
         // Success flow
-        if (result.IsSuccess) 
-            return NoContent();
-
-        // Errors handling
-        if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.NotFound))
+        if (deleteVehicle.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
 
-        if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.AccessDenied))
+        // Errors handling
+        if (deleteVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
         {
             return Forbid();
         }
-
-        if (result.HasError(e => e.Message == DeleteVehicleCommand.Errors.Conflict))
+        else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
         {
-            return Conflict();
+            return NotFound();
         }
-
-        // Undefined errors
-        return BadRequest();
+        else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+        else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ForbidDeleteVehicleWithAssignedDrivers))
+        {
+            return BadRequest();
+        }
+        else if (deleteVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
+        {
+            return BadRequest();
+        }
+        else
+        {
+            return BadRequest();
+        }
     }
 
     public class GetVehiclesRequest : IPaginationRequest
@@ -272,22 +316,6 @@ public class VehiclesController : ApiBaseController
         [Required]
         [Range(0, int.MaxValue)]
         public required uint Offset { get; init; }
-    }
-
-    public class GetVehiclesResponse : IPaginationModel<VehicleViewModel, GetVehiclesResponse.Metadata>
-    {
-        public required Metadata Meta { get; init; }
-
-        public required IEnumerable<VehicleViewModel> Data { get; init; }
-
-        public class Metadata : IPaginationMetadata
-        {
-            public uint Offset { get; init; }
-
-            public uint Limit { get; init; }
-
-            public uint Total { get; init; }
-        }
     }
 
     public class CreateUpdateVehicleRequest
@@ -329,65 +357,83 @@ public class VehiclesController : ApiBaseController
         }
     }
 
-    private IQueryable<Vehicle> GetFilteredByManagerQuery(int managerId)
-    {
-        IQueryable<int> enterpriseIds = _enterprisesSet.Enterprises
-            .Where(e => e.Managers.Any(m => m.Id == managerId))
-            .Select(e => e.Id);
-
-        return _vehiclesSet.Vehicles
-            .Where(v => enterpriseIds.Contains(v.EnterpriseId));
-    }
-
-    private IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
-    {
-        IQueryable<VehicleViewModel> vehiclesQuery =
-            from v in query
-            join e in _enterprisesSet.Enterprises on v.EnterpriseId equals e.Id
-            from d in v.AssignedDrivers.DefaultIfEmpty()
-            group d by new
-            {
-                v.Id,
-                v.ModelId,
-                v.EnterpriseId,
-                v.VinNumber,
-                v.Price,
-                v.ManufactureYear,
-                v.Mileage,
-                v.Color,
-                v.AddedToEnterpriseAt,
-                ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : (int?)null
-            } into g
-            select new VehicleViewModel
-            {
-                Id = g.Key.Id,
-                ModelId = g.Key.ModelId,
-                EnterpriseId = g.Key.EnterpriseId,
-                VinNumber = g.Key.VinNumber,
-                Price = g.Key.Price,
-                ManufactureYear = g.Key.ManufactureYear,
-                Mileage = g.Key.Mileage,
-                Color = g.Key.Color,
-                AddedToEnterpriseAt = g.Key.AddedToEnterpriseAt,
-                DriversAssignments = new VehicleViewModel.DriversAssignmentsViewModel
-                {
-                DriversIds = EF.Functions.ArrayAgg(
-                    g.Where(x => x != null)
-                        .Select(x => x.Id)
-                        .Order()),
-                    ActiveDriverId = g.Key.ActiveDriverId
-                }
-            };
-
-        return vehiclesQuery;
-    }
-
-
     #region Geo track
 
-    public ActionResult<GetTrackResponse> GetTrack(GetTrackRequest request)
+    [HttpGet("{vehicleId}/track")]
+    [Produces("application/json", "application/geo+json")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TrackViewModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FeatureCollection))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetTrack(int vehicleId, [FromQuery] GetTrackRequest request)
     {
-        return Ok();
+        int managerId = GetCurrentManagerId();
+
+        Result errorResult;
+
+        if (CheckIsGeoJsonRequested())
+        {
+            GetTrackFeatureCollectionQuery query = new GetTrackFeatureCollectionQuery
+            {
+                RequestingManagerId = managerId,
+                VehicleId = vehicleId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime
+            };
+
+            Result<FeatureCollection> getTrack = await _getTrackFeatureCollectionQueryHandler.Handle(query);
+
+            if (getTrack.IsSuccess)
+            {
+                return Ok(getTrack.Value);
+            }
+
+            errorResult = getTrack.ToResult();
+        }
+        else
+        {
+            GetTrackQuery query = new GetTrackQuery
+            {
+                RequestingManagerId = managerId,
+                VehicleId = vehicleId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime
+            };
+
+            Result<TrackViewModel> getTrack = await _getTrackQueryHandler.Handle(query);
+
+            if (getTrack.IsSuccess)
+            {
+                return Ok(getTrack.Value);
+            }
+
+            errorResult = getTrack.ToResult();
+        }
+
+        if (errorResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.VehicleNotFound))
+        {
+            return NotFound();
+        }
+        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.ManagerNotAllowedToVehicle))
+        {
+            return Forbid();
+        }
+        else
+        {
+            return BadRequest();
+        }
+    }
+
+    private bool CheckIsGeoJsonRequested()
+    {
+        string acceptHeader = Request.Headers.Accept.ToString();
+        bool isGeoJsonRequested = acceptHeader.Contains("application/geo+json");
+        return isGeoJsonRequested;
     }
 
     public class GetTrackRequest
@@ -399,10 +445,163 @@ public class VehiclesController : ApiBaseController
         public DateTimeOffset EndTime { get; set; }
     }
 
-    public class GetTrackResponse
+    public class GeoTimePoint
     {
-        
+        public required DateTimeOffset Time { get; set; }
+
+        public double X => Point.X;
+
+        public double Y => Point.Y;
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public Point Point { get; set; } = default!;
     }
 
+    #endregion
+
+    #region Rides
+
+    [HttpGet("{vehicleId}/rides/track")]
+    [Produces("application/json", "application/geo+json")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetRidesResponse))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FeatureCollection))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetRidesTrack(GetRidesTrackRequest request)
+    {
+        int managerId = GetCurrentManagerId();
+
+        Result errorResult;
+
+        if (CheckIsGeoJsonRequested())
+        {
+            GetRidesTrackFeatureCollectionQuery query = new GetRidesTrackFeatureCollectionQuery
+            {
+                RequestingManagerId = managerId,
+                VehicleId = request.VehicleId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime
+            };
+
+            Result<FeatureCollection> getRidesTrack = await _getRidesTrackFeatureCollectionHandler.Handle(query);
+
+            if (getRidesTrack.IsSuccess)
+            {
+                return Ok(getRidesTrack.Value);
+            }
+
+            errorResult = getRidesTrack.ToResult();
+        }
+        else
+        {
+            GetRidesTrackQuery query = new GetRidesTrackQuery
+            {
+                RequestingManagerId = managerId,
+                VehicleId = request.VehicleId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime
+            };
+
+            Result<TrackViewModel> getRidesTrack = await _getRidesTrackQueryHandler.Handle(query);
+
+            if (getRidesTrack.IsSuccess)
+            {
+                return Ok(getRidesTrack.Value);
+            }
+
+            errorResult = getRidesTrack.ToResult();
+        }
+
+        if (errorResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.VehicleNotFound))
+        {
+            return NotFound();
+        }
+        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.ManagerNotAllowedToVehicle))
+        {
+            return Forbid();
+        }
+        else
+        {
+            return BadRequest();
+        }
+    }
+
+    public class GetRidesTrackRequest
+    {
+        [FromRoute(Name = "vehicleId")]
+        public int VehicleId { get; set; }
+
+        [FromQuery]
+        public DateTimeOffset StartTime { get; set; }
+
+        [FromQuery]
+        public DateTimeOffset EndTime { get; set; }
+    }
+
+    public class GetRidesResponse
+    {
+        public required List<GeoTimePoint> GeoTimePoints { get; set; }
+    }
+
+
+    [HttpGet("{vehicleId}/rides")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RidesViewModel))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetRides(GetRidesRequest request)
+    {
+        int managerId = GetCurrentManagerId();
+
+        GetRidesQuery query = new GetRidesQuery
+        {
+            RequestingManagerId = managerId,
+            VehicleId = request.VehicleId,
+            StartTime = request.StartTime,
+            EndTime = request.EndTime
+        };
+
+        Result<RidesViewModel> getRides = await _getRidesQueryHandler.Handle(query);
+
+        if (getRides.IsSuccess)
+        {
+            return Ok(getRides.Value);
+        }
+
+        if (getRides.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else if (getRides.HasError(e => e.Message == RidesHandlerErrors.VehicleNotFound))
+        {
+            return NotFound();
+        }
+        else if (getRides.HasError(e => e.Message == RidesHandlerErrors.ManagerNotAllowedToVehicle))
+        {
+            return Forbid();
+        }
+        else
+        {
+            return BadRequest();
+        }
+    }
+
+    public class GetRidesRequest
+    {
+        [FromRoute(Name = "vehicleId")]
+        public int VehicleId { get; set; }
+
+        [FromQuery]
+        public DateTimeOffset StartTime { get; set; }
+
+        [FromQuery]
+        public DateTimeOffset EndTime { get; set; }
+    }
     #endregion
 }

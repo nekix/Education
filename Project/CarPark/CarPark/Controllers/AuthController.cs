@@ -6,7 +6,7 @@ using Microsoft.Build.Framework;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using CarPark.Attributes;
 using CarPark.Identity;
-using CarPark.Models.Managers;
+using CarPark.Managers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 

@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using CarPark.Controllers.Api.Controllers;
-using CarPark.Data;
-using CarPark.Models.Models;
 using CarPark.Shared.CQ;
 using FluentResults;
-using Microsoft.EntityFrameworkCore;
+using CarPark.Data.Interfaces;
+using CarPark.Models;
+using CarPark.ManagersOperations.Models.Commands;
 
 namespace CarPark.Web.Tests.Controllers;
 

@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CarPark.Data;
 using CarPark.Attributes;
-using CarPark.Models.Models;
 using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.Build.Framework;
+using CarPark.Data.Interfaces;
+using CarPark.ManagersOperations.Models.Commands;
+using CarPark.Models;
 
 namespace CarPark.Controllers.Api.Controllers;
 
@@ -49,7 +50,7 @@ public class ModelsController : ApiBaseController
             return NotFound();
         }
 
-        return model;
+        return Ok(model);
     }
 
     // PUT: api/Models/5

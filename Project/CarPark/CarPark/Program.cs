@@ -1,19 +1,12 @@
+using CarPark.Attributes;
 using CarPark.Data;
 using CarPark.Identity;
-using CarPark.Models.TzInfos;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
-using CarPark.Attributes;
-using CarPark.Models.Models;
-using CarPark.Models.Vehicles;
-using CarPark.Models.Enterprises;
-using CarPark.Shared.CQ;
+using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
-using FluentResults;
-using System.ComponentModel.DataAnnotations;
-using CarPark.Services;
+using NetTopologySuite;
+using NetTopologySuite.IO.Converters;
 
 namespace CarPark;
 
@@ -24,7 +17,12 @@ public class Program
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews()
+            .AddJsonOptions(options =>
+            {
+                GeoJsonConverterFactory geoJsonConverterFactory = new GeoJsonConverterFactory();
+                options.JsonSerializerOptions.Converters.Add(geoJsonConverterFactory);
+            });
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(AppIdentityConst.ManagerPolicy, policy => policy.RequireClaim(AppIdentityConst.ManagerIdClaim));
@@ -37,9 +35,7 @@ public class Program
         builder.Services.AddAntiforgery();
         builder.Services.AddSingleton<ValidateAntiforgeryTokenAuthorizationFilter>();
 
-        builder.Services.AddCommandQueriesServices();
-
-        builder.Services.AddTimezoneServices();
+        builder.Services.AddSingleton(NtsGeometryServices.Instance);
 
         if (builder.Environment.IsDevelopment())
         {
@@ -59,7 +55,7 @@ public class Program
                         Description = "CSRF Token",
                     });
 
-                    foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+                    foreach (KeyValuePair<OperationType, OpenApiOperation> operation in document.Paths.Values.SelectMany(path => path.Operations))
                     {
                         operation.Value.Security.Add(new OpenApiSecurityRequirement
                         {
@@ -81,6 +77,7 @@ public class Program
         }
 
         builder.AddDataProvidersServices();
+        builder.AddApplicationServices();
 
         WebApplication app = builder.Build();
 
@@ -130,43 +127,18 @@ public class Program
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddCommandQueriesServices(this IServiceCollection services)
+    public static void AddDataProvidersServices(this WebApplicationBuilder builder)
     {
-        services.AddScoped<IVehiclesDbSet, ApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
-        services.AddScoped<IModelsDbSet, ApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
-        services.AddScoped<IEnterprisesDbSet, ApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        InfrastractureModuleConfigurator infrastractureModule = new InfrastractureModuleConfigurator();
 
-        services.AddScoped<ICommandHandler<CreateModelCommand, Result<int>>, CreateModelCommand.Handler>();
-        services.AddScoped<ICommandHandler<UpdateModelCommand, Result<int>>, UpdateModelCommand.Handler>();
-        services.AddScoped<ICommandHandler<DeleteModelCommand, Result>, DeleteModelCommand.Handler>();
-
-        services.AddScoped<ICommandHandler<CreateVehicleCommand, Result<int>>, CreateVehicleCommand.Handler>();
-        services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result<int>>, UpdateVehicleCommand.Handler>();
-        services.AddScoped<ICommandHandler<DeleteVehicleCommand, Result>, DeleteVehicleCommand.Handler>();
-
-        services.AddScoped<ICommandHandler<DeleteEnterpriseCommand, Result>, DeleteEnterpriseCommand.Handler>();
-
-        return services;
+        infrastractureModule.ConfigureModule(builder.Services, builder.Configuration);
     }
 
-    public static IServiceCollection AddDataProvidersServices(this WebApplicationBuilder builder)
+    public static void AddApplicationServices(this WebApplicationBuilder builder)
     {
-        string connectionString = builder.Configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Unable to find database connection string. 'ConnectionStrings:Default' must be defined in configuration.");
+        ApplicationModuleConfigurator applicationModule = new ApplicationModuleConfigurator();
 
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString, o => o.UseNetTopologySuite())
-                .UseSnakeCaseNamingConvention());
-
-        return builder.Services;
-    }
-
-    public static IServiceCollection AddTimezoneServices(this IServiceCollection services)
-    {
-        services.AddSingleton<LocalIcuTimezoneService>();
-        services.AddScoped<TimeZoneConversionService>();
-
-        return services;
+        applicationModule.ConfigureModule(builder.Services, builder.Configuration);
     }
 
     public static IdentityBuilder AddSimpleIdentity<TUser>(this IServiceCollection services)

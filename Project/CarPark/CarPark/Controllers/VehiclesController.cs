@@ -1,7 +1,8 @@
 ﻿using CarPark.Attributes;
 using CarPark.Data;
+using CarPark.Enterprises;
 using CarPark.Identity;
-using CarPark.Models.Vehicles;
+using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.Shared.CQ;
 using CarPark.ViewModels.Vehicles;
 using FluentResults;
@@ -9,9 +10,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehicleViewModel = CarPark.ViewModels.Vehicles.VehicleViewModel;
-using CarPark.Models.Enterprises;
-using CarPark.Services;
 using CarPark.ViewModels.Common;
+using CarPark.Services.TimeZones;
+using CarPark.Vehicles;
 
 namespace CarPark.Controllers;
 
@@ -24,13 +25,13 @@ public class VehiclesController : BaseController
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateHandler;
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createHandler;
-    private readonly TimeZoneConversionService _timeZoneConversionService;
+    private readonly ITimeZoneConversionService _timeZoneConversionService;
 
     public VehiclesController(ApplicationDbContext context,
         ICommandHandler<DeleteVehicleCommand, Result> deleteHandler,
         ICommandHandler<UpdateVehicleCommand, Result<int>> updateHandler,
         ICommandHandler<CreateVehicleCommand, Result<int>> createHandler,
-        TimeZoneConversionService timeZoneConversionService)
+        ITimeZoneConversionService timeZoneConversionService)
     {
         _context = context;
         _deleteHandler = deleteHandler;
@@ -246,7 +247,7 @@ public class VehiclesController : BaseController
 
         UpdateVehicleCommand command = new UpdateVehicleCommand()
         {
-            Id = id,
+            VehicleId = id,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
             RequestingManagerId = managerId,
@@ -317,7 +318,7 @@ public class VehiclesController : BaseController
 
         DeleteVehicleCommand command = new DeleteVehicleCommand
         {
-            Id = id,
+            VehicleId = id,
             RequestingManagerId = managerId
         };
 
@@ -339,15 +340,15 @@ public class VehiclesController : BaseController
             .Select(e => e.Id);
 
         return _context.Vehicles
-            .Where(v => enterpriseIds.Contains(v.EnterpriseId));
+            .Where(v => enterpriseIds.Contains(v.Enterprise.Id));
     }
 
     private IQueryable<VehicleViewModel> TransformToViewModelQuery(IQueryable<Vehicle> query)
     {
         IQueryable<VehicleViewModel> vehiclesQuery =
             from v in query
-            join e in _context.Enterprises on v.EnterpriseId equals e.Id
-            join m in _context.Models on v.ModelId equals m.Id
+            join e in _context.Enterprises on v.Enterprise.Id equals e.Id
+            join m in _context.Models on v.Model.Id equals m.Id
             select new VehicleViewModel
             {
                 Id = v.Id,

@@ -44,15 +44,16 @@ public class RidesQueryHandler : BaseManagersHandler,
         if (manager.Enterprises.All(e => e.Id != vehicle.Enterprise.Id))
             return Result.Fail<RidesViewModel>(RidesHandlerErrors.ManagerNotAllowedToVehicle);
 
+        // Эти объекты и так подгружаются автоматом
         List<Ride> rides = await DbContext.Rides
             .Where(r => r.Vehicle.Id == vehicle.Id
                         && r.StartTime >= query.StartTime.ToUniversalTime()
                         && r.EndTime <= query.EndTime.ToUniversalTime())
             .Include(r => r.Vehicle)
             .Include(r => r.StartPoint)
-            .ThenInclude(r => r.Location)
+            //.ThenInclude(r => r.Location)
             .Include(r => r.EndPoint)
-            .ThenInclude(r => r.Location)
+            //.ThenInclude(r => r.Location)
             .ToListAsync();
 
         TzInfo? enterpriseTimeZone = await DbContext.Enterprises

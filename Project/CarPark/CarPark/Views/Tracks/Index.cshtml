@@ -1,0 +1,36 @@
+﻿@using CarPark.Controllers;
+@model TrackIndexViewModel;
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<h1>Track</h1>
+
+<div id="map"></div>
+
+@section Scripts {
+    <script src="~/lib/axios/axios.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <script>
+        const map = L.map('map').setView([55.7963, 49.1064], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    </script>
+}
+
+@section Css {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <style>
+        #map { height: 500px; }
+        .node { cursor: pointer; }
+        .link { stroke: #333; stroke-width: 2px; }
+        .tooltip { position: absolute; background: white; padding: 5px; border: 1px solid #ccc; border-radius: 3px; pointer-events: none; }
+    </style>
+}

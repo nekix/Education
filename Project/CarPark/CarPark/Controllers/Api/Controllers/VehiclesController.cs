@@ -361,7 +361,7 @@ public class VehiclesController : ApiBaseController
 
     [HttpGet("{vehicleId}/track")]
     [Produces("application/json", "application/geo+json")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TrackViewModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TrackIndexViewModel))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FeatureCollection))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

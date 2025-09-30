@@ -14,7 +14,7 @@ public readonly record struct UtcDateTimeOffset
         init
         {
             // Проверка на UTC
-            _value = _value.TotalOffsetMinutes != 0 
+            _value = value.TotalOffsetMinutes != 0 
                 ? value.ToUniversalTime() 
                 : value;
         }

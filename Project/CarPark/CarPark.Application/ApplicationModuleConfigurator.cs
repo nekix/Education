@@ -58,7 +58,9 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
 
     private static void ConfigureGeoCodingServies(IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<DadataSettings>(configuration.GetSection(DadataSettings.Key));
+        services.AddOptions<DadataSettings>()
+            .Bind(configuration.GetSection(DadataSettings.ConfigurationSectionName))
+            .ValidateDataAnnotations();
 
         services.AddHttpClient<IGeoCodingService, DadataGeoCodingService>();
 

@@ -113,6 +113,8 @@
         const startTime = document.getElementById("startTimeInput").value;
         const endTime = document.getElementById("endTimeInput").value;
 
+            console.log('end2');
+
         const rides = await getRides(vehicleId, startTime, endTime);
 
         const container = document.getElementById("ridesContainer");
@@ -146,6 +148,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             // Первая загрузка
             loadRides();
+            
 
             // Подписка на изменение дат
             document.getElementById("startTimeInput").addEventListener("change", loadRides);

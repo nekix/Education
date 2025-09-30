@@ -54,13 +54,13 @@ namespace CarPark.TrackGenerator;
         Option<bool> forceWriteOption = new Option<bool>("--force-write", "-for")
         {
             Description = "Сразу записать весь трек (в т.ч. точки, пройденные в будущем)",
-            Required = false,
-            DefaultValueFactory = argRes => argRes.GetValueOrDefault<bool?>() ?? false
+            Required = true
         };
 
         Option<double> radiusKmOption = new Option<double>("--radius-km", "-r") { Description = "Радиус области в км", Required = true };
         Option<double> targetLengthKmOption = new Option<double>("--target-length-km", "-l") { Description = "Целевая длина трека в км", Required = true };
-        Option<double> maxSpeedOption = new Option<double>("--max-speed", "-s") { Description = "Максимальная скорость км/ч", Required = true };
+        Option<double> maxSpeedOption = new Option<double>("--max-speed", "-min-s") { Description = "Максимальная скорость км/ч", Required = true };
+        Option<double> minSpeedOption = new Option<double>("--min-speed", "-max-ss") { Description = "Максимальная скорость км/ч", Required = true };
         Option<double> maxAccelerationOption = new Option<double>("--max-acceleration", "-a") { Description = "Максимальное ускорение км/ч²", Required = true };
         
         // Шаг точек с разбросом
@@ -81,6 +81,7 @@ namespace CarPark.TrackGenerator;
             radiusKmOption,
             targetLengthKmOption,
             maxSpeedOption,
+            minSpeedOption,
             maxAccelerationOption,
             pointIntervalOption,
             intervalVariationOption,
@@ -97,6 +98,7 @@ namespace CarPark.TrackGenerator;
             parseResult.GetValue(radiusKmOption),
             parseResult.GetValue(targetLengthKmOption),
             parseResult.GetValue(maxSpeedOption),
+            parseResult.GetValue(minSpeedOption),
             parseResult.GetValue(maxAccelerationOption),
             parseResult.GetValue(pointIntervalOption),
             parseResult.GetValue(intervalVariationOption),
@@ -116,6 +118,7 @@ namespace CarPark.TrackGenerator;
         double radiusKm, 
         double targetLengthKm, 
         double maxSpeed,
+        double minSpeed,
         double maxAcceleration,
         int pointInterval, 
         int intervalVariation, 
@@ -148,8 +151,9 @@ namespace CarPark.TrackGenerator;
         {
             CenterPoint = centerPoint,
             RadiusKm = radiusKm,
-            TargetLengthKm = targetLengthKm,
+            TargetLengthKm = targetLengthKm, 
             MaxSpeedKmH = maxSpeed,
+            MinSpeedKmH = minSpeed,
             MaxAccelerationKmH2 = maxAcceleration,
             PointInterval = TimeSpan.FromSeconds(pointInterval),
             IntervalVariation = TimeSpan.FromSeconds(intervalVariation),

@@ -143,6 +143,12 @@ public sealed class Vehicle
 
     public Result<Vehicle> SetActiveAssignedDriver(Driver? newActiveAssignedDriver)
     {
+        if (newActiveAssignedDriver == null)
+        {
+            ActiveAssignedDriver = newActiveAssignedDriver;
+            return Result.Ok<Vehicle>(this);
+        }
+
         if (newActiveAssignedDriver.EnterpriseId != Enterprise.Id)
         {
             return Result.Fail<Vehicle>(VehiclesErrors.ActiveAssignedDriverFromAnotherEnterprise);

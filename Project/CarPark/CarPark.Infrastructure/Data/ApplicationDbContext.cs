@@ -7,6 +7,7 @@ using CarPark.Models;
 using CarPark.Rides;
 using CarPark.TimeZones;
 using CarPark.Vehicles;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,66 +54,84 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     {
         base.OnConfiguring(optionsBuilder);
 
-        //optionsBuilder.UseSeeding((context, _) =>
-        //{
-        //    if (!CheckHasAnyData(context))
-        //    {
-        //        context.Set<TzInfo>().AddRange(GetSeedTzInfos(context, _localIcuTimezoneService));
-        //        context.SaveChanges();
+        optionsBuilder.UseSeeding((context, _) =>
+        {
+            if (!context.Set<IdentityUser>().Any())
+            {
+                context.Set<IdentityUser>().AddRange(SeedIdentityUsers());
+                context.SaveChanges();
+            }
+        });
 
-        //        context.Set<Model>().AddRange(GetSeedModels());
-        //        context.SaveChanges();
-
-        //        context.Set<Enterprise>().AddRange(GetSeedEnterprises());
-        //        context.SaveChanges();
-
-        //        context.Set<Vehicle>().AddRange(GetSeedVehicles());
-        //        context.SaveChanges();
-
-        //        context.Set<Driver>().AddRange(GetSeedDrivers(context));
-        //        context.SaveChanges();
-
-        //        context.Set<IdentityUser>().AddRange(SeedIdentityUsers());
-        //        context.SaveChanges();
-
-        //        context.Set<Manager>().AddRange(GetSeedManagers(context));
-        //        context.SaveChanges();
-
-        //        context.Set<VehicleGeoTimePoint>().AddRange(GetSeedVehicleGeoTimePoints(context));
-        //        context.SaveChanges();
-        //    }
-        //});
-
-        //optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) => 
-        //{
-        //    if (!CheckHasAnyData(context))
-        //    {
-        //        await context.Set<TzInfo>().AddRangeAsync(GetSeedTzInfos(context, _localIcuTimezoneService), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<Model>().AddRangeAsync(GetSeedModels(), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<Enterprise>().AddRangeAsync(GetSeedEnterprises(), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<Vehicle>().AddRangeAsync(GetSeedVehicles(), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(context), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<IdentityUser>().AddRangeAsync(SeedIdentityUsers(), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<Manager>().AddRangeAsync(GetSeedManagers(context), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-
-        //        await context.Set<VehicleGeoTimePoint>().AddRangeAsync(GetSeedVehicleGeoTimePoints(context), cancellationToken);
-        //        await context.SaveChangesAsync(cancellationToken);
-        //    }
-        //});
+        optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) =>
+        {
+            if (!await context.Set<IdentityUser>().AnyAsync())
+            {
+                await context.Set<IdentityUser>().AddRangeAsync(SeedIdentityUsers());
+                await context.SaveChangesAsync();
+            }
+        });
     }
+
+    //optionsBuilder.UseSeeding((context, _) =>
+    //{
+    //    if (!CheckHasAnyData(context))
+    //    {
+    //        context.Set<TzInfo>().AddRange(GetSeedTzInfos(context, _localIcuTimezoneService));
+    //        context.SaveChanges();
+
+    //        context.Set<Model>().AddRange(GetSeedModels());
+    //        context.SaveChanges();
+
+    //        context.Set<Enterprise>().AddRange(GetSeedEnterprises());
+    //        context.SaveChanges();
+
+    //        context.Set<Vehicle>().AddRange(GetSeedVehicles());
+    //        context.SaveChanges();
+
+    //        context.Set<Driver>().AddRange(GetSeedDrivers(context));
+    //        context.SaveChanges();
+
+    //        context.Set<IdentityUser>().AddRange(SeedIdentityUsers());
+    //        context.SaveChanges();
+
+    //        context.Set<Manager>().AddRange(GetSeedManagers(context));
+    //        context.SaveChanges();
+
+    //        context.Set<VehicleGeoTimePoint>().AddRange(GetSeedVehicleGeoTimePoints(context));
+    //        context.SaveChanges();
+    //    }
+    //});
+
+    //optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) => 
+    //{
+    //    if (!CheckHasAnyData(context))
+    //    {
+    //        await context.Set<TzInfo>().AddRangeAsync(GetSeedTzInfos(context, _localIcuTimezoneService), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<Model>().AddRangeAsync(GetSeedModels(), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<Enterprise>().AddRangeAsync(GetSeedEnterprises(), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<Vehicle>().AddRangeAsync(GetSeedVehicles(), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<Driver>().AddRangeAsync(GetSeedDrivers(context), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<IdentityUser>().AddRangeAsync(SeedIdentityUsers(), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<Manager>().AddRangeAsync(GetSeedManagers(context), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+
+    //        await context.Set<VehicleGeoTimePoint>().AddRangeAsync(GetSeedVehicleGeoTimePoints(context), cancellationToken);
+    //        await context.SaveChangesAsync(cancellationToken);
+    //    }
+    //});
 
     //private static bool CheckHasAnyData(DbContext context)
     //{
@@ -549,7 +568,7 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     //private static IReadOnlyList<IdentityUser> SeedIdentityUsers()
     //{
     //    PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
-        
+
     //    List<IdentityUser> users = new List<IdentityUser>();
 
     //    IdentityUser adminUser = new IdentityUser
@@ -580,7 +599,7 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     //private static IReadOnlyList<Manager> GetSeedManagers(DbContext context)
     //{
     //    List<Enterprise> existingEnterprises = context.Set<Enterprise>().ToList();
-        
+
     //    List<Manager> managers = new List<Manager>
     //    {
     //        new Manager
@@ -704,16 +723,16 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     //    //{
     //    //    Vehicle vehicle = existingVehicles[vehicleIndex];
     //    //    VehicleRoute route = routes[vehicleIndex];
-            
+
     //    //    for (int pointIndex = 0; pointIndex < totalPoints; pointIndex++)
     //    //    {
     //    //        DateTimeOffset currentTime = baseTime.AddSeconds(pointIndex * intervalSeconds);
-                
+
     //    //        // Calculate position along route
     //    //        double progress = (double)pointIndex / (totalPoints - 1);
     //    //        int segmentIndex = (int)(progress * (route.RoutePoints.Length - 1));
     //    //        double segmentProgress = (progress * (route.RoutePoints.Length - 1)) - segmentIndex;
-                
+
     //    //        if (segmentIndex >= route.RoutePoints.Length - 1)
     //    //        {
     //    //            segmentIndex = route.RoutePoints.Length - 2;
@@ -732,7 +751,7 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     //    //        lon += (random.NextDouble() - 0.5) * 0.001; // ±50 meters
 
     //    //        NetTopologySuite.Geometries.Point point = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-                
+
     //    //        VehicleGeoTimePoint geoTimePoint = new VehicleGeoTimePoint(
     //    //            Guid.NewGuid(),
     //    //            vehicle,
@@ -755,5 +774,34 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     //    public double EndLon { get; set; }
     //    public dynamic[] RoutePoints { get; set; } = Array.Empty<dynamic>();
     //}
-    
+    private static IReadOnlyList<IdentityUser> SeedIdentityUsers()
+    {
+        PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();
+
+        List<IdentityUser> users = new List<IdentityUser>();
+
+        IdentityUser adminUser = new IdentityUser
+        {
+            Id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            UserName = "manager1",
+            NormalizedUserName = "MANAGER1",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        adminUser.PasswordHash = hasher.HashPassword(adminUser, "123456");
+        users.Add(adminUser);
+
+        IdentityUser managerUser = new IdentityUser
+        {
+            Id = "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+            UserName = "manager2",
+            NormalizedUserName = "MANAGER2",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        managerUser.PasswordHash = hasher.HashPassword(managerUser, "123456");
+        users.Add(managerUser);
+
+        return users;
+    }
 }

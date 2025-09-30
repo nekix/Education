@@ -13,6 +13,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ViewModels\Track\**" />
+    <Content Remove="ViewModels\Track\**" />
+    <EmbeddedResource Remove="ViewModels\Track\**" />
+    <None Remove="ViewModels\Track\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="icu.net" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
@@ -31,10 +38,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CarPark.Application\CarPark.Application.csproj" />
     <ProjectReference Include="..\CarPark.Domain\CarPark.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ViewModels\Track\" />
   </ItemGroup>
 
 </Project>

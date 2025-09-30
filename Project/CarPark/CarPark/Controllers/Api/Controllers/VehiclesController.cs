@@ -429,13 +429,6 @@ public class VehiclesController : ApiBaseController
         }
     }
 
-    private bool CheckIsGeoJsonRequested()
-    {
-        string acceptHeader = Request.Headers.Accept.ToString();
-        bool isGeoJsonRequested = acceptHeader.Contains("application/geo+json");
-        return isGeoJsonRequested;
-    }
-
     public class GetTrackRequest
     {
         [Required]
@@ -604,4 +597,11 @@ public class VehiclesController : ApiBaseController
         public DateTimeOffset EndTime { get; set; }
     }
     #endregion
+
+    private bool CheckIsGeoJsonRequested()
+    {
+        string acceptHeader = Request.Headers.Accept.ToString();
+        bool isGeoJsonRequested = acceptHeader.Contains("application/geo+json");
+        return isGeoJsonRequested;
+    }
 }

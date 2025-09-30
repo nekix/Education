@@ -20,26 +20,26 @@ public class TrackGenerationOptions
     /// <summary>
     /// Максимальная скорость км/ч
     /// </summary>
-    public double MaxSpeedKmH { get; init; } = 90;
+    public required double MaxSpeedKmH { get; init; }
     /// <summary>
     /// Максимальное ускорение км/ч²
     /// </summary>
-    public double MaxAccelerationKmH2 { get; init; } = 20;
+    public required double MaxAccelerationKmH2 { get; init; }
     /// <summary>
     /// Минимальная скорость км/ч
     /// </summary>
-    public double MinSpeedKmH { get; init; } = 5;
+    public required double MinSpeedKmH { get; init; }
 
     /// <summary>
     /// Интервал точек
     /// </summary>
-    public TimeSpan PointInterval { get; init; } = TimeSpan.FromSeconds(10);
+    public required TimeSpan PointInterval { get; init; }
     /// <summary>
     /// Разброс ±сек
     /// </summary>
-    public TimeSpan IntervalVariation { get; init; } = TimeSpan.FromSeconds(3);
+    public required TimeSpan IntervalVariation { get; init; }
     /// <summary>
     /// Время старта трека
     /// </summary>
-    public DateTimeOffset StartTime { get; init; } = DateTimeOffset.Now;
+    public required DateTimeOffset StartTime { get; init; }
 }

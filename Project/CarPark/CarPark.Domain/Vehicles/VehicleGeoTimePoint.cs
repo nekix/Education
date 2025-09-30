@@ -43,6 +43,8 @@ public sealed class VehicleGeoTimePoint
         }
         point.Location = location;
 
+        point.Time = time;
+
         return Result.Ok(point);
     }
 }

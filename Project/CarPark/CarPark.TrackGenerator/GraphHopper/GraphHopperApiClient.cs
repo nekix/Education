@@ -24,30 +24,30 @@ public class GraphHopperApiClient : IGraphHopperApiClient
 
     public async Task<RouteResponse> GetRouteAsync(RouteRequest request)
     {
-        var url = $"https://graphhopper.com/api/1/route?key={_options.ApiKey}";
+        string url = $"https://graphhopper.com/api/1/route?key={_options.ApiKey}";
         
-        var json = JsonSerializer.Serialize(request);
+        string json = JsonSerializer.Serialize(request);
 
         _logger.LogDebug("Sending GraphHopper request to {Url} with payload: {Json}", url, json);
 
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
         
         try
         {
-            var response = await _httpClient.PostAsync(url, content);
+            HttpResponseMessage response = await _httpClient.PostAsync(url, content);
             
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
+                string errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError("GraphHopper API error {StatusCode}: {Error}", 
                     response.StatusCode, errorContent);
                 throw new GraphHopperApiException($"API request failed with status {response.StatusCode}: {errorContent}");
             }
 
-            var responseJson = await response.Content.ReadAsStringAsync();
+            string responseJson = await response.Content.ReadAsStringAsync();
             _logger.LogDebug("GraphHopper response: {Response}", responseJson);
 
-            var routeResponse = JsonSerializer.Deserialize<RouteResponse>(responseJson);
+            RouteResponse? routeResponse = JsonSerializer.Deserialize<RouteResponse>(responseJson);
 
             return routeResponse ?? throw new GraphHopperApiException("Failed to deserialize response");
         }

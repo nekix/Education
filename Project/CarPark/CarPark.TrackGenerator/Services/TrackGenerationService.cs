@@ -18,7 +18,7 @@ public class TrackGenerationService : ITrackGenerationService
     public async Task<Track> GenerateTrackAsync(TrackGenerationOptions options)
     {
         // 1. Получаем маршрут через RouteGenerationService
-        var routeOptions = new RouteGenerationOptions
+        RouteGenerationOptions routeOptions = new RouteGenerationOptions
         {
             CenterPoint = options.CenterPoint,
             RadiusKm = options.RadiusKm,
@@ -29,7 +29,7 @@ public class TrackGenerationService : ITrackGenerationService
         LineString route = await _routeGenerationService.GenerateRouteAsync(routeOptions);
 
         // 2. Генерируем точки трека с временными метками
-        var points = GenerateGeoTimePoints(route, options);
+        List<GeoTimePoint> points = GenerateGeoTimePoints(route, options);
 
         // 3. Создаем трек
         return new Track
@@ -41,8 +41,8 @@ public class TrackGenerationService : ITrackGenerationService
 
     private List<GeoTimePoint> GenerateGeoTimePoints(LineString route, TrackGenerationOptions options)
     {
-        var points = new List<GeoTimePoint>();
-        var lengthIndexedLine = new LengthIndexedLine(route);
+        List<GeoTimePoint> points = new List<GeoTimePoint>();
+        LengthIndexedLine lengthIndexedLine = new LengthIndexedLine(route);
         
         double totalLength = route.Length; // длина в единицах координатной системы
         double currentDistance = 0;
@@ -104,9 +104,9 @@ public class TrackGenerationService : ITrackGenerationService
         // 3. Добавляем конечную точку маршрута
         if (points.Count > 1) // Если у нас есть промежуточные точки
         {
-            var lastPoint = points[^1];
-            var timeToEnd = CalculateTimeToReachEnd(currentDistance, totalLength, currentSpeedKmH);
-            var endTime = lastPoint.Timestamp.Add(timeToEnd);
+            GeoTimePoint lastPoint = points[^1];
+            TimeSpan timeToEnd = CalculateTimeToReachEnd(currentDistance, totalLength, currentSpeedKmH);
+            DateTimeOffset endTime = lastPoint.Timestamp.Add(timeToEnd);
             
             Coordinate endCoordinate = lengthIndexedLine.ExtractPoint(totalLength);
             Point endLocation = new Point(new Coordinate(endCoordinate.X, endCoordinate.Y)) { SRID = 4326 };

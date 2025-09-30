@@ -7,9 +7,28 @@
             }
         });
 
-        return response.data.rides; // возвращаем список поездок
+        return response.data.rides;
     } catch (err) {
         console.error("Ошибка загрузки поездок:", err);
+        return [];
+    }
+}
+
+async function getRidesTrack(vehicleId, startTime, endTime, isGeoJson) {
+    try {
+        const response = await axios.get(`/api/vehicles/${vehicleId}/rides/track`, {
+            params: {
+                startTime: startTime,
+                endTime: endTime
+            },
+            headers: {
+                'accept': isGeoJson ? 'application/geo+json' : 'application/json'
+            }
+        });
+
+        return response.data;
+    } catch (err) {
+        console.error("Ошибка загрузки трека:", err);
         return [];
     }
 }

@@ -774,6 +774,7 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
     //    public double EndLon { get; set; }
     //    public dynamic[] RoutePoints { get; set; } = Array.Empty<dynamic>();
     //}
+
     private static IReadOnlyList<IdentityUser> SeedIdentityUsers()
     {
         PasswordHasher<IdentityUser> hasher = new PasswordHasher<IdentityUser>();

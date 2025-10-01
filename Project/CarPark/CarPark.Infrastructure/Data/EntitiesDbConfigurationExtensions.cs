@@ -125,7 +125,7 @@ public static class EntitiesDbConfigurationExtensions
     public static void ConfigureVehicleGeoTimePoint(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<VehicleGeoTimePoint>()
-            .ToTable("vehicle_get_time");
+            .ToTable("vehicle_geo_time_point");
 
         modelBuilder.Entity<VehicleGeoTimePoint>()
             .Property(g => g.Id)

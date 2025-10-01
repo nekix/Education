@@ -135,10 +135,10 @@
                 <dd class="col-sm-10">${new Date(ride.endTime).toLocaleString()}</dd>
 
                 <dt class="col-sm-2">Start geo point</dt>
-                <dd class="col-sm-10">(${ride.startGeoPoint.x}, ${ride.startGeoPoint.y})</dd>
+                <dd class="col-sm-10">${ride.startGeoPoint.address} (${ride.startGeoPoint.x}, ${ride.startGeoPoint.y})</dd>
 
                 <dt class="col-sm-2">End geo point</dt>
-                <dd class="col-sm-10">(${ride.endGeoPoint.x}, ${ride.endGeoPoint.y})</dd>
+                <dd class="col-sm-10">${ride.endGeoPoint.address} (${ride.endGeoPoint.x}, ${ride.endGeoPoint.y})</dd>
             `;
 
             container.appendChild(rideDl);

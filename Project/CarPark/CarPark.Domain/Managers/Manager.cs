@@ -8,7 +8,5 @@ public class Manager
 
     public required string IdentityUserId { get; set; }
 
-    //public required List<Enterprise> Enterprises { get; set; }
-
     public required List<Enterprise> Enterprises { get; set; } 
 }

@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010143354_VehicleIdIntToIdGuid_3")]
+    partial class VehicleIdIntToIdGuid_3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,10 +29,10 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Drivers.Driver", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("GuidId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("guid_id");
 
                     b.Property<string>("DriverLicenseNumber")
                         .IsRequired()
@@ -49,7 +52,7 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("assigned_vehicle_id");
 
-                    b.HasKey("Id")
+                    b.HasKey("GuidId")
                         .HasName("pk_driver");
 
                     b.HasIndex("EnterpriseId")
@@ -562,15 +565,15 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("driver_vehicle_assignment", b =>
                 {
-                    b.Property<Guid>("AssignedDriversId")
+                    b.Property<Guid>("AssignedDriversGuidId")
                         .HasColumnType("uuid")
-                        .HasColumnName("assigned_drivers_id");
+                        .HasColumnName("assigned_drivers_guid_id");
 
                     b.Property<int>("AssignedVehiclesId")
                         .HasColumnType("integer")
                         .HasColumnName("assigned_vehicles_id");
 
-                    b.HasKey("AssignedDriversId", "AssignedVehiclesId")
+                    b.HasKey("AssignedDriversGuidId", "AssignedVehiclesId")
                         .HasName("pk_driver_vehicle_assignment");
 
                     b.HasIndex("AssignedVehiclesId")
@@ -758,10 +761,10 @@ namespace CarPark.Data.Migrations
                 {
                     b.HasOne("CarPark.Drivers.Driver", null)
                         .WithMany()
-                        .HasForeignKey("AssignedDriversId")
+                        .HasForeignKey("AssignedDriversGuidId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_driver_vehicle_assignment_driver_assigned_drivers_id");
+                        .HasConstraintName("fk_driver_vehicle_assignment_driver_assigned_drivers_guid_id");
 
                     b.HasOne("CarPark.Vehicles.Vehicle", null)
                         .WithMany()

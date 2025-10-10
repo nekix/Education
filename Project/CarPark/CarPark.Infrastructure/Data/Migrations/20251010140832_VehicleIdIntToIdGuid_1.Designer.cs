@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010140832_VehicleIdIntToIdGuid_1")]
+    partial class VehicleIdIntToIdGuid_1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,10 +29,12 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Drivers.Driver", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("DriverLicenseNumber")
                         .IsRequired()
@@ -45,12 +50,19 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("full_name");
 
+                    b.Property<Guid>("GuidId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid_id");
+
                     b.Property<int?>("assigned_vehicle_id")
                         .HasColumnType("integer")
                         .HasColumnName("assigned_vehicle_id");
 
                     b.HasKey("Id")
                         .HasName("pk_driver");
+
+                    b.HasAlternateKey("GuidId")
+                        .HasName("ak_driver_guid_id");
 
                     b.HasIndex("EnterpriseId")
                         .HasDatabaseName("ix_driver_enterprise_id");
@@ -562,8 +574,8 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("driver_vehicle_assignment", b =>
                 {
-                    b.Property<Guid>("AssignedDriversId")
-                        .HasColumnType("uuid")
+                    b.Property<int>("AssignedDriversId")
+                        .HasColumnType("integer")
                         .HasColumnName("assigned_drivers_id");
 
                     b.Property<int>("AssignedVehiclesId")
@@ -610,7 +622,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.Vehicles.Vehicle", "ActiveAssignedVehicle")
                         .WithOne("ActiveAssignedDriver")
                         .HasForeignKey("CarPark.Drivers.Driver", "assigned_vehicle_id")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_driver_vehicle_assigned_vehicle_id");
 
                     b.Navigation("ActiveAssignedVehicle");

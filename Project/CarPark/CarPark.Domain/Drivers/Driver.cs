@@ -4,7 +4,7 @@ namespace CarPark.Drivers;
 
 public sealed class Driver
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required int EnterpriseId { get; set; }
 

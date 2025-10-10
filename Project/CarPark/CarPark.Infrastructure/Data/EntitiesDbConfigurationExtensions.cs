@@ -45,8 +45,15 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("driver");
 
         modelBuilder.Entity<Driver>()
-            .Property(d => d.Id)
-            .UseIdentityAlwaysColumn();
+            .Property(d => d.Id);
+
+        modelBuilder.Entity<Driver>()
+            .HasKey(d => d.Id);
+
+        modelBuilder.Entity<Driver>()
+            .HasMany(d => d.AssignedVehicles)
+            .WithMany(v => v.AssignedDrivers)
+            .UsingEntity("driver_vehicle_assignment");
 
         modelBuilder.Entity<Driver>()
             .HasMany(d => d.AssignedVehicles)

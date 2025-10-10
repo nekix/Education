@@ -2,7 +2,7 @@
 
 public sealed class Model
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required string ModelName { get; set; }
 

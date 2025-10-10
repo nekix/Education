@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010090345_ModelIdIntToIdGuid_4")]
+    partial class ModelIdIntToIdGuid_4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -98,10 +101,12 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Managers.Manager", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("IdentityUserId")
                         .IsRequired()
@@ -587,8 +592,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("enterprises_id");
 
-                    b.Property<Guid>("ManagersId")
-                        .HasColumnType("uuid")
+                    b.Property<int>("ManagersId")
+                        .HasColumnType("integer")
                         .HasColumnName("managers_id");
 
                     b.HasKey("EnterprisesId", "ManagersId")
@@ -623,6 +628,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.TimeZones.TzInfo", "TimeZone")
                         .WithMany()
                         .HasForeignKey("TimeZoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_enterprise_tz_infos_time_zone_id");
 
                     b.Navigation("TimeZone");
@@ -780,7 +786,7 @@ namespace CarPark.Data.Migrations
                         .HasForeignKey("EnterprisesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_enterprise_manager_enterprise_enterprises_id");
+                        .HasConstraintName("fk_enterprise_manager_enterprises_enterprises_id");
 
                     b.HasOne("CarPark.Managers.Manager", null)
                         .WithMany()

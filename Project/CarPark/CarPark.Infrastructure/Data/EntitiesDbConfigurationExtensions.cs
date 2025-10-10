@@ -1,4 +1,5 @@
-﻿using CarPark.Drivers;
+﻿using System.Security.Cryptography.X509Certificates;
+using CarPark.Drivers;
 using CarPark.Enterprises;
 using CarPark.Managers;
 using CarPark.Models;
@@ -18,14 +19,7 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("model");
 
         modelBuilder.Entity<Model>()
-            .Property(m => m.Id)
-            .UseIdentityAlwaysColumn();
-
-        modelBuilder.Entity<Model>()
-            .HasMany<Vehicle>()
-            .WithOne(v => v.Model)
-            .IsRequired()
-            .OnDelete(DeleteBehavior.NoAction);
+            .HasKey(m => m.Id);
     }
 
     public static void ConfigureVehicle(this ModelBuilder modelBuilder)
@@ -36,6 +30,13 @@ public static class EntitiesDbConfigurationExtensions
         modelBuilder.Entity<Vehicle>()
             .Property(v => v.Id)
             .UseIdentityAlwaysColumn();
+
+        modelBuilder.Entity<Vehicle>()
+            .HasOne<Model>(m => m.Model)
+            .WithMany()
+            .HasPrincipalKey(m => m.Id)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     public static void ConfigureDriver(this ModelBuilder modelBuilder)
@@ -92,12 +93,11 @@ public static class EntitiesDbConfigurationExtensions
             .HasForeignKey(d => d.EnterpriseId)
             .IsRequired()
             .OnDelete(DeleteBehavior.NoAction);
-
+        
         modelBuilder.Entity<Enterprise>()
-            .HasOne(e => e.TimeZone)
-            .WithMany()
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasMany(e => e.Managers)
+            .WithMany(m => m.Enterprises)
+            .UsingEntity("enterprise_manager");;
     }
 
     public static void ConfigureManager(this ModelBuilder modelBuilder)
@@ -106,8 +106,7 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("manager");
 
         modelBuilder.Entity<Manager>()
-            .Property(u => u.Id)
-            .UseIdentityColumn();
+            .HasKey(m => m.Id);
 
         modelBuilder.Entity<Manager>()
             .HasOne<IdentityUser>()
@@ -115,11 +114,6 @@ public static class EntitiesDbConfigurationExtensions
             .HasForeignKey(m => m.IdentityUserId)
             .IsRequired()
             .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<Manager>()
-            .HasMany(m => m.Enterprises)
-            .WithMany(e => e.Managers)
-            .UsingEntity("enterprise_manager");
     }
 
     public static void ConfigureVehicleGeoTimePoint(this ModelBuilder modelBuilder)

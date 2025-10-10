@@ -118,7 +118,7 @@ public class ManagersVehiclesQueryHandler : BaseManagersHandler,
             from d in v.AssignedDrivers.DefaultIfEmpty()
             group d by new
             {
-                v.Id,
+                Id = v.Id,
                 ModelId = v.Model.Id,
                 EnterpriseId = v.Enterprise.Id,
                 v.VinNumber,

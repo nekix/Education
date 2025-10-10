@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010123842_ManagerIdIntToIdGuid_2")]
+    partial class ManagerIdIntToIdGuid_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,6 +26,25 @@ namespace CarPark.Data.Migrations
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("CarPark.Data.EntitiesDbConfigurationExtensions+NewEnterprsiseManager", b =>
+                {
+                    b.Property<int>("EnterpriseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("enterprise_id");
+
+                    b.Property<Guid>("ManagerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("manager_id");
+
+                    b.HasKey("EnterpriseId", "ManagerId")
+                        .HasName("pk_new_enterprsise_manager");
+
+                    b.HasIndex("ManagerId")
+                        .HasDatabaseName("ix_new_enterprsise_manager_manager_id");
+
+                    b.ToTable("new_enterprsise_manager", (string)null);
+                });
 
             modelBuilder.Entity("CarPark.Drivers.Driver", b =>
                 {
@@ -98,10 +120,16 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Managers.Manager", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("GuidId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid_id");
 
                     b.Property<string>("IdentityUserId")
                         .IsRequired()
@@ -110,6 +138,9 @@ namespace CarPark.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_manager");
+
+                    b.HasAlternateKey("GuidId")
+                        .HasName("ak_manager_guid_id");
 
                     b.HasIndex("IdentityUserId")
                         .HasDatabaseName("ix_manager_identity_user_id");
@@ -587,8 +618,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("enterprises_id");
 
-                    b.Property<Guid>("ManagersId")
-                        .HasColumnType("uuid")
+                    b.Property<int>("ManagersId")
+                        .HasColumnType("integer")
                         .HasColumnName("managers_id");
 
                     b.HasKey("EnterprisesId", "ManagersId")
@@ -598,6 +629,24 @@ namespace CarPark.Data.Migrations
                         .HasDatabaseName("ix_enterprise_manager_managers_id");
 
                     b.ToTable("enterprise_manager", (string)null);
+                });
+
+            modelBuilder.Entity("CarPark.Data.EntitiesDbConfigurationExtensions+NewEnterprsiseManager", b =>
+                {
+                    b.HasOne("CarPark.Enterprises.Enterprise", null)
+                        .WithMany()
+                        .HasForeignKey("EnterpriseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_new_enterprsise_manager_enterprise_enterprise_id");
+
+                    b.HasOne("CarPark.Managers.Manager", null)
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .HasPrincipalKey("GuidId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_new_enterprsise_manager_manager_manager_id");
                 });
 
             modelBuilder.Entity("CarPark.Drivers.Driver", b =>
@@ -780,7 +829,7 @@ namespace CarPark.Data.Migrations
                         .HasForeignKey("EnterprisesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_enterprise_manager_enterprise_enterprises_id");
+                        .HasConstraintName("fk_enterprise_manager_enterprises_enterprises_id");
 
                     b.HasOne("CarPark.Managers.Manager", null)
                         .WithMany()

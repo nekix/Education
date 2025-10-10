@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010161540_VehiclesIdIntToIdGuid_4")]
+    partial class VehiclesIdIntToIdGuid_4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,8 +48,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("full_name");
 
-                    b.Property<Guid?>("assigned_vehicle_id")
-                        .HasColumnType("uuid")
+                    b.Property<int?>("assigned_vehicle_id")
+                        .HasColumnType("integer")
                         .HasColumnName("assigned_vehicle_id");
 
                     b.HasKey("Id")
@@ -232,10 +235,12 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Vehicles.Vehicle", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTimeOffset>("AddedToEnterpriseAt")
                         .HasColumnType("timestamp with time zone")
@@ -249,6 +254,10 @@ namespace CarPark.Data.Migrations
                     b.Property<Guid>("EnterpriseId")
                         .HasColumnType("uuid")
                         .HasColumnName("enterprise_id");
+
+                    b.Property<Guid>("GuidId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid_id");
 
                     b.Property<int>("ManufactureYear")
                         .HasColumnType("integer")
@@ -273,6 +282,9 @@ namespace CarPark.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_vehicle");
+
+                    b.HasAlternateKey("GuidId")
+                        .HasName("ak_vehicle_guid_id");
 
                     b.HasIndex("EnterpriseId")
                         .HasDatabaseName("ix_vehicle_enterprise_id");
@@ -299,8 +311,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("time");
 
-                    b.Property<Guid>("vehicle_id")
-                        .HasColumnType("uuid")
+                    b.Property<int>("vehicle_id")
+                        .HasColumnType("integer")
                         .HasColumnName("vehicle_id");
 
                     b.HasKey("Id")
@@ -562,8 +574,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("assigned_drivers_id");
 
-                    b.Property<Guid>("AssignedVehiclesId")
-                        .HasColumnType("uuid")
+                    b.Property<int>("AssignedVehiclesId")
+                        .HasColumnType("integer")
                         .HasColumnName("assigned_vehicles_id");
 
                     b.HasKey("AssignedDriversId", "AssignedVehiclesId")
@@ -649,6 +661,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.Vehicles.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("vehicle_id")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_ride_vehicle_vehicle_id");

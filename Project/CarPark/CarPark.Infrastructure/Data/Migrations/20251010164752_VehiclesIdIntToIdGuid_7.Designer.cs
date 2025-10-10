@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010164752_VehiclesIdIntToIdGuid_7")]
+    partial class VehiclesIdIntToIdGuid_7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,8 +48,12 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("full_name");
 
-                    b.Property<Guid?>("assigned_vehicle_id")
+                    b.Property<Guid?>("NewActiveAssignedVehicleId")
                         .HasColumnType("uuid")
+                        .HasColumnName("new_active_assigned_vehicle_id");
+
+                    b.Property<int?>("assigned_vehicle_id")
+                        .HasColumnType("integer")
                         .HasColumnName("assigned_vehicle_id");
 
                     b.HasKey("Id")
@@ -54,6 +61,10 @@ namespace CarPark.Data.Migrations
 
                     b.HasIndex("EnterpriseId")
                         .HasDatabaseName("ix_driver_enterprise_id");
+
+                    b.HasIndex("NewActiveAssignedVehicleId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_driver_new_active_assigned_vehicle_id");
 
                     b.HasIndex("assigned_vehicle_id")
                         .IsUnique()
@@ -232,10 +243,12 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Vehicles.Vehicle", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTimeOffset>("AddedToEnterpriseAt")
                         .HasColumnType("timestamp with time zone")
@@ -249,6 +262,10 @@ namespace CarPark.Data.Migrations
                     b.Property<Guid>("EnterpriseId")
                         .HasColumnType("uuid")
                         .HasColumnName("enterprise_id");
+
+                    b.Property<Guid>("GuidId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid_id");
 
                     b.Property<int>("ManufactureYear")
                         .HasColumnType("integer")
@@ -273,6 +290,9 @@ namespace CarPark.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_vehicle");
+
+                    b.HasAlternateKey("GuidId")
+                        .HasName("ak_vehicle_guid_id");
 
                     b.HasIndex("EnterpriseId")
                         .HasDatabaseName("ix_vehicle_enterprise_id");
@@ -558,18 +578,18 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("driver_vehicle_assignment", b =>
                 {
-                    b.Property<Guid>("AssignedDriversId")
+                    b.Property<Guid>("assigned_drivers_id")
                         .HasColumnType("uuid")
                         .HasColumnName("assigned_drivers_id");
 
-                    b.Property<Guid>("AssignedVehiclesId")
+                    b.Property<Guid>("assigned_vehicles_id")
                         .HasColumnType("uuid")
                         .HasColumnName("assigned_vehicles_id");
 
-                    b.HasKey("AssignedDriversId", "AssignedVehiclesId")
+                    b.HasKey("assigned_drivers_id", "assigned_vehicles_id")
                         .HasName("pk_driver_vehicle_assignment");
 
-                    b.HasIndex("AssignedVehiclesId")
+                    b.HasIndex("assigned_vehicles_id")
                         .HasDatabaseName("ix_driver_vehicle_assignment_assigned_vehicles_id");
 
                     b.ToTable("driver_vehicle_assignment", (string)null);
@@ -602,6 +622,13 @@ namespace CarPark.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_driver_enterprise_enterprise_id");
+
+                    b.HasOne("CarPark.Vehicles.Vehicle", null)
+                        .WithOne("NewActiveAssignedDriver")
+                        .HasForeignKey("CarPark.Drivers.Driver", "NewActiveAssignedVehicleId")
+                        .HasPrincipalKey("CarPark.Vehicles.Vehicle", "GuidId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_driver_vehicle_new_active_assigned_vehicle_id");
 
                     b.HasOne("CarPark.Vehicles.Vehicle", "ActiveAssignedVehicle")
                         .WithOne("ActiveAssignedDriver")
@@ -649,6 +676,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.Vehicles.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("vehicle_id")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_ride_vehicle_vehicle_id");
@@ -686,6 +714,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.Vehicles.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("vehicle_id")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_vehicle_geo_time_point_vehicle_vehicle_id");
@@ -754,14 +783,15 @@ namespace CarPark.Data.Migrations
                 {
                     b.HasOne("CarPark.Drivers.Driver", null)
                         .WithMany()
-                        .HasForeignKey("AssignedDriversId")
+                        .HasForeignKey("assigned_drivers_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_driver_vehicle_assignment_driver_assigned_drivers_id");
 
                     b.HasOne("CarPark.Vehicles.Vehicle", null)
                         .WithMany()
-                        .HasForeignKey("AssignedVehiclesId")
+                        .HasForeignKey("assigned_vehicles_id")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_driver_vehicle_assignment_vehicle_assigned_vehicles_id");
@@ -787,6 +817,8 @@ namespace CarPark.Data.Migrations
             modelBuilder.Entity("CarPark.Vehicles.Vehicle", b =>
                 {
                     b.Navigation("ActiveAssignedDriver");
+
+                    b.Navigation("NewActiveAssignedDriver");
                 });
 #pragma warning restore 612, 618
         }

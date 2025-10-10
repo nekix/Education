@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using CarPark.Drivers;
+﻿using CarPark.Drivers;
 using CarPark.Enterprises;
 using CarPark.Managers;
 using CarPark.Models;
@@ -28,8 +27,7 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("vehicle");
 
         modelBuilder.Entity<Vehicle>()
-            .Property(v => v.Id)
-            .UseIdentityAlwaysColumn();
+            .HasKey(v => v.Id);
 
         modelBuilder.Entity<Vehicle>()
             .HasOne<Model>(m => m.Model)
@@ -43,9 +41,6 @@ public static class EntitiesDbConfigurationExtensions
     {
         modelBuilder.Entity<Driver>()
             .ToTable("driver");
-
-        modelBuilder.Entity<Driver>()
-            .Property(d => d.Id);
 
         modelBuilder.Entity<Driver>()
             .HasKey(d => d.Id);
@@ -65,7 +60,7 @@ public static class EntitiesDbConfigurationExtensions
             .WithOne(v => v.ActiveAssignedDriver)
             .HasForeignKey<Driver>("assigned_vehicle_id")
             .IsRequired(false)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     public static void ConfigureTzInfo(this ModelBuilder modelBuilder)
@@ -74,8 +69,7 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("time_zone");
 
         modelBuilder.Entity<TzInfo>()
-            .Property(tz => tz.Id)
-            .UseIdentityColumn();
+            .Property(tz => tz.Id);
     }
 
     public static void ConfigureEnterprise(this ModelBuilder modelBuilder)
@@ -101,32 +95,11 @@ public static class EntitiesDbConfigurationExtensions
             .HasPrincipalKey(p => p.Id)
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
-        
-        //modelBuilder.Entity<Enterprise>()
-        //    .HasMany(e => e.Managers)
-        //    .WithMany(m => m.Enterprises)
-        //    .UsingEntity("enterprise_manager");
 
         modelBuilder.Entity<Enterprise>()
             .HasMany(e => e.Managers)
             .WithMany(m => m.Enterprises)
-            .UsingEntity<Dictionary<string, object>>( // временная "неявная" таблица
-                "enterprise_manager",                 // имя таблицы
-                j => j.HasOne<Manager>()
-                    .WithMany()
-                    .HasForeignKey("managers_id")  // FK на Manager
-                    .HasPrincipalKey(m => m.Id) // Используем GuidId, не int
-                    .OnDelete(DeleteBehavior.Cascade),
-                j => j.HasOne<Enterprise>()
-                    .WithMany()
-                    .HasForeignKey("enterprises_id") // FK на Enterprise
-                    .HasPrincipalKey(e => e.Id)  // Используем GuidId
-                    .OnDelete(DeleteBehavior.Cascade),
-                j =>
-                {
-                    j.HasKey("enterprises_id", "managers_id");
-                    j.ToTable("enterprise_manager");
-                });
+            .UsingEntity("enterprise_manager");
     }
 
     public static void ConfigureManager(this ModelBuilder modelBuilder)
@@ -142,7 +115,7 @@ public static class EntitiesDbConfigurationExtensions
             .WithMany()
             .HasForeignKey(m => m.IdentityUserId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     public static void ConfigureVehicleGeoTimePoint(this ModelBuilder modelBuilder)
@@ -162,6 +135,7 @@ public static class EntitiesDbConfigurationExtensions
             .HasOne(p => p.Vehicle)
             .WithMany()
             .HasForeignKey("vehicle_id")
+            .HasPrincipalKey(r => r.Id)
             .IsRequired();
     }
 
@@ -171,28 +145,25 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("ride");
 
         modelBuilder.Entity<Ride>()
-            .Property(r => r.Id)
-            .ValueGeneratedOnAdd();
-
-        modelBuilder.Entity<Ride>()
             .HasOne(r => r.Vehicle)
             .WithMany()
             .HasForeignKey("vehicle_id")
+            .HasPrincipalKey(r => r.Id)
             .IsRequired()
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Ride>()
             .HasOne(r => r.StartPoint)
             .WithMany()
             .HasForeignKey("start_geo_time_point_id")
             .IsRequired(false)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Ride>()
             .HasOne(r => r.EndPoint)
             .WithMany()
             .HasForeignKey("end_geo_time_point_id")
             .IsRequired(false)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

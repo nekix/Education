@@ -7,7 +7,7 @@ namespace CarPark.Vehicles;
 
 public sealed class Vehicle
 {
-    public int Id { get; private init; }
+    public Guid Id { get; private init; }
 
     public Model Model { get; private set; }
 
@@ -39,7 +39,7 @@ public sealed class Vehicle
     #pragma warning restore CS8618
 
     public static Result<Vehicle> Create(
-        int id,
+        Guid id,
         Model model,
         Enterprise enterprise,
         string vinNumber,

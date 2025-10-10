@@ -4,15 +4,15 @@ namespace CarPark.Rides;
 
 public class Ride
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
-    public Vehicle Vehicle { get; set; }
+    public required Vehicle Vehicle { get; set; }
 
-    public DateTimeOffset StartTime { get; set; }
+    public required DateTimeOffset StartTime { get; set; }
 
-    public DateTimeOffset EndTime { get; set; }
+    public required DateTimeOffset EndTime { get; set; }
 
-    public VehicleGeoTimePoint StartPoint { get; set; }
+    public required VehicleGeoTimePoint StartPoint { get; set; }
 
-    public VehicleGeoTimePoint EndPoint { get; set; }
+    public required VehicleGeoTimePoint EndPoint { get; set; }
 }

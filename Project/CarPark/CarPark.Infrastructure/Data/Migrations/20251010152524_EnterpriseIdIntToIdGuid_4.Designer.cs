@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010152524_EnterpriseIdIntToIdGuid_4")]
+    partial class EnterpriseIdIntToIdGuid_4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,10 +67,10 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Enterprises.Enterprise", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("GuidId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("guid_id");
 
                     b.Property<string>("LegalAddress")
                         .IsRequired()
@@ -83,7 +86,7 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("time_zone_id");
 
-                    b.HasKey("Id")
+                    b.HasKey("GuidId")
                         .HasName("pk_enterprise");
 
                     b.HasIndex("TimeZoneId")
@@ -248,9 +251,9 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("color");
 
-                    b.Property<Guid>("EnterpriseId")
+                    b.Property<Guid>("EnterpriseGuidId")
                         .HasColumnType("uuid")
-                        .HasColumnName("enterprise_id");
+                        .HasColumnName("enterprise_guid_id");
 
                     b.Property<int>("ManufactureYear")
                         .HasColumnType("integer")
@@ -276,8 +279,8 @@ namespace CarPark.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_vehicle");
 
-                    b.HasIndex("EnterpriseId")
-                        .HasDatabaseName("ix_vehicle_enterprise_id");
+                    b.HasIndex("EnterpriseGuidId")
+                        .HasDatabaseName("ix_vehicle_enterprise_guid_id");
 
                     b.HasIndex("ModelId")
                         .HasDatabaseName("ix_vehicle_model_id");
@@ -666,7 +669,7 @@ namespace CarPark.Data.Migrations
                 {
                     b.HasOne("CarPark.Enterprises.Enterprise", "Enterprise")
                         .WithMany()
-                        .HasForeignKey("EnterpriseId")
+                        .HasForeignKey("EnterpriseGuidId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_vehicle_enterprise_enterprise_id");

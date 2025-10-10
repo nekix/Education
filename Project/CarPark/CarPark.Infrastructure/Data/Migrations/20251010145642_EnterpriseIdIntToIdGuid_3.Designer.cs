@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010145642_EnterpriseIdIntToIdGuid_3")]
+    partial class EnterpriseIdIntToIdGuid_3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,10 +67,16 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Enterprises.Enterprise", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("GuidId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid_id");
 
                     b.Property<string>("LegalAddress")
                         .IsRequired()
@@ -85,6 +94,9 @@ namespace CarPark.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_enterprise");
+
+                    b.HasAlternateKey("GuidId")
+                        .HasName("ak_enterprise_guid_id");
 
                     b.HasIndex("TimeZoneId")
                         .HasDatabaseName("ix_enterprise_time_zone_id");
@@ -248,9 +260,9 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("color");
 
-                    b.Property<Guid>("EnterpriseId")
+                    b.Property<Guid>("EnterpriseGuidId")
                         .HasColumnType("uuid")
-                        .HasColumnName("enterprise_id");
+                        .HasColumnName("enterprise_guid_id");
 
                     b.Property<int>("ManufactureYear")
                         .HasColumnType("integer")
@@ -276,8 +288,8 @@ namespace CarPark.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_vehicle");
 
-                    b.HasIndex("EnterpriseId")
-                        .HasDatabaseName("ix_vehicle_enterprise_id");
+                    b.HasIndex("EnterpriseGuidId")
+                        .HasDatabaseName("ix_vehicle_enterprise_guid_id");
 
                     b.HasIndex("ModelId")
                         .HasDatabaseName("ix_vehicle_model_id");
@@ -601,6 +613,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.Enterprises.Enterprise", null)
                         .WithMany()
                         .HasForeignKey("EnterpriseId")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_driver_enterprise_enterprise_id");
@@ -666,7 +679,8 @@ namespace CarPark.Data.Migrations
                 {
                     b.HasOne("CarPark.Enterprises.Enterprise", "Enterprise")
                         .WithMany()
-                        .HasForeignKey("EnterpriseId")
+                        .HasForeignKey("EnterpriseGuidId")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_vehicle_enterprise_enterprise_id");
@@ -774,6 +788,7 @@ namespace CarPark.Data.Migrations
                     b.HasOne("CarPark.Enterprises.Enterprise", null)
                         .WithMany()
                         .HasForeignKey("enterprises_id")
+                        .HasPrincipalKey("GuidId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_enterprise_manager_enterprise_enterprises_id");

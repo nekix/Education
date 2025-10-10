@@ -5,7 +5,7 @@ namespace CarPark.Enterprises;
 
 public sealed class Enterprise
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required string Name { get; set; }
 

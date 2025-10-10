@@ -84,27 +84,49 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("enterprise");
 
         modelBuilder.Entity<Enterprise>()
-            .Property(e => e.Id)
-            .UseIdentityAlwaysColumn();
+            .HasKey(e => e.Id);
 
         modelBuilder.Entity<Enterprise>()
             .HasMany<Vehicle>()
             .WithOne(v => v.Enterprise)
             .HasConstraintName("fk_vehicle_enterprise_enterprise_id")
+            .HasPrincipalKey(p => p.Id)
             .IsRequired()
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Enterprise>()
             .HasMany<Driver>()
             .WithOne()
             .HasForeignKey(d => d.EnterpriseId)
+            .HasPrincipalKey(p => p.Id)
             .IsRequired()
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
         
+        //modelBuilder.Entity<Enterprise>()
+        //    .HasMany(e => e.Managers)
+        //    .WithMany(m => m.Enterprises)
+        //    .UsingEntity("enterprise_manager");
+
         modelBuilder.Entity<Enterprise>()
             .HasMany(e => e.Managers)
             .WithMany(m => m.Enterprises)
-            .UsingEntity("enterprise_manager");;
+            .UsingEntity<Dictionary<string, object>>( // временная "неявная" таблица
+                "enterprise_manager",                 // имя таблицы
+                j => j.HasOne<Manager>()
+                    .WithMany()
+                    .HasForeignKey("managers_id")  // FK на Manager
+                    .HasPrincipalKey(m => m.Id) // Используем GuidId, не int
+                    .OnDelete(DeleteBehavior.Cascade),
+                j => j.HasOne<Enterprise>()
+                    .WithMany()
+                    .HasForeignKey("enterprises_id") // FK на Enterprise
+                    .HasPrincipalKey(e => e.Id)  // Используем GuidId
+                    .OnDelete(DeleteBehavior.Cascade),
+                j =>
+                {
+                    j.HasKey("enterprises_id", "managers_id");
+                    j.ToTable("enterprise_manager");
+                });
     }
 
     public static void ConfigureManager(this ModelBuilder modelBuilder)

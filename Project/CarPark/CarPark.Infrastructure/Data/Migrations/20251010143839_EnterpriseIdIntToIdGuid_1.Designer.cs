@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010143839_EnterpriseIdIntToIdGuid_1")]
+    partial class EnterpriseIdIntToIdGuid_1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,8 +39,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("driver_license_number");
 
-                    b.Property<Guid>("EnterpriseId")
-                        .HasColumnType("uuid")
+                    b.Property<int>("EnterpriseId")
+                        .HasColumnType("integer")
                         .HasColumnName("enterprise_id");
 
                     b.Property<string>("FullName")
@@ -64,10 +67,16 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.Enterprises.Enterprise", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("GuidId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid_id");
 
                     b.Property<string>("LegalAddress")
                         .IsRequired()
@@ -85,6 +94,9 @@ namespace CarPark.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_enterprise");
+
+                    b.HasAlternateKey("GuidId")
+                        .HasName("ak_enterprise_guid_id");
 
                     b.HasIndex("TimeZoneId")
                         .HasDatabaseName("ix_enterprise_time_zone_id");
@@ -248,8 +260,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("color");
 
-                    b.Property<Guid>("EnterpriseId")
-                        .HasColumnType("uuid")
+                    b.Property<int>("EnterpriseId")
+                        .HasColumnType("integer")
                         .HasColumnName("enterprise_id");
 
                     b.Property<int>("ManufactureYear")
@@ -579,18 +591,18 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("enterprise_manager", b =>
                 {
-                    b.Property<Guid>("enterprises_id")
-                        .HasColumnType("uuid")
+                    b.Property<int>("EnterprisesId")
+                        .HasColumnType("integer")
                         .HasColumnName("enterprises_id");
 
-                    b.Property<Guid>("managers_id")
+                    b.Property<Guid>("ManagersId")
                         .HasColumnType("uuid")
                         .HasColumnName("managers_id");
 
-                    b.HasKey("enterprises_id", "managers_id")
+                    b.HasKey("EnterprisesId", "ManagersId")
                         .HasName("pk_enterprise_manager");
 
-                    b.HasIndex("managers_id")
+                    b.HasIndex("ManagersId")
                         .HasDatabaseName("ix_enterprise_manager_managers_id");
 
                     b.ToTable("enterprise_manager", (string)null);
@@ -773,14 +785,14 @@ namespace CarPark.Data.Migrations
                 {
                     b.HasOne("CarPark.Enterprises.Enterprise", null)
                         .WithMany()
-                        .HasForeignKey("enterprises_id")
+                        .HasForeignKey("EnterprisesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_enterprise_manager_enterprise_enterprises_id");
 
                     b.HasOne("CarPark.Managers.Manager", null)
                         .WithMany()
-                        .HasForeignKey("managers_id")
+                        .HasForeignKey("ManagersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_enterprise_manager_manager_managers_id");

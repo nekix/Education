@@ -6,7 +6,7 @@ public sealed class Driver
 {
     public required Guid Id { get; set; }
 
-    public required int EnterpriseId { get; set; }
+    public required Guid EnterpriseId { get; set; }
 
     public required string FullName { get; set; }
 

@@ -1,5 +1,4 @@
 ﻿using CarPark.Attributes;
-using CarPark.Data;
 using CarPark.Identity;
 using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.Enterprises;
@@ -16,19 +15,16 @@ namespace CarPark.Controllers.Api.Controllers;
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class EnterprisesController : ApiBaseController
 {
-    private readonly ApplicationDbContext _context;
     private readonly ICommandHandler<DeleteEnterpriseCommand, Result> _deleteEnterpriseHandler;
 
     private readonly IQueryHandler<GetEnterpriseQuery, Result<EnterpriseDto>> _getEnterpriseQueryHandler;
     private readonly IQueryHandler<GetEnterprisesCollectionQuery, Result<List<EnterpriseDto>>> _getEnterprisesCollectionQuery;
 
-    public EnterprisesController(ApplicationDbContext context,
+    public EnterprisesController(
         ICommandHandler<DeleteEnterpriseCommand, Result> deleteEnterpriseHandler,
         IQueryHandler<GetEnterpriseQuery, Result<EnterpriseDto>> getEnterpriseQueryHandler,
         IQueryHandler<GetEnterprisesCollectionQuery, Result<List<EnterpriseDto>>> getEnterprisesCollectionQuery)
     {
-        _context = context;
-
         _deleteEnterpriseHandler = deleteEnterpriseHandler;
 
         _getEnterpriseQueryHandler = getEnterpriseQueryHandler;

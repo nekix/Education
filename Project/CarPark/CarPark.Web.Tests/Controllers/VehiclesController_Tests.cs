@@ -6,43 +6,58 @@ using System.Security.Claims;
 using CarPark.Identity;
 using Microsoft.AspNetCore.Http;
 using VehiclesController = CarPark.Controllers.Api.Controllers.VehiclesController;
-using CarPark.Data.Interfaces;
 using CarPark.ManagersOperations.Vehicles.Commands;
-using CarPark.Services.TimeZones;
+using CarPark.ManagersOperations.Vehicles;
+using CarPark.ManagersOperations.Vehicles.Queries;
+using CarPark.ManagersOperations.Vehicles.Queries.Models;
+using CarPark.ManagersOperations.Tracks.Queries;
+using CarPark.ManagersOperations.Tracks.Queries.Models;
+using CarPark.ManagersOperations.Rides.Queries;
+using CarPark.Shared.CQ;
+using FluentResults;
+using NetTopologySuite.Features;
 
 namespace CarPark.Web.Tests.Controllers;
 
 public class VehiclesController_Tests
 {
-    private readonly IVehiclesDbSet _mockSet;
-    private readonly IEnterprisesDbSet _mockEnterprisesSet;
-    private readonly IVehicleGeoTimePointsDbSet _mockGetTimePointsSet;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Vehicles.Queries.GetVehicleQuery, Result<CarPark.ManagersOperations.Vehicles.Queries.Models.VehicleDto>> _mockGetVehicleHandler;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Vehicles.Queries.GetVehiclesListQuery, Result<CarPark.ManagersOperations.Vehicles.Queries.Models.PaginatedVehicles>> _mockGetVehiclesListHandler;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>> _mockGetTrackHandler;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetTrackFeatureCollectionHandler;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>> _mockGetRidesTrackHandler;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetRidesTrackFeatureCollectionHandler;
+    private readonly IQueryHandler<CarPark.ManagersOperations.Rides.Queries.GetRidesQuery, Result<CarPark.ManagersOperations.Rides.Queries.RidesViewModel>> _mockGetRidesHandler;
     private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _mockCreateHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _mockDeleteHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _mockUpdateHandler;
-    private readonly ITimeZoneConversionService _mockTzConverionService;
     private readonly VehiclesController _controller;
 
     public VehiclesController_Tests()
     {
-        _mockSet = Substitute.For<IVehiclesDbSet>();
-        _mockEnterprisesSet = Substitute.For<IEnterprisesDbSet>();
-        _mockGetTimePointsSet = Substitute.For<IVehicleGeoTimePointsDbSet>();
+        _mockGetVehicleHandler = Substitute.For<IQueryHandler<GetVehicleQuery, Result<VehicleDto>>>();
+        _mockGetVehiclesListHandler = Substitute.For<IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>>>();
+        _mockGetTrackHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>>>();
+        _mockGetTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
+        _mockGetRidesTrackHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>>>();
+        _mockGetRidesTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
+        _mockGetRidesHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Rides.Queries.GetRidesQuery, Result<CarPark.ManagersOperations.Rides.Queries.RidesViewModel>>>();
         _mockCreateHandler = Substitute.For<ICommandHandler<CreateVehicleCommand, Result<int>>>();
         _mockDeleteHandler = Substitute.For<ICommandHandler<DeleteVehicleCommand, Result>>();
         _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateVehicleCommand, Result<int>>>();
 
-        _mockTzConverionService = Substitute.For<ITimeZoneConversionService>();
-
         _controller = new VehiclesController(
-            _mockSet,
-            _mockEnterprisesSet,
-            _mockGetTimePointsSet, 
-            _mockCreateHandler, 
-            _mockUpdateHandler, 
+            _mockGetVehicleHandler,
+            _mockGetVehiclesListHandler,
+            _mockCreateHandler,
+            _mockUpdateHandler,
             _mockDeleteHandler,
-            _mockTzConverionService);
-        
+            _mockGetTrackHandler,
+            _mockGetTrackFeatureCollectionHandler,
+            _mockGetRidesTrackHandler,
+            _mockGetRidesTrackFeatureCollectionHandler,
+            _mockGetRidesHandler);
+
         // Настраиваем авторизацию для тестов
         SetupAuthorization();
     }
@@ -296,7 +311,7 @@ public class VehiclesController_Tests
             }
         };
 
-        _mockUpdateHandler.Handle(Arg.Any<UpdateVehicleCommand>()).Returns(Result.Fail(UpdateVehicleCommand.Errors.VehicleNotFound));
+        _mockUpdateHandler.Handle(Arg.Any<UpdateVehicleCommand>()).Returns(Result.Fail(VehiclesHandlersErrors.VehicleNotExist));
 
         // Act
         IActionResult result = await _controller.PutVehicle(vehicleId, request);
@@ -313,7 +328,7 @@ public class VehiclesController_Tests
         // Arrange
         int vehicleId = 1;
 
-        _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail(DeleteVehicleCommand.Errors.NotFound));
+        _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail(VehiclesHandlersErrors.VehicleNotExist));
 
         // Act
         IActionResult result = await _controller.DeleteVehicle(vehicleId);
@@ -330,7 +345,7 @@ public class VehiclesController_Tests
         // Arrange
         int vehicleId = 1;
 
-        _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail(DeleteVehicleCommand.Errors.Conflict));
+        _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail(VehiclesHandlersErrors.ForbidDeleteVehicleWithAssignedDrivers));
 
         // Act
         IActionResult result = await _controller.DeleteVehicle(vehicleId);

@@ -2,6 +2,9 @@
 using CarPark.ManagersOperations.Drivers.Queries.Models;
 using CarPark.ManagersOperations.Enterprises.Commands;
 using CarPark.ManagersOperations.Enterprises.Queries;
+using CarPark.ManagersOperations.ExportImport;
+using CarPark.ManagersOperations.ExportImport.Commands;
+using CarPark.ManagersOperations.ExportImport.Queries;
 using CarPark.ManagersOperations.Models.Commands;
 using CarPark.ManagersOperations.Rides.Queries;
 using CarPark.ManagersOperations.Tracks.Queries;
@@ -54,6 +57,13 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
         services.AddScoped<IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>>, ManagersTrackQueryHandler>();
         services.AddScoped<IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>>, ManagersTrackQueryHandler>();
         services.AddScoped<IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>>, ManagersTrackQueryHandler>();
+
+        services.AddScoped<ICommandHandler<ImportCommand, Result>, ManagersExportImportHandler>();
+        services.AddScoped<IQueryHandler<ExportEnterpriseQuery, Result<EnterpriseExportImportDto>>, ManagersExportImportHandler>();
+        services.AddScoped<IQueryHandler<ExportEnterpriseVehiclesQuery, Result<List<VehicleExportImportDto>>>, ManagersExportImportHandler>();
+        services.AddScoped<IQueryHandler<ExportModelsQuery, Result<List<ModelExportImportDto>>>, ManagersExportImportHandler>();
+        services.AddScoped<IQueryHandler<ExportVehicleRidesQuery, Result<List<VehicleRideExportImportDto>>>, ManagersExportImportHandler>();
+        services.AddScoped<IQueryHandler<ExportVehicleTrackQuery, Result<List<VehicleGeoTimePointExportImportDto>>>, ManagersExportImportHandler>();
     }
 
     private static void ConfigureGeoCodingServies(IServiceCollection services, IConfiguration configuration)

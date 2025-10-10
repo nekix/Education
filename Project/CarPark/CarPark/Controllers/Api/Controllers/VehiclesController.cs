@@ -295,7 +295,7 @@ public class VehiclesController : ApiBaseController
         }
         else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ForbidDeleteVehicleWithAssignedDrivers))
         {
-            return BadRequest();
+            return Conflict();
         }
         else if (deleteVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
         {

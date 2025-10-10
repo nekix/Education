@@ -3,6 +3,7 @@ using System;
 using CarPark.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarPark.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010173051_TzInfoIdIntToIdGuid_4")]
+    partial class TzInfoIdIntToIdGuid_4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,15 +82,15 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<Guid?>("TimeZoneId")
+                    b.Property<Guid?>("TimeZoneGuidId")
                         .HasColumnType("uuid")
-                        .HasColumnName("time_zone_id");
+                        .HasColumnName("time_zone_guid_id");
 
                     b.HasKey("Id")
                         .HasName("pk_enterprise");
 
-                    b.HasIndex("TimeZoneId")
-                        .HasDatabaseName("ix_enterprise_time_zone_id");
+                    b.HasIndex("TimeZoneGuidId")
+                        .HasDatabaseName("ix_enterprise_time_zone_guid_id");
 
                     b.ToTable("enterprise", (string)null);
                 });
@@ -207,10 +210,10 @@ namespace CarPark.Data.Migrations
 
             modelBuilder.Entity("CarPark.TimeZones.TzInfo", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("GuidId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("guid_id");
 
                     b.Property<string>("IanaTzId")
                         .IsRequired()
@@ -222,8 +225,8 @@ namespace CarPark.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("windows_tz_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_time_zone");
+                    b.HasKey("GuidId")
+                        .HasName("ak_tz_infos_guid_id");
 
                     b.ToTable("time_zone", (string)null);
                 });
@@ -614,8 +617,8 @@ namespace CarPark.Data.Migrations
                 {
                     b.HasOne("CarPark.TimeZones.TzInfo", "TimeZone")
                         .WithMany()
-                        .HasForeignKey("TimeZoneId")
-                        .HasConstraintName("fk_enterprise_tz_infos_time_zone_id");
+                        .HasForeignKey("TimeZoneGuidId")
+                        .HasConstraintName("fk_enterprise_tz_infos_time_zone_guid_id");
 
                     b.Navigation("TimeZone");
                 });

@@ -69,7 +69,7 @@ public static class EntitiesDbConfigurationExtensions
             .ToTable("time_zone");
 
         modelBuilder.Entity<TzInfo>()
-            .Property(tz => tz.Id);
+            .HasKey(tz => tz.Id);
     }
 
     public static void ConfigureEnterprise(this ModelBuilder modelBuilder)
@@ -100,6 +100,11 @@ public static class EntitiesDbConfigurationExtensions
             .HasMany(e => e.Managers)
             .WithMany(m => m.Enterprises)
             .UsingEntity("enterprise_manager");
+
+        modelBuilder.Entity<Enterprise>()
+            .HasOne(e => e.TimeZone)
+            .WithMany()
+            .HasPrincipalKey(t => t.Id);
     }
 
     public static void ConfigureManager(this ModelBuilder modelBuilder)

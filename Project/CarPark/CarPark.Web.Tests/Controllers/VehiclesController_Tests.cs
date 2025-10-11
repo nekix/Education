@@ -21,30 +21,30 @@ namespace CarPark.Web.Tests.Controllers;
 
 public class VehiclesController_Tests
 {
-    private readonly IQueryHandler<CarPark.ManagersOperations.Vehicles.Queries.GetVehicleQuery, Result<CarPark.ManagersOperations.Vehicles.Queries.Models.VehicleDto>> _mockGetVehicleHandler;
-    private readonly IQueryHandler<CarPark.ManagersOperations.Vehicles.Queries.GetVehiclesListQuery, Result<CarPark.ManagersOperations.Vehicles.Queries.Models.PaginatedVehicles>> _mockGetVehiclesListHandler;
-    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>> _mockGetTrackHandler;
-    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetTrackFeatureCollectionHandler;
-    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>> _mockGetRidesTrackHandler;
-    private readonly IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetRidesTrackFeatureCollectionHandler;
-    private readonly IQueryHandler<CarPark.ManagersOperations.Rides.Queries.GetRidesQuery, Result<CarPark.ManagersOperations.Rides.Queries.RidesViewModel>> _mockGetRidesHandler;
-    private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _mockCreateHandler;
+    private readonly IQueryHandler<GetVehicleQuery, Result<VehicleDto>> _mockGetVehicleHandler;
+    private readonly IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> _mockGetVehiclesListHandler;
+    private readonly IQueryHandler<GetTrackQuery, Result<TrackViewModel>> _mockGetTrackHandler;
+    private readonly IQueryHandler<GetTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetTrackFeatureCollectionHandler;
+    private readonly IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>> _mockGetRidesTrackHandler;
+    private readonly IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetRidesTrackFeatureCollectionHandler;
+    private readonly IQueryHandler<GetRidesQuery, Result<RidesViewModel>> _mockGetRidesHandler;
+    private readonly ICommandHandler<CreateVehicleCommand, Result<Guid>> _mockCreateHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _mockDeleteHandler;
-    private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _mockUpdateHandler;
+    private readonly ICommandHandler<UpdateVehicleCommand, Result<Guid>> _mockUpdateHandler;
     private readonly VehiclesController _controller;
 
     public VehiclesController_Tests()
     {
         _mockGetVehicleHandler = Substitute.For<IQueryHandler<GetVehicleQuery, Result<VehicleDto>>>();
         _mockGetVehiclesListHandler = Substitute.For<IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>>>();
-        _mockGetTrackHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>>>();
-        _mockGetTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
-        _mockGetRidesTrackHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackQuery, Result<CarPark.ManagersOperations.Tracks.Queries.Models.TrackViewModel>>>();
-        _mockGetRidesTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Tracks.Queries.GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
-        _mockGetRidesHandler = Substitute.For<IQueryHandler<CarPark.ManagersOperations.Rides.Queries.GetRidesQuery, Result<CarPark.ManagersOperations.Rides.Queries.RidesViewModel>>>();
-        _mockCreateHandler = Substitute.For<ICommandHandler<CreateVehicleCommand, Result<int>>>();
+        _mockGetTrackHandler = Substitute.For<IQueryHandler<GetTrackQuery, Result<TrackViewModel>>>();
+        _mockGetTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
+        _mockGetRidesTrackHandler = Substitute.For<IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>>>();
+        _mockGetRidesTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
+        _mockGetRidesHandler = Substitute.For<IQueryHandler<GetRidesQuery, Result<RidesViewModel>>>();
+        _mockCreateHandler = Substitute.For<ICommandHandler<CreateVehicleCommand, Result<Guid>>>();
         _mockDeleteHandler = Substitute.For<ICommandHandler<DeleteVehicleCommand, Result>>();
-        _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateVehicleCommand, Result<int>>>();
+        _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateVehicleCommand, Result<Guid>>>();
 
         _controller = new VehiclesController(
             _mockGetVehicleHandler,
@@ -67,7 +67,7 @@ public class VehiclesController_Tests
         // Создаем claims для менеджера с ID = 1
         var claims = new List<Claim>
         {
-            new Claim(AppIdentityConst.ManagerIdClaim, "1")
+            new Claim(AppIdentityConst.ManagerIdClaim, "9a437251-d4d6-4aaa-b742-36a428619a94")
         };
 
         var identity = new ClaimsIdentity(claims, "Test");
@@ -87,10 +87,11 @@ public class VehiclesController_Tests
     public async Task PostVehicle_ValidRequest_Returns201Created()
     {
         // Arrange
+        Guid expectedId = Guid.Parse("72f3195d-8c1a-4c04-8277-99b0c3262c71");
         VehiclesController.CreateUpdateVehicleRequest request = new VehiclesController.CreateUpdateVehicleRequest
         {
-            ModelId = 1,
-            EnterpriseId = 1,
+            ModelId = Guid.Parse("9a437251-d4d6-4aaa-b742-36a428619a94"),
+            EnterpriseId = Guid.Parse("5cbc7623-8636-45c4-8c01-da079c60c2ef"),
             VinNumber = "VIN123456789",
             Price = 25000.0m,
             ManufactureYear = 2020,
@@ -99,14 +100,14 @@ public class VehiclesController_Tests
             AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
-                DriversIds = new List<int> { 1, 2 },
-                ActiveDriverId = 1
+                DriversIds = new List<Guid> { Guid.Parse("9ad5d7a3-b91c-45db-aadb-c761830c4d9c"), Guid.Parse("10df230b-809c-46c3-a3ca-0a67a923f6ab") },
+                ActiveDriverId = Guid.Parse("9ad5d7a3-b91c-45db-aadb-c761830c4d9c")
             }
         };
 
         CreateVehicleCommand expectedCommand = new CreateVehicleCommand
         {
-            RequestingManagerId = 1,
+            RequestingManagerId = Guid.Parse("9a437251-d4d6-4aaa-b742-36a428619a94"),
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
             VinNumber = request.VinNumber,
@@ -119,7 +120,7 @@ public class VehiclesController_Tests
             ActiveDriverId = request.DriversAssignments.ActiveDriverId
         };
 
-        _mockCreateHandler.Handle(Arg.Any<CreateVehicleCommand>()).Returns(Result.Ok(1));
+        _mockCreateHandler.Handle(Arg.Any<CreateVehicleCommand>()).Returns(Result.Ok(expectedId));
 
         // Act
         ActionResult result = await _controller.PostVehicle(request);
@@ -129,7 +130,7 @@ public class VehiclesController_Tests
         Assert.NotNull(createdAtResult);
         Assert.Equal(201, createdAtResult.StatusCode);
         Assert.Equal("GetVehicle", createdAtResult.ActionName);
-        Assert.Equal(1, createdAtResult.RouteValues?["id"]);
+        Assert.Equal(expectedId, createdAtResult.RouteValues?["id"]);
         
         await _mockCreateHandler.Received(1).Handle(Arg.Is<CreateVehicleCommand>(cmd => 
             cmd.ModelId == expectedCommand.ModelId &&
@@ -147,11 +148,11 @@ public class VehiclesController_Tests
     public async Task PutVehicle_ValidRequest_Returns204NoContent()
     {
         // Arrange
-        int vehicleId = 1;
+        Guid vehicleId = Guid.Parse("3fb09dc3-f8ae-433f-b647-0afc2682190e");
         VehiclesController.CreateUpdateVehicleRequest request = new VehiclesController.CreateUpdateVehicleRequest
         {
-            ModelId = 2,
-            EnterpriseId = 2,
+            ModelId = Guid.Parse("8d16dea5-cb7c-4fd4-80a2-bf98d5fa9bc7"),
+            EnterpriseId = Guid.Parse("286ce562-09f6-413d-86b7-4b3a60ac8163"),
             VinNumber = "VIN987654321",
             Price = 30000.0m,
             ManufactureYear = 2021,
@@ -160,14 +161,14 @@ public class VehiclesController_Tests
             AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
-                DriversIds = new List<int> { 3, 4 },
-                ActiveDriverId = 3
+                DriversIds = new List<Guid> { Guid.Parse("ac9db35d-ec8b-4343-92a7-3834487199cc"), Guid.Parse("0e837b72-38ed-4114-b8e3-9510b910cd08") },
+                ActiveDriverId = Guid.Parse("ac9db35d-ec8b-4343-92a7-3834487199cc")
             }
         };
 
         UpdateVehicleCommand expectedCommand = new UpdateVehicleCommand
         {
-            RequestingManagerId = 1,
+            RequestingManagerId = Guid.Parse("9a437251-d4d6-4aaa-b742-36a428619a94"),
             VehicleId = vehicleId,
             ModelId = request.ModelId,
             EnterpriseId = request.EnterpriseId,
@@ -208,8 +209,8 @@ public class VehiclesController_Tests
     public async Task DeleteVehicle_ValidRequest_Returns204NoContent()
     {
         // Arrange
-        int vehicleId = 1;
-        DeleteVehicleCommand expectedCommand = new DeleteVehicleCommand { VehicleId = vehicleId, RequestingManagerId = 1};
+        Guid vehicleId = Guid.Parse("5d9c2ae9-fc5e-45c7-a9a5-991e8cb5ecc2");
+        DeleteVehicleCommand expectedCommand = new DeleteVehicleCommand { VehicleId = vehicleId, RequestingManagerId = Guid.Parse("9a437251-d4d6-4aaa-b742-36a428619a94")};
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Ok());
 
@@ -230,8 +231,8 @@ public class VehiclesController_Tests
         // Arrange
         VehiclesController.CreateUpdateVehicleRequest request = new VehiclesController.CreateUpdateVehicleRequest
         {
-            ModelId = 1,
-            EnterpriseId = 1,
+            ModelId = Guid.Parse("9a437251-d4d6-4aaa-b742-36a428619a94"),
+            EnterpriseId = Guid.Parse("5cbc7623-8636-45c4-8c01-da079c60c2ef"),
             VinNumber = "VIN123456789",
             Price = 25000.0m,
             ManufactureYear = 2020,
@@ -240,8 +241,8 @@ public class VehiclesController_Tests
             AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
-                DriversIds = new List<int> { 1, 2 },
-                ActiveDriverId = 1
+                DriversIds = new List<Guid> { Guid.Parse("9ad5d7a3-b91c-45db-aadb-c761830c4d9c"), Guid.Parse("10df230b-809c-46c3-a3ca-0a67a923f6ab") },
+                ActiveDriverId = Guid.Parse("9ad5d7a3-b91c-45db-aadb-c761830c4d9c")
             }
         };
 
@@ -260,11 +261,11 @@ public class VehiclesController_Tests
     public async Task PutVehicle_HandlerFails_Returns400BadRequest()
     {
         // Arrange
-        int vehicleId = 1;
+        Guid vehicleId = Guid.Parse("5c61499a-6041-4cf5-befa-fa96830df655");
         VehiclesController.CreateUpdateVehicleRequest request = new VehiclesController.CreateUpdateVehicleRequest
         {
-            ModelId = 2,
-            EnterpriseId = 2,
+            ModelId = Guid.Parse("8d16dea5-cb7c-4fd4-80a2-bf98d5fa9bc7"),
+            EnterpriseId = Guid.Parse("286ce562-09f6-413d-86b7-4b3a60ac8163"),
             VinNumber = "VIN987654321",
             Price = 30000.0m,
             ManufactureYear = 2021,
@@ -273,8 +274,8 @@ public class VehiclesController_Tests
             AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
-                DriversIds = new List<int> { 3, 4 },
-                ActiveDriverId = 3
+                DriversIds = new List<Guid> { Guid.Parse("ac9db35d-ec8b-4343-92a7-3834487199cc"), Guid.Parse("0e837b72-38ed-4114-b8e3-9510b910cd08") },
+                ActiveDriverId = Guid.Parse("ac9db35d-ec8b-4343-92a7-3834487199cc")
             }
         };
 
@@ -293,11 +294,11 @@ public class VehiclesController_Tests
     public async Task PutVehicle_NotFoundError_Returns404NotFound()
     {
         // Arrange
-        int vehicleId = 1;
+        Guid vehicleId = Guid.Parse("405bcd11-cbb9-49b3-b294-7f223b4198de");
         VehiclesController.CreateUpdateVehicleRequest request = new VehiclesController.CreateUpdateVehicleRequest
         {
-            ModelId = 2,
-            EnterpriseId = 2,
+            ModelId = Guid.Parse("8d16dea5-cb7c-4fd4-80a2-bf98d5fa9bc7"),
+            EnterpriseId = Guid.Parse("286ce562-09f6-413d-86b7-4b3a60ac8163"),
             VinNumber = "VIN987654321",
             Price = 30000.0m,
             ManufactureYear = 2021,
@@ -306,8 +307,8 @@ public class VehiclesController_Tests
             AddedToEnterpriseAt = DateTimeOffset.Parse("2025.03.12"),
             DriversAssignments = new VehiclesController.CreateUpdateVehicleRequest.DriversAssignmentsViewModel
             {
-                DriversIds = new List<int> { 3, 4 },
-                ActiveDriverId = 3
+                DriversIds = new List<Guid> { Guid.Parse("ac9db35d-ec8b-4343-92a7-3834487199cc"), Guid.Parse("0e837b72-38ed-4114-b8e3-9510b910cd08") },
+                ActiveDriverId = Guid.Parse("ac9db35d-ec8b-4343-92a7-3834487199cc")
             }
         };
 
@@ -326,7 +327,7 @@ public class VehiclesController_Tests
     public async Task DeleteVehicle_NotFoundError_Returns404NotFound()
     {
         // Arrange
-        int vehicleId = 1;
+        Guid vehicleId = Guid.Parse("bf044397-9bc9-490b-9ddc-22f1922cbdc1");
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail(VehiclesHandlersErrors.VehicleNotExist));
 
@@ -343,7 +344,7 @@ public class VehiclesController_Tests
     public async Task DeleteVehicle_ConflictError_Returns409Conflict()
     {
         // Arrange
-        int vehicleId = 1;
+        Guid vehicleId = Guid.Parse("68d8c7ab-47e2-43cf-8c44-500fb7020024");
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail(VehiclesHandlersErrors.ForbidDeleteVehicleWithAssignedDrivers));
 
@@ -360,7 +361,7 @@ public class VehiclesController_Tests
     public async Task DeleteVehicle_HandlerFails_Returns400BadRequest()
     {
         // Arrange
-        int vehicleId = 1;
+        Guid vehicleId = Guid.Parse("d66c478e-ba81-44d3-82e5-0b735f229073");
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail("Unknown error"));
 

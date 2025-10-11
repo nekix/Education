@@ -12,17 +12,17 @@ namespace CarPark.Web.Tests.Controllers;
 public class ModelsController_Tests
 {
     private readonly IModelsDbSet _mockSet;
-    private readonly ICommandHandler<CreateModelCommand, Result<int>> _mockCreateHandler;
+    private readonly ICommandHandler<CreateModelCommand, Result<Guid>> _mockCreateHandler;
     private readonly ICommandHandler<DeleteModelCommand, Result> _mockDeleteHandler;
-    private readonly ICommandHandler<UpdateModelCommand, Result<int>> _mockUpdateHandler;
+    private readonly ICommandHandler<UpdateModelCommand, Result<Guid>> _mockUpdateHandler;
     private readonly ModelsController _controller;
 
     public ModelsController_Tests()
     {
         _mockSet = Substitute.For<IModelsDbSet>();
-        _mockCreateHandler = Substitute.For<ICommandHandler<CreateModelCommand, Result<int>>>();
+        _mockCreateHandler = Substitute.For<ICommandHandler<CreateModelCommand, Result<Guid>>>();
         _mockDeleteHandler = Substitute.For<ICommandHandler<DeleteModelCommand, Result>>();
-        _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateModelCommand, Result<int>>>();
+        _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateModelCommand, Result<Guid>>>();
         
         _controller = new ModelsController(_mockSet, _mockCreateHandler, _mockDeleteHandler, _mockUpdateHandler);
     }
@@ -55,7 +55,8 @@ public class ModelsController_Tests
             FuelTankVolumeLiters = request.FuelTankVolumeLiters
         };
 
-        _mockCreateHandler.Handle(Arg.Any<CreateModelCommand>()).Returns(Result.Ok(1));
+        Guid expectedId = Guid.Parse("12345678-1234-1234-1234-123456789abc");
+        _mockCreateHandler.Handle(Arg.Any<CreateModelCommand>()).Returns(Result.Ok(expectedId));
 
         // Act
         ActionResult<Model> result = await _controller.PostModel(request);
@@ -66,7 +67,7 @@ public class ModelsController_Tests
         Assert.NotNull(createdAtResult);
         Assert.Equal(201, createdAtResult.StatusCode);
         Assert.Equal("GetModel", createdAtResult.ActionName);
-        Assert.Equal(1, createdAtResult.RouteValues?["id"]);
+        Assert.Equal(expectedId, createdAtResult.RouteValues?["id"]);
         
         await _mockCreateHandler.Received(1).Handle(Arg.Is<CreateModelCommand>(cmd => 
             cmd.ModelName == expectedCommand.ModelName &&
@@ -83,7 +84,7 @@ public class ModelsController_Tests
     public async Task PutModel_ValidRequest_Returns204NoContent()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("12345678-1234-1234-1234-123456789abc");
         ModelsController.CreateUpdateModelRequest request = new ModelsController.CreateUpdateModelRequest
         {
             ModelName = "Updated Model",
@@ -135,7 +136,7 @@ public class ModelsController_Tests
     public async Task DeleteModel_ValidRequest_Returns204NoContent()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("12345678-1234-1234-1234-123456789abc");
         DeleteModelCommand expectedCommand = new DeleteModelCommand { Id = modelId };
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Ok());
@@ -182,7 +183,7 @@ public class ModelsController_Tests
     public async Task PutModel_HandlerFails_Returns400BadRequest()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("87654321-4321-4321-4321-cba987654321");
         ModelsController.CreateUpdateModelRequest request = new ModelsController.CreateUpdateModelRequest
         {
             ModelName = "Updated Model",
@@ -210,7 +211,7 @@ public class ModelsController_Tests
     public async Task PutModel_NotFoundError_Returns404NotFound()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("abcd1234-5678-9012-3456-789012345678");
         ModelsController.CreateUpdateModelRequest request = new ModelsController.CreateUpdateModelRequest
         {
             ModelName = "Updated Model",
@@ -238,7 +239,7 @@ public class ModelsController_Tests
     public async Task DeleteModel_NotFoundError_Returns404NotFound()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("e519ae0e-29df-4cb0-81e6-0c2979c185a9");
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail(DeleteModelCommand.Errors.NotFound));
 
@@ -255,7 +256,7 @@ public class ModelsController_Tests
     public async Task DeleteModel_ConflictError_Returns409Conflict()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("a218ad02-9b37-4814-bbe1-5bef40d0b898");
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail(DeleteModelCommand.Errors.Conflict));
 
@@ -272,7 +273,7 @@ public class ModelsController_Tests
     public async Task DeleteModel_HandlerFails_Returns400BadRequest()
     {
         // Arrange
-        int modelId = 1;
+        Guid modelId = Guid.Parse("72f3195d-8c1a-4c04-8277-99b0c3262c71");
 
         _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail("Unknown error"));
 

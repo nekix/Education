@@ -24,7 +24,7 @@ public class TrackRealTimeWriterService
         _logger = logger;
     }
 
-    public async Task GenerateAndWriteTrackAsync(int vehicleId, TrackGenerationOptions options, int updateIntervalSeconds)
+    public async Task GenerateAndWriteTrackAsync(Guid vehicleId, TrackGenerationOptions options, int updateIntervalSeconds)
     {
         _logger.LogInformation("Начинаем генерацию трека для автомобиля {VehicleId}", vehicleId);
 
@@ -99,7 +99,7 @@ public class TrackRealTimeWriterService
         _logger.LogInformation("Запись трека для автомобиля {VehicleId} завершена", vehicleId);
     }
 
-    private async Task WritePointsToDatabase(int vehicleId, List<GeoTimePoint> points)
+    private async Task WritePointsToDatabase(Guid vehicleId, List<GeoTimePoint> points)
     {
         // Загружаем Vehicle из БД для связи
         Vehicle? vehicle = await _dbContext.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId);

@@ -20,7 +20,7 @@ namespace CarPark.TrackGenerator;
         RootCommand rootCommand = new RootCommand("Генератор треков автомобилей в реальном времени");
 
         // Параметры командной строки
-        Option<int> vehicleIdOption = new Option<int>("--vehicle-id", "-v") 
+        Option<Guid> vehicleIdOption = new Option<Guid>("--vehicle-id", "-v") 
         { 
             Description = "ID автомобиля для генерации трека", 
             Required = true 
@@ -110,7 +110,7 @@ namespace CarPark.TrackGenerator;
         return rootCommand.Parse(args).Invoke();
     }
 
-    static async Task GenerateTrackAsync(int vehicleId, 
+    static async Task GenerateTrackAsync(Guid vehicleId, 
         string connectionString, 
         string apiKey,
         double centerLat,

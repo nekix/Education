@@ -23,14 +23,14 @@ public class VehiclesController : BaseController
 {
     private readonly ApplicationDbContext _context;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteHandler;
-    private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateHandler;
-    private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createHandler;
+    private readonly ICommandHandler<UpdateVehicleCommand, Result<Guid>> _updateHandler;
+    private readonly ICommandHandler<CreateVehicleCommand, Result<Guid>> _createHandler;
     private readonly ITimeZoneConversionService _timeZoneConversionService;
 
     public VehiclesController(ApplicationDbContext context,
         ICommandHandler<DeleteVehicleCommand, Result> deleteHandler,
-        ICommandHandler<UpdateVehicleCommand, Result<int>> updateHandler,
-        ICommandHandler<CreateVehicleCommand, Result<int>> createHandler,
+        ICommandHandler<UpdateVehicleCommand, Result<Guid>> updateHandler,
+        ICommandHandler<CreateVehicleCommand, Result<Guid>> createHandler,
         ITimeZoneConversionService timeZoneConversionService)
     {
         _context = context;
@@ -41,9 +41,9 @@ public class VehiclesController : BaseController
     }
 
     [HttpGet("")]
-    public async Task<IActionResult> Index([FromRoute] int enterpriseId, int? page)
+    public async Task<IActionResult> Index([FromRoute] Guid enterpriseId, int? page)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
         int pageSize = 10; // Количество записей на страницу
         int pageNumber = page ?? 1;
 
@@ -81,14 +81,14 @@ public class VehiclesController : BaseController
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Details([FromRoute] int enterpriseId, int? id)
+    public async Task<IActionResult> Details([FromRoute] Guid enterpriseId, Guid? id)
     {
         if (id == null)
         {
             return NotFound();
         }
 
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
@@ -125,9 +125,9 @@ public class VehiclesController : BaseController
     }
 
     [HttpGet("create")]
-    public async Task<IActionResult> Create([FromRoute] int enterpriseId)
+    public async Task<IActionResult> Create([FromRoute] Guid enterpriseId)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<ModelOverview> models = await _context.Models
             .OrderBy(m => m.ModelName)
@@ -157,7 +157,7 @@ public class VehiclesController : BaseController
     [AppValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateUpdateVehicleRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         CreateVehicleCommand command = new CreateVehicleCommand
         {
@@ -169,12 +169,12 @@ public class VehiclesController : BaseController
             ManufactureYear = request.ManufactureYear,
             Mileage = request.Mileage,
             Color = request.Color,
-            DriverIds = new List<int>(0),
+            DriverIds = new List<Guid>(0),
             ActiveDriverId = null,
             AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
-        Result<int> result = await _createHandler.Handle(command);
+        Result<Guid> result = await _createHandler.Handle(command);
         if (result.IsFailed)
         {
             return BadRequest();
@@ -184,14 +184,14 @@ public class VehiclesController : BaseController
     }
 
     [HttpGet("{id}/edit")]
-    public async Task<IActionResult> Edit([FromRoute] int enterpriseId, int? id)
+    public async Task<IActionResult> Edit([FromRoute] Guid enterpriseId, Guid? id)
     {
         if (id == null)
         {
             return NotFound();
         }
 
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
@@ -231,9 +231,9 @@ public class VehiclesController : BaseController
 
     [HttpPost("{id}/edit")]
     [AppValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, CreateUpdateVehicleRequest request)
+    public async Task<IActionResult> Edit(Guid id, CreateUpdateVehicleRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         Vehicle? vehicle = await _context.Vehicles
             .Include(v => v.AssignedDrivers)
@@ -261,7 +261,7 @@ public class VehiclesController : BaseController
             AddedToEnterpriseAt = vehicle.AddedToEnterpriseAt
         };
 
-        Result<int> result = await _updateHandler.Handle(command);
+        Result<Guid> result = await _updateHandler.Handle(command);
 
         // Error flow
         if (result.IsFailed)
@@ -275,14 +275,14 @@ public class VehiclesController : BaseController
     }
 
     [HttpGet("{id}/delete")]
-    public async Task<IActionResult> Delete([FromRoute] int enterpriseId, int? id)
+    public async Task<IActionResult> Delete([FromRoute] Guid enterpriseId, Guid? id)
     {
         if (id == null)
         {
             return NotFound();
         }
 
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         IQueryable<Vehicle> originalQuery = GetFilteredByManagerAndEnterpriseQuery(managerId, enterpriseId);
 
@@ -312,9 +312,9 @@ public class VehiclesController : BaseController
 
     [HttpPost("{id}/delete")]
     [AppValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed([FromRoute] int enterpriseId, int id)
+    public async Task<IActionResult> DeleteConfirmed([FromRoute] Guid enterpriseId, Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         DeleteVehicleCommand command = new DeleteVehicleCommand
         {
@@ -333,9 +333,9 @@ public class VehiclesController : BaseController
         return BadRequest();
     }
 
-    private IQueryable<Vehicle> GetFilteredByManagerAndEnterpriseQuery(int managerId, [FromRoute] int enterpriseId)
+    private IQueryable<Vehicle> GetFilteredByManagerAndEnterpriseQuery(Guid managerId, [FromRoute] Guid enterpriseId)
     {
-        IQueryable<int> enterpriseIds = _context.Enterprises
+        IQueryable<Guid> enterpriseIds = _context.Enterprises
             .Where(e => e.Managers.Any(m => m.Id == managerId) && e.Id == enterpriseId)
             .Select(e => e.Id);
 

@@ -32,7 +32,7 @@ public class DriversController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PaginatedDrivers>> GetDrivers([FromQuery] GetDriversRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         GetDriversListQuery query = new GetDriversListQuery
         {
@@ -64,10 +64,9 @@ public class DriversController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<DriverDto>> GetDriver(int id)
+    public async Task<ActionResult<DriverDto>> GetDriver(Guid id)
     {
-        int managerId = GetCurrentManagerId();
-
+        Guid managerId = GetCurrentManagerId();
 
         GetDriverQuery query = new GetDriverQuery
         {

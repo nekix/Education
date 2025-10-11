@@ -5,7 +5,7 @@ namespace CarPark.ViewModels.Enterprises;
 
 public class EnterpriseCreateEditViewModel
 {
-    public int? Id { get; set; }
+    public Guid? Id { get; set; }
 
     [Required(ErrorMessage = "Name is required")]
     [StringLength(255, ErrorMessage = "Name cannot be longer than 255 characters")]
@@ -18,7 +18,7 @@ public class EnterpriseCreateEditViewModel
     public required string LegalAddress { get; set; }
 
     [Display(Name = "Time Zone")]
-    public int? TimeZoneId { get; set; }
+    public Guid? TimeZoneId { get; set; }
 
     public List<SelectListItem> AvailableTimeZones { get; set; } = new List<SelectListItem>();
 }

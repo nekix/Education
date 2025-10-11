@@ -10,10 +10,10 @@ namespace CarPark.Controllers.Api.Controllers;
 [Produces("application/json")]
 public abstract class ApiBaseController : ControllerBase
 {
-    protected int GetCurrentManagerId()
+    protected Guid GetCurrentManagerId()
     {
         string? managerIdText = User.FindFirstValue(AppIdentityConst.ManagerIdClaim);
 
-        return int.Parse(managerIdText!);
+        return Guid.Parse(managerIdText!);
     }
 }

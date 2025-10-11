@@ -9,7 +9,7 @@ namespace CarPark.ManagersOperations.Models.Commands;
 
 public class DeleteModelCommand : ICommand<Result>
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public class Handler : ICommandHandler<DeleteModelCommand, Result>
     {

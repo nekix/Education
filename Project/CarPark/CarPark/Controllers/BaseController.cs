@@ -6,10 +6,10 @@ namespace CarPark.Controllers;
 
 public class BaseController : Controller
 {
-    protected int GetCurrentManagerId()
+    protected Guid GetCurrentManagerId()
     {
         string? managerIdText = User.FindFirstValue(AppIdentityConst.ManagerIdClaim);
 
-        return int.Parse(managerIdText!);
+        return Guid.Parse(managerIdText!);
     }
 }

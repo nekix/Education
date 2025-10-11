@@ -37,7 +37,7 @@ public class EnterprisesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<EnterpriseViewModel>>> GetEnterprises()
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         GetEnterprisesCollectionQuery query = new GetEnterprisesCollectionQuery
         {
@@ -66,9 +66,9 @@ public class EnterprisesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<EnterpriseViewModel>> GetEnterprise(int id)
+    public async Task<ActionResult<EnterpriseViewModel>> GetEnterprise(Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         GetEnterpriseQuery query = new GetEnterpriseQuery()
         {
@@ -105,9 +105,9 @@ public class EnterprisesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteEnterprise(int id)
+    public async Task<IActionResult> DeleteEnterprise(Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         DeleteEnterpriseCommand command = new DeleteEnterpriseCommand
         {

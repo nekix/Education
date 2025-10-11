@@ -12,16 +12,16 @@ namespace CarPark.Controllers.Api.Controllers;
 
 public class ModelsController : ApiBaseController
 {
-    private readonly ICommandHandler<CreateModelCommand, Result<int>> _createModelHandler;
+    private readonly ICommandHandler<CreateModelCommand, Result<Guid>> _createModelHandler;
     private readonly ICommandHandler<DeleteModelCommand, Result> _deleteModelHandler;
-    private readonly ICommandHandler<UpdateModelCommand, Result<int>> _editModelHandler;
+    private readonly ICommandHandler<UpdateModelCommand, Result<Guid>> _editModelHandler;
 
     private readonly IModelsDbSet _set;
 
     public ModelsController(IModelsDbSet set,
-        ICommandHandler<CreateModelCommand, Result<int>> createModelHandler,
+        ICommandHandler<CreateModelCommand, Result<Guid>> createModelHandler,
         ICommandHandler<DeleteModelCommand, Result> deleteModelHandler,
-        ICommandHandler<UpdateModelCommand, Result<int>> editModelHandler)
+        ICommandHandler<UpdateModelCommand, Result<Guid>> editModelHandler)
     {
         _set = set;
         _createModelHandler = createModelHandler;
@@ -41,7 +41,7 @@ public class ModelsController : ApiBaseController
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Model))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Model>> GetModel(int id)
+    public async Task<ActionResult<Model>> GetModel(Guid id)
     {
         var model = await _set.Models.FindAsync(id);
 
@@ -60,7 +60,7 @@ public class ModelsController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PutModel(int id, CreateUpdateModelRequest request)
+    public async Task<IActionResult> PutModel(Guid id, CreateUpdateModelRequest request)
     {
         UpdateModelCommand command = new UpdateModelCommand
         {
@@ -75,7 +75,7 @@ public class ModelsController : ApiBaseController
             FuelTankVolumeLiters = request.FuelTankVolumeLiters
         };
 
-        Result<int> result = await _editModelHandler.Handle(command);
+        Result<Guid> result = await _editModelHandler.Handle(command);
 
         // Success flow
         if (!result.IsFailed)
@@ -111,7 +111,7 @@ public class ModelsController : ApiBaseController
             FuelTankVolumeLiters = request.FuelTankVolumeLiters
         };
 
-        Result<int> result = await _createModelHandler.Handle(command);
+        Result<Guid> result = await _createModelHandler.Handle(command);
 
         // Success flow
         if (result.IsSuccess)
@@ -128,7 +128,7 @@ public class ModelsController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteModel(int id)
+    public async Task<IActionResult> DeleteModel(Guid id)
     {
         DeleteModelCommand command = new DeleteModelCommand { Id = id };
         

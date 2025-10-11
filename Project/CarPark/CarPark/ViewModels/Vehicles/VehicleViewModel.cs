@@ -4,7 +4,7 @@ namespace CarPark.ViewModels.Vehicles;
 
 public class VehicleViewModel
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required ModelViewModel Model { get; set; }
 
@@ -24,7 +24,7 @@ public class VehicleViewModel
 
     public class ModelViewModel
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
 
         [Display(Name = "Model name")]
         public required string Name { get; set; }
@@ -32,7 +32,7 @@ public class VehicleViewModel
 
     public class EnterpriseViewModel
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
 
         [Display(Name = "Enterprise name")]
         public required string Name { get; set; }

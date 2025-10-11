@@ -26,8 +26,8 @@ namespace CarPark.Controllers.Api.Controllers;
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class VehiclesController : ApiBaseController
 {
-    private readonly ICommandHandler<CreateVehicleCommand, Result<int>> _createVehicleHandler;
-    private readonly ICommandHandler<UpdateVehicleCommand, Result<int>> _updateVehicleHandler;
+    private readonly ICommandHandler<CreateVehicleCommand, Result<Guid>> _createVehicleHandler;
+    private readonly ICommandHandler<UpdateVehicleCommand, Result<Guid>> _updateVehicleHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteVehicleHandler;
 
     private readonly IQueryHandler<GetVehicleQuery, Result<VehicleDto>> _getVehicleQueryHandler;
@@ -43,8 +43,8 @@ public class VehiclesController : ApiBaseController
     public VehiclesController(
         IQueryHandler<GetVehicleQuery, Result<VehicleDto>> getVehicleQueryHandler,
         IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> getVehiclesListQueryHandler,
-        ICommandHandler<CreateVehicleCommand, Result<int>> createVehicleHandler,
-        ICommandHandler<UpdateVehicleCommand, Result<int>> updateVehicleHandler,
+        ICommandHandler<CreateVehicleCommand, Result<Guid>> createVehicleHandler,
+        ICommandHandler<UpdateVehicleCommand, Result<Guid>> updateVehicleHandler,
         ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler,
         IQueryHandler<GetTrackQuery, Result<TrackViewModel>> getTrackQueryHandler,
         IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>> getTrackFeatureCollectionQueryHandler,
@@ -75,7 +75,7 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PaginatedVehicles>> GetVehicles([FromQuery] GetVehiclesRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         GetVehiclesListQuery query = new GetVehiclesListQuery
         {
@@ -106,9 +106,9 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<VehicleDto>> GetVehicle(int id)
+    public async Task<ActionResult<VehicleDto>> GetVehicle(Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         GetVehicleQuery query = new GetVehicleQuery
         {
@@ -148,9 +148,9 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PutVehicle(int id, CreateUpdateVehicleRequest request)
+    public async Task<IActionResult> PutVehicle(Guid id, CreateUpdateVehicleRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         UpdateVehicleCommand command = new UpdateVehicleCommand
         {
@@ -168,7 +168,7 @@ public class VehiclesController : ApiBaseController
             AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
-        Result<int> updateVehicle = await _updateVehicleHandler.Handle(command);
+        Result<Guid> updateVehicle = await _updateVehicleHandler.Handle(command);
 
         if (updateVehicle.IsSuccess)
         {
@@ -206,7 +206,7 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PostVehicle(CreateUpdateVehicleRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         CreateVehicleCommand command = new CreateVehicleCommand
         {
@@ -223,7 +223,7 @@ public class VehiclesController : ApiBaseController
             AddedToEnterpriseAt = request.AddedToEnterpriseAt
         };
 
-        Result<int> createVehicle = await _createVehicleHandler.Handle(command);
+        Result<Guid> createVehicle = await _createVehicleHandler.Handle(command);
 
         // Success flow
         if (createVehicle.IsSuccess)
@@ -262,9 +262,9 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteVehicle(int id)
+    public async Task<IActionResult> DeleteVehicle(Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         DeleteVehicleCommand command = new DeleteVehicleCommand 
         {
@@ -321,10 +321,10 @@ public class VehiclesController : ApiBaseController
     public class CreateUpdateVehicleRequest
     {
         [Required]
-        public required int ModelId { get; set; }
+        public required Guid ModelId { get; set; }
 
         [Required]
-        public required int EnterpriseId { get; set; }
+        public required Guid EnterpriseId { get; set; }
 
         [Required]
         public required string VinNumber { get; set; }
@@ -350,10 +350,10 @@ public class VehiclesController : ApiBaseController
         public class DriversAssignmentsViewModel
         {
             [Required]
-            public required List<int> DriversIds { get; set; }
+            public required List<Guid> DriversIds { get; set; }
 
             [Required]
-            public required int? ActiveDriverId { get; set; }
+            public required Guid? ActiveDriverId { get; set; }
         }
     }
 
@@ -366,9 +366,9 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> GetTrack(int vehicleId, [FromQuery] GetTrackRequest request)
+    public async Task<ActionResult> GetTrack(Guid vehicleId, [FromQuery] GetTrackRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         Result errorResult;
 
@@ -463,7 +463,7 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> GetRidesTrack(GetRidesTrackRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         Result errorResult;
 
@@ -527,7 +527,7 @@ public class VehiclesController : ApiBaseController
     public class GetRidesTrackRequest
     {
         [FromRoute(Name = "vehicleId")]
-        public int VehicleId { get; set; }
+        public Guid VehicleId { get; set; }
 
         [FromQuery]
         public DateTimeOffset StartTime { get; set; }
@@ -550,7 +550,7 @@ public class VehiclesController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> GetRides(GetRidesRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         GetRidesQuery query = new GetRidesQuery
         {
@@ -588,7 +588,7 @@ public class VehiclesController : ApiBaseController
     public class GetRidesRequest
     {
         [FromRoute(Name = "vehicleId")]
-        public int VehicleId { get; set; }
+        public Guid VehicleId { get; set; }
 
         [FromQuery]
         public DateTimeOffset StartTime { get; set; }

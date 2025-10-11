@@ -21,12 +21,12 @@ public class TracksController : BaseController
 
     [HttpGet("")]
     public async Task<ActionResult> Index(
-        [FromRoute] int enterpriseId, 
-        [FromRoute] int vehicleId,
+        [FromRoute] Guid enterpriseId, 
+        [FromRoute] Guid vehicleId,
         [FromQuery] DateTimeOffset startDate,
         [FromQuery] DateTimeOffset endDate)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         Enterprise? enterprise = await _context.Enterprises
             .Include(e => e.TimeZone)
@@ -56,7 +56,7 @@ public class TracksController : BaseController
 
 public class TrackIndexViewModel
 {
-    public required int VehicleId { get; init; }
+    public required Guid VehicleId { get; init; }
 
     public required DateTimeOffset StartDate { get; init; }
 

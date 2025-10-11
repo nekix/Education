@@ -42,9 +42,9 @@ public class ExportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ExportEnterprise(int id)
+    public async Task<IActionResult> ExportEnterprise(Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         ExportEnterpriseQuery query = new ExportEnterpriseQuery
         {
@@ -92,9 +92,9 @@ public class ExportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ExportEnterpriseVehicles(int id)
+    public async Task<IActionResult> ExportEnterpriseVehicles(Guid id)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         ExportEnterpriseVehiclesQuery query = new ExportEnterpriseVehiclesQuery
         {
@@ -141,9 +141,9 @@ public class ExportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ExportVehicleRides(int id, [FromQuery] ExportVehicleRidesRequest request)
+    public async Task<IActionResult> ExportVehicleRides(Guid id, [FromQuery] ExportVehicleRidesRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         ExportVehicleRidesQuery query = new ExportVehicleRidesQuery
         {
@@ -194,7 +194,7 @@ public class ExportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ExportModels()
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         ExportModelsQuery query = new ExportModelsQuery
         {
@@ -237,9 +237,9 @@ public class ExportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ExportVehicleTrack(int id, [FromQuery] ExportVehicleTrackRequest request)
+    public async Task<IActionResult> ExportVehicleTrack(Guid id, [FromQuery] ExportVehicleTrackRequest request)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         ExportVehicleTrackQuery query = new ExportVehicleTrackQuery
         {

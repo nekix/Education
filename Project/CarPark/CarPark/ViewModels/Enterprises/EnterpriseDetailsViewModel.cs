@@ -4,7 +4,7 @@ namespace CarPark.ViewModels.Enterprises;
 
 public class EnterpriseDetailsViewModel
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required string Name { get; set; }
 
@@ -16,7 +16,7 @@ public class EnterpriseDetailsViewModel
 
     public class TimeZoneViewModel
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
 
         public required string Name { get; set; }
     }

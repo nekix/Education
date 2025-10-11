@@ -28,7 +28,7 @@ public class EnterprisesController : BaseController
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<EnterpriseViewModel> enterprises = await _context.Enterprises
             .Where(e => e.Managers.Any(m => m.Id == managerId))
@@ -45,14 +45,14 @@ public class EnterprisesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(Guid? id)
     {
         if (id == null)
         {
             return NotFound();
         }
 
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         var enterprise = await _context
             .Enterprises
@@ -111,7 +111,7 @@ public class EnterprisesController : BaseController
     {
         if (ModelState.IsValid)
         {
-            int managerId = GetCurrentManagerId();
+            Guid managerId = GetCurrentManagerId();
             Manager? manager = await _context.Managers.FindAsync(managerId);
 
             if (manager == null)
@@ -145,14 +145,14 @@ public class EnterprisesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(Guid? id)
     {
         if (id == null)
         {
             return NotFound();
         }
 
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         Enterprise? enterprise = await _context.Enterprises
             .Include(e => e.TimeZone)
@@ -178,7 +178,7 @@ public class EnterprisesController : BaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EnterpriseCreateEditViewModel viewModel)
+    public async Task<IActionResult> Edit(Guid id, EnterpriseCreateEditViewModel viewModel)
     {
         if (id != viewModel.Id)
         {
@@ -187,7 +187,7 @@ public class EnterprisesController : BaseController
 
         if (ModelState.IsValid)
         {
-            int managerId = GetCurrentManagerId();
+            Guid managerId = GetCurrentManagerId();
 
             Enterprise? enterprise = await _context.Enterprises
                 .Include(e => e.Managers)
@@ -234,7 +234,7 @@ public class EnterprisesController : BaseController
         return View(viewModel);
     }
 
-    private async Task<bool> EnterpriseExists(int id)
+    private async Task<bool> EnterpriseExists(Guid id)
     {
         return await _context.Enterprises.AnyAsync(e => e.Id == id);
     }

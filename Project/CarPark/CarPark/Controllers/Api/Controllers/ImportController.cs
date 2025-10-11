@@ -32,7 +32,7 @@ public class ImportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ImportEnterprises(IFormFile file)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<EnterpriseExportImportDto> enterprises;
 
@@ -91,7 +91,7 @@ public class ImportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ImportModels(IFormFile file)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<ModelExportImportDto> models;
 
@@ -143,7 +143,7 @@ public class ImportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ImportVehicles(IFormFile file)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<VehicleExportImportDto> vehicles;
 
@@ -208,7 +208,7 @@ public class ImportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ImportRides(IFormFile file)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<VehicleRideExportImportDto> rides;
 
@@ -272,7 +272,7 @@ public class ImportController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ImportTracks(IFormFile file)
     {
-        int managerId = GetCurrentManagerId();
+        Guid managerId = GetCurrentManagerId();
 
         List<VehicleGeoTimePointExportImportDto> tracks;
 

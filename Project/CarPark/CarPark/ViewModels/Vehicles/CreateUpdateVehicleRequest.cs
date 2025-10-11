@@ -6,11 +6,11 @@ namespace CarPark.ViewModels.Vehicles
     public class CreateUpdateVehicleRequest
     {
         [Required]
-        public required int ModelId { get; set; }
+        public required Guid ModelId { get; set; }
 
         [Required]
         [FromRoute(Name = "enterpriseId")]
-        public required int EnterpriseId { get; set; }
+        public required Guid EnterpriseId { get; set; }
 
         [Required]
         public required string VinNumber { get; set; }
@@ -33,14 +33,14 @@ namespace CarPark.ViewModels.Vehicles
 
     public class ModelOverview
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
 
         public required string ModelName { get; set; }
     }
 
     public class EnterpriseOverview
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
 
         public required string EnterpriseName { get; set; }
     }

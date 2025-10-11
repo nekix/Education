@@ -8,14 +8,14 @@
 
     public class EnterpriseDto
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
         public required string Name { get; set; }
         public required string LegalAddress { get; set; }
     }
 
     public class ModelDto
     {
-        public required int Id { get; set; }
+        public required Guid Id { get; set; }
         public required string ModelName { get; set; }
         public required string VehicleType { get; set; }
         public required int SeatsCount { get; set; }
@@ -28,25 +28,25 @@
 
     public class VehicleDto
     {
-        public required int Id { get; set; }
-        public required int ModelId { get; set; }
-        public required int EnterpriseId { get; set; }
+        public required Guid Id { get; set; }
+        public required Guid ModelId { get; set; }
+        public required Guid EnterpriseId { get; set; }
         public required string VinNumber { get; set; }
         public required decimal Price { get; set; }
         public required int ManufactureYear { get; set; }
         public required int Mileage { get; set; }
         public required string Color { get; set; }
-        public required int? ActiveDriverId { get; set; }
-        public required List<int> AssignedDriverIds { get; set; }
+        public required Guid? ActiveDriverId { get; set; }
+        public required List<Guid> AssignedDriverIds { get; set; }
     }
 
     public class DriverDto
     {
-        public required int Id { get; set; }
-        public required int EnterpriseId { get; set; }
+        public required Guid Id { get; set; }
+        public required Guid EnterpriseId { get; set; }
         public required string FullName { get; set; }
         public required string DriverLicenseNumber { get; set; }
-        public required int? ActiveVehicleId { get; set; }
-        public required List<int> AssignedVehicleIds { get; set; }
+        public required Guid? ActiveVehicleId { get; set; }
+        public required List<Guid> AssignedVehicleIds { get; set; }
     }
 }

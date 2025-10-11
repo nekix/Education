@@ -6,13 +6,14 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.CommandLine;
 using System.Text.Json;
 using CarPark.Drivers;
+using CarPark.Enterprises;
 using CarPark.Vehicles;
 
 namespace CarPark.DataGenerator;
 
 internal class Program
 {
-    static int Main(string[] args)
+    static async Task<int> Main(string[] args)
     {
         RootCommand rootCommand = new RootCommand("Утилита генерации тестовых данных для CarPark");
 
@@ -34,7 +35,7 @@ internal class Program
             connectionStringVehiclesOption
         };
 
-        vehiclesDriversCommand.SetAction(parseResult => GenerateVehiclesAndDrivers(
+        vehiclesDriversCommand.SetAction(async parseResult => await GenerateVehiclesAndDrivers(
             parseResult.GetValue(enterpriseIdsOption)!,
             parseResult.GetValue(vehiclesPerEnterpriseOption),
             parseResult.GetValue(driversPerEnterpriseOption),
@@ -54,7 +55,7 @@ internal class Program
         optionsBuilder.UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention();
 
-        return new ApplicationDbContext(optionsBuilder.Options, tzService);
+        return new ApplicationDbContext(optionsBuilder.Options);
     }
 
     static List<Model> LoadModelsFromDatabase(ApplicationDbContext context)
@@ -64,28 +65,27 @@ internal class Program
         return models;
     }
 
-    static List<int> ValidateEnterprisesInDatabase(List<int> enterpriseIds, ApplicationDbContext context)
+    static async Task<List<Enterprise>> FindEnterprisesAsync(List<Guid> enterpriseIds, ApplicationDbContext context)
     {
-        List<int> existingEnterpriseIds = context.Enterprises
+        List<Enterprise> existingEnterprises = await context.Enterprises
             .Where(e => enterpriseIds.Contains(e.Id))
-            .Select(e => e.Id)
-            .ToList();
+            .ToListAsync();
 
-        List<int> missingIds = enterpriseIds.Except(existingEnterpriseIds).ToList();
-        if (missingIds.Any())
+        List<Enterprise> missingEnterprises = existingEnterprises.ExceptBy(enterpriseIds, e => e.Id).ToList();
+        if (missingEnterprises.Any())
         {
-            Console.WriteLine($"Предупреждение: Следующие предприятия не найдены в БД: {string.Join(", ", missingIds)}");
+            Console.WriteLine($"Предупреждение: Следующие предприятия не найдены в БД: {string.Join(", ", missingEnterprises.Select(e => e.Id))}");
         }
 
-        Console.WriteLine($"Найдено {existingEnterpriseIds.Count} существующих предприятий из {enterpriseIds.Count} запрошенных");
-        return existingEnterpriseIds;
+        Console.WriteLine($"Найдено {existingEnterprises.Count} существующих предприятий из {enterpriseIds.Count} запрошенных");
+        return existingEnterprises;
     }
 
-    static void GenerateVehiclesAndDrivers(string enterpriseIdsString, int vehiclesPerEnterprise, int driversPerEnterprise, string? outputPath, string connectionString)
+    static async Task GenerateVehiclesAndDrivers(string enterpriseIdsString, int vehiclesPerEnterprise, int driversPerEnterprise, string? outputPath, string connectionString)
     {
         // Парсим список ID предприятий
-        List<int> enterpriseIds = enterpriseIdsString.Split(',')
-            .Select(id => int.Parse(id.Trim()))
+        List<Guid> enterpriseIds = enterpriseIdsString.Split(',')
+            .Select(id => Guid.Parse(id.Trim()))
             .ToList();
 
         Console.WriteLine($"Генерация автомобилей и водителей:");
@@ -105,9 +105,9 @@ internal class Program
 
         // Создаем контекст БД
         using LocalIcuTimezoneService tzService = new LocalIcuTimezoneService();
-        using ApplicationDbContext dbContext = CreateDbContext(connectionString, tzService);
+        await using ApplicationDbContext dbContext = CreateDbContext(connectionString, tzService);
 
-        using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
 
         // Загружаем модели из БД
         List<Model> models = LoadModelsFromDatabase(dbContext);
@@ -118,8 +118,8 @@ internal class Program
         }
 
         // Проверяем существование предприятий в БД
-        List<int> existingEnterpriseIds = ValidateEnterprisesInDatabase(enterpriseIds, dbContext);
-        if (!existingEnterpriseIds.Any())
+        List<Enterprise> existingEnterprises = await FindEnterprisesAsync(enterpriseIds, dbContext);
+        if (!existingEnterprises.Any())
         {
             Console.WriteLine("Ошибка: Не найдено ни одного существующего предприятия");
             return;
@@ -131,15 +131,15 @@ internal class Program
         List<Vehicle> allVehicles = new List<Vehicle>();
         List<Driver> allDrivers = new List<Driver>();
         
-        foreach (int enterpriseId in existingEnterpriseIds)
+        foreach (Enterprise enterprise in existingEnterprises)
         {
             // Генерируем автомобили для предприятия
-            List<Vehicle> enterpriseVehicles = generator.GenerateVehicles(enterpriseId, models)
+            List<Vehicle> enterpriseVehicles = generator.GenerateVehicles(enterprise, models)
                 .Take(vehiclesPerEnterprise)
                 .ToList();
 
             // Генерируем водителей для предприятия
-            List<Driver> enterpriseDrivers = generator.GenerateDrivers(enterpriseId)
+            List<Driver> enterpriseDrivers = generator.GenerateDrivers(enterprise)
                 .Take(driversPerEnterprise)
                 .ToList();
             
@@ -149,7 +149,7 @@ internal class Program
 
         dbContext.Vehicles.AddRange(allVehicles);
         dbContext.Drivers.AddRange(allDrivers);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
         Console.WriteLine($"- Всего машин: {allVehicles.Count}");
         Console.WriteLine($"- Всего водителей: {allDrivers.Count}");
@@ -159,9 +159,9 @@ internal class Program
         // От 1 до 5 водителей на машину (или меньше, если водителей меньше)
         int maxDriversPerVehicle = Math.Min(10, driversPerEnterprise);
         generator.EstablishVehicleDriverRelationships(allVehicles, allDrivers, 0.1, 0.7, 0, maxDriversPerVehicle);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
-        transaction.Commit();
+        await transaction.CommitAsync();
 
         PrintResults(allVehicles, allDrivers);
         

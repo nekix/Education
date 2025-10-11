@@ -2,5 +2,5 @@
 
 public abstract class BaseManagerCommandQuery
 {
-    public required int RequestingManagerId { get; set; }
+    public required Guid RequestingManagerId { get; set; }
 }

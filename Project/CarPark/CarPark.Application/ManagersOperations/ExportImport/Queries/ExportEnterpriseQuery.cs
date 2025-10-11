@@ -5,5 +5,5 @@ namespace CarPark.ManagersOperations.ExportImport.Queries;
 
 public class ExportEnterpriseQuery : BaseManagerCommandQuery, IQuery<Result<EnterpriseExportImportDto>>
 {
-    public required int EnterpriseId { get; set; }
+    public required Guid EnterpriseId { get; set; }
 }

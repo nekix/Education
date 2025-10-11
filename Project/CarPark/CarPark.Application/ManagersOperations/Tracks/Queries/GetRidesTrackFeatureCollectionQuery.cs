@@ -6,7 +6,7 @@ namespace CarPark.ManagersOperations.Tracks.Queries;
 
 public class GetRidesTrackFeatureCollectionQuery : BaseManagerCommandQuery, IQuery<Result<FeatureCollection>>
 {
-    public required int VehicleId { get; set; }
+    public required Guid VehicleId { get; set; }
 
     public required DateTimeOffset StartTime { get; set; }
 

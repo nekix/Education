@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CarPark.ManagersOperations.Vehicles.Commands;
 
 internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
-    ICommandHandler<CreateVehicleCommand, Result<int>>, 
-    ICommandHandler<UpdateVehicleCommand, Result<int>>,
+    ICommandHandler<CreateVehicleCommand, Result<Guid>>, 
+    ICommandHandler<UpdateVehicleCommand, Result<Guid>>,
     ICommandHandler<DeleteVehicleCommand, Result>
 {
     public ManagersVehiclesCommandHandler(ApplicationDbContext dbContext) : base(dbContext)
@@ -21,7 +21,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
 
     }
 
-    public async Task<Result<int>> Handle(CreateVehicleCommand command)
+    public async Task<Result<Guid>> Handle(CreateVehicleCommand command)
     {
         Result<Manager> getManager = await GetManagerAsync(command.RequestingManagerId, false);
         Result<Enterprise> getEnterprise = getManager.Bind(manager => GetAllowedToManagerEnterprise(manager, command.EnterpriseId));
@@ -49,13 +49,13 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
         return saveNewVehicle.Map(v => v.Id);
     }
 
-    public async Task<Result<int>> Handle(UpdateVehicleCommand command)
+    public async Task<Result<Guid>> Handle(UpdateVehicleCommand command)
     {
         Result<Manager> getManager = await GetManagerAsync(command.RequestingManagerId, false);
         Result<Vehicle> getVehicle = await getManager.Bind(_ => GetVehicleAsync(command.VehicleId));
         Result<Enterprise> getOldEnterprise = getManager.Bind(m => GetAllowedToManagerEnterprise(m, getVehicle.Value.Enterprise.Id));
         if (getOldEnterprise.IsFailed)
-            return getOldEnterprise.ToResult<int>();
+            return getOldEnterprise.ToResult<Guid>();
 
         Vehicle vehicle = getVehicle.Value;
 
@@ -64,7 +64,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             Result<Vehicle> setEnterprise = GetAllowedToManagerEnterprise(getManager.Value, command.EnterpriseId)
                 .Bind(e => vehicle.SetEnterprise(e));
             if (setEnterprise.IsFailed)
-                return setEnterprise.ToResult<int>();
+                return setEnterprise.ToResult<Guid>();
         }
 
         if (vehicle.Model.Id != command.ModelId)
@@ -72,7 +72,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             Result<Vehicle> setModel = await GetModelAsync(command.ModelId)
                 .Bind(m => vehicle.SetModel(m));
             if (setModel.IsFailed)
-                return setModel.ToResult<int>();
+                return setModel.ToResult<Guid>();
         }
 
         if (vehicle.ActiveAssignedDriver?.Id != command.ActiveDriverId
@@ -82,7 +82,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
         {
             Result<Vehicle> setDrivers = await SetDriversToVehicleAsync(vehicle, command.DriverIds, command.ActiveDriverId);
             if (setDrivers.IsFailed)
-                return setDrivers.ToResult<int>();
+                return setDrivers.ToResult<Guid>();
         }
 
         if (vehicle.VinNumber != command.VinNumber)
@@ -138,7 +138,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
         return removeVehicle;
     }
 
-    private async Task<Result<Vehicle>> GetVehicleAsync(int vehicleId)
+    private async Task<Result<Vehicle>> GetVehicleAsync(Guid vehicleId)
     {
         Vehicle? vehicle = await DbContext.Vehicles
             .Include(v => v.Enterprise)
@@ -152,7 +152,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             : Result.Fail<Vehicle>(VehiclesHandlersErrors.VehicleNotExist);
     }
 
-    private static Result<Enterprise> GetAllowedToManagerEnterprise(Manager manager, int enterpriseId)
+    private static Result<Enterprise> GetAllowedToManagerEnterprise(Manager manager, Guid enterpriseId)
     {
         Enterprise? enterprise = manager.Enterprises.FirstOrDefault(e => e.Id == enterpriseId);
 
@@ -161,7 +161,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             : Result.Fail<Enterprise>(VehiclesHandlersErrors.ManagerNotAllowedToEnterprise);
     }
 
-    private async Task<Result<Model>> GetModelAsync(int modelId)
+    private async Task<Result<Model>> GetModelAsync(Guid modelId)
     {
         Model? model = await DbContext.Models.FirstOrDefaultAsync(m => m.Id == modelId);
 
@@ -170,7 +170,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             : Result.Fail<Model>(VehiclesHandlersErrors.ModelNotExist);
     }
 
-    private async Task<Result<List<Driver>>> GetAssignedDriversAsync(List<int> assignedDriverIds)
+    private async Task<Result<List<Driver>>> GetAssignedDriversAsync(List<Guid> assignedDriverIds)
     {
         List<Driver> assignedDrivers = await DbContext.Drivers
             .Where(d => assignedDriverIds.Contains(d.Id))
@@ -181,7 +181,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             : Result.Fail<List<Driver>>(VehiclesHandlersErrors.AssignedDriversNotExist);
     }
 
-    private async Task<Result<Driver?>> GetIfDefinedActiveAssignedDriverAsync(int? activeAssignedDriverId)
+    private async Task<Result<Driver?>> GetIfDefinedActiveAssignedDriverAsync(Guid? activeAssignedDriverId)
     {
         if (activeAssignedDriverId == null)
             return Result.Ok<Driver?>(null);
@@ -202,7 +202,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
         return Result.Ok(vehicle);
     }
 
-    private async Task<Result<Vehicle>> SetDriversToVehicleAsync(Vehicle vehicle, List<int> assidnedDriversIds, int? activeAssignedDriverId)
+    private async Task<Result<Vehicle>> SetDriversToVehicleAsync(Vehicle vehicle, List<Guid> assidnedDriversIds, Guid? activeAssignedDriverId)
     {
         Result<List<Driver>> getAssignedDrivers = await GetAssignedDriversAsync(assidnedDriversIds);
         Result<Driver?> getIfDefinedActiveAssignedDriver = await getAssignedDrivers.Bind(_ => GetIfDefinedActiveAssignedDriverAsync(activeAssignedDriverId));

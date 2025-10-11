@@ -81,7 +81,7 @@ public class ManagersVehiclesQueryHandler : BaseManagersHandler,
             .ToListAsync();
 
         // Get enterprises for timezone info
-        Dictionary<int, TzInfo?> enterpriseTimeZones = await DbContext.Enterprises
+        Dictionary<Guid, TzInfo?> enterpriseTimeZones = await DbContext.Enterprises
             .Where(e => viewModels.Select(v => v.EnterpriseId).Contains(e.Id))
             .Select(e => new { e.Id, e.TimeZone })
             .ToDictionaryAsync(e => e.Id, e => e.TimeZone);
@@ -127,7 +127,7 @@ public class ManagersVehiclesQueryHandler : BaseManagersHandler,
                 v.Mileage,
                 v.Color,
                 v.AddedToEnterpriseAt,
-                ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : (int?)null
+                ActiveDriverId = v.ActiveAssignedDriver != null ? v.ActiveAssignedDriver.Id : (Guid?)null
             } into g
             select new VehicleDto
             {

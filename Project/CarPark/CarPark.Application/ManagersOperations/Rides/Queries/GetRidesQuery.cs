@@ -5,7 +5,7 @@ namespace CarPark.ManagersOperations.Rides.Queries;
 
 public class GetRidesQuery : BaseManagerCommandQuery, IQuery<Result<RidesViewModel>>
 {
-    public required int VehicleId { get; set; }
+    public required Guid VehicleId { get; set; }
 
     public required DateTimeOffset StartTime { get; set; }
 

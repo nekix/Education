@@ -2,7 +2,7 @@ namespace CarPark.ManagersOperations.ExportImport;
 
 public class ModelExportImportDto
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required string ModelName { get; set; }
 

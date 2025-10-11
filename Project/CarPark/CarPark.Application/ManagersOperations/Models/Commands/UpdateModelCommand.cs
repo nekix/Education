@@ -5,9 +5,9 @@ using FluentResults;
 
 namespace CarPark.ManagersOperations.Models.Commands;
 
-public class UpdateModelCommand : ICommand<Result<int>>
+public class UpdateModelCommand : ICommand<Result<Guid>>
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
     public required string ModelName { get; set; }
 
@@ -25,7 +25,7 @@ public class UpdateModelCommand : ICommand<Result<int>>
 
     public required string FuelTankVolumeLiters { get; set; }
 
-    public class Handler : ICommandHandler<UpdateModelCommand, Result<int>>
+    public class Handler : ICommandHandler<UpdateModelCommand, Result<Guid>>
     {
         private readonly ApplicationDbContext _context;
 
@@ -34,7 +34,7 @@ public class UpdateModelCommand : ICommand<Result<int>>
             _context = context;
         }
 
-        public async Task<Result<int>> Handle(UpdateModelCommand command)
+        public async Task<Result<Guid>> Handle(UpdateModelCommand command)
         {
             Model? model = await _context.Models.FindAsync(command.Id);
 

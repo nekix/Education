@@ -5,7 +5,7 @@ using FluentResults;
 
 namespace CarPark.ManagersOperations.Models.Commands;
 
-public class CreateModelCommand : ICommand<Result<int>>
+public class CreateModelCommand : ICommand<Result<Guid>>
 {
     public required string ModelName { get; set; }
 
@@ -23,7 +23,7 @@ public class CreateModelCommand : ICommand<Result<int>>
 
     public required string FuelTankVolumeLiters { get; set; }
 
-    public class Handler : ICommandHandler<CreateModelCommand, Result<int>>
+    public class Handler : ICommandHandler<CreateModelCommand, Result<Guid>>
     {
         private readonly ApplicationDbContext _context;
 
@@ -32,7 +32,7 @@ public class CreateModelCommand : ICommand<Result<int>>
             _context = context;
         }
 
-        public async Task<Result<int>> Handle(CreateModelCommand command)
+        public async Task<Result<Guid>> Handle(CreateModelCommand command)
         {
             Model model = new Model
             {

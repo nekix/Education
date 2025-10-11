@@ -79,7 +79,7 @@ public class ManagersEnterprisesQueryHandler : BaseManagersHandler,
 
         Manager manager = getManager.Value;
 
-        List<int> enterprisesIds = manager.Enterprises.Select(e => e.Id).ToList();
+        List<Guid> enterprisesIds = manager.Enterprises.Select(e => e.Id).ToList();
 
         var driversQuery =
             from d in DbContext.Drivers

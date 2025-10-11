@@ -5,7 +5,7 @@ namespace CarPark.ManagersOperations.ExportImport.Queries;
 
 public class ExportVehicleTrackQuery : BaseManagerCommandQuery, IQuery<Result<List<VehicleGeoTimePointExportImportDto>>>
 {
-    public required int VehicleId { get; set; }
+    public required Guid VehicleId { get; set; }
 
     public required DateTimeOffset TrackStartTime { get; set; }
 

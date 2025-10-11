@@ -2,7 +2,6 @@
 using CarPark.Drivers;
 using CarPark.Managers;
 using CarPark.ManagersOperations.Drivers.Queries.Models;
-using CarPark.ManagersOperations.Vehicles;
 using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +48,7 @@ public class ManagersDriverQueryHandler : BaseManagersHandler,
 
         Manager manager = getManager.Value;
 
-        List<int> enterprisesIds = manager.Enterprises.Select(e => e.Id).ToList();
+        List<Guid> enterprisesIds = manager.Enterprises.Select(e => e.Id).ToList();
 
         IQueryable<Driver> dbQuery = DbContext.Drivers
             .Where(v => enterprisesIds.Contains(v.EnterpriseId))
@@ -92,7 +91,7 @@ public class ManagersDriverQueryHandler : BaseManagersHandler,
                 d.EnterpriseId,
                 d.FullName,
                 d.DriverLicenseNumber,
-                ActiveVehicleId = d.ActiveAssignedVehicle != null ? d.ActiveAssignedVehicle.Id : (int?)null
+                ActiveVehicleId = d.ActiveAssignedVehicle != null ? d.ActiveAssignedVehicle.Id : (Guid?)null
             } into g
             select new DriverDto
             {

@@ -125,8 +125,8 @@ public class ManagersTrackQueryHandler : BaseManagersHandler,
     }
 
     private async Task<Result<List<IntermediateGeoTimePoint>>> GetInRidesIntGeoTimePoints(
-        int managerId,
-        int vehicleId,
+        Guid managerId,
+        Guid vehicleId,
         DateTimeOffset startTime,
         DateTimeOffset endTime)
     {
@@ -179,8 +179,8 @@ public class ManagersTrackQueryHandler : BaseManagersHandler,
     }
 
     private async Task<Result<List<IntermediateGeoTimePoint>>> GetAllIntGeoTimePoints(
-        int managerId, 
-        int vehicleId, 
+        Guid managerId,
+        Guid vehicleId, 
         DateTimeOffset startTime, 
         DateTimeOffset endTime)
     {

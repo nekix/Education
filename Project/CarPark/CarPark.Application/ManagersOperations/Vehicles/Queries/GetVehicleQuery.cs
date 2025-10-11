@@ -6,5 +6,5 @@ namespace CarPark.ManagersOperations.Vehicles.Queries;
 
 public class GetVehicleQuery : BaseManagerCommandQuery, IQuery<Result<VehicleDto>>
 {
-    public required int VehicleId { get; set; }
+    public required Guid VehicleId { get; set; }
 }

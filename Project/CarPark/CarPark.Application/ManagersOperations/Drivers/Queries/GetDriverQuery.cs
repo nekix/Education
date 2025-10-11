@@ -6,7 +6,7 @@ namespace CarPark.ManagersOperations.Drivers.Queries;
 
 public class GetDriverQuery : IQuery<Result<DriverDto>>
 {
-    public required int RequestingManagerId { get; set; }
+    public required Guid RequestingManagerId { get; set; }
 
-    public required int DriverId { get; set; }
+    public required Guid DriverId { get; set; }
 }

@@ -4,7 +4,7 @@ public class VehicleGeoTimePointExportImportDto
 {
     public Guid Id { get; set; }
 
-    public int VehicleId { get; set; }
+    public Guid VehicleId { get; set; }
 
     public required double X { get; set; }
 

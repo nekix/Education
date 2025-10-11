@@ -2,11 +2,11 @@
 
 public class VehicleDto
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 
-    public required int ModelId { get; set; }
+    public required Guid ModelId { get; set; }
 
-    public required int EnterpriseId { get; set; }
+    public required Guid EnterpriseId { get; set; }
 
     public required string VinNumber { get; set; }
 
@@ -24,8 +24,8 @@ public class VehicleDto
 
     public class DriversAssignmentsViewModel
     {
-        public required IEnumerable<int> DriversIds { get; set; }
+        public required IEnumerable<Guid> DriversIds { get; set; }
 
-        public required int? ActiveDriverId { get; set; }
+        public required Guid? ActiveDriverId { get; set; }
     }
 }

@@ -5,5 +5,5 @@ namespace CarPark.ManagersOperations.Enterprises.Commands;
 
 public class DeleteEnterpriseCommand : BaseManagerCommandQuery, ICommand<Result>
 {
-    public required int EnterpriseId { get; set; }
+    public required Guid EnterpriseId { get; set; }
 }

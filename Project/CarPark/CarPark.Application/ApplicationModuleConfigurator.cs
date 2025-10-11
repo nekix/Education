@@ -34,8 +34,8 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
 
     private static void ConfigureCommandQueriesHandlers(IServiceCollection services)
     {
-        services.AddScoped<ICommandHandler<CreateModelCommand, Result<int>>, CreateModelCommand.Handler>();
-        services.AddScoped<ICommandHandler<UpdateModelCommand, Result<int>>, UpdateModelCommand.Handler>();
+        services.AddScoped<ICommandHandler<CreateModelCommand, Result<Guid>>, CreateModelCommand.Handler>();
+        services.AddScoped<ICommandHandler<UpdateModelCommand, Result<Guid>>, UpdateModelCommand.Handler>();
         services.AddScoped<ICommandHandler<DeleteModelCommand, Result>, DeleteModelCommand.Handler>();
 
         services.AddScoped<IQueryHandler<GetEnterpriseQuery, Result<EnterpriseDto>>, ManagersEnterprisesQueryHandler>();
@@ -44,8 +44,8 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
 
         services.AddScoped<IQueryHandler<GetVehicleQuery, Result<VehicleDto>>, ManagersVehiclesQueryHandler>();
         services.AddScoped<IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>>, ManagersVehiclesQueryHandler>();
-        services.AddScoped<ICommandHandler<CreateVehicleCommand, Result<int>>, ManagersVehiclesCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result<int>>, ManagersVehiclesCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateVehicleCommand, Result<Guid>>, ManagersVehiclesCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result<Guid>>, ManagersVehiclesCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteVehicleCommand, Result>, ManagersVehiclesCommandHandler>();
         
         services.AddScoped<IQueryHandler<GetDriverQuery, Result<DriverDto>>, ManagersDriverQueryHandler>();

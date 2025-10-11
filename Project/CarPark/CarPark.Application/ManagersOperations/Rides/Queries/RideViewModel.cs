@@ -4,7 +4,7 @@ public class RideViewModel
 {
     public required Guid Id { get; set; }
 
-    public required int VehicleId { get; set; }
+    public required Guid VehicleId { get; set; }
 
     public required DateTimeOffset StartTime { get; set; }
 

@@ -14,7 +14,7 @@ public abstract class BaseManagersHandler
         DbContext = dbContext;
     }
 
-    protected async Task<Result<Manager>> GetManagerAsync(int managerId, bool efTracking)
+    protected async Task<Result<Manager>> GetManagerAsync(Guid managerId, bool efTracking)
     {
         Manager? manager = await DbContext.Managers
             .Include(e => e.Enterprises)

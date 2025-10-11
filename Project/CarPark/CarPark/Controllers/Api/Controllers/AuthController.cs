@@ -29,8 +29,11 @@ public class AuthController : ApiBaseController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        SignInResult result =
-            await _signInManager.PasswordSignInAsync(request.Username, request.Password, true, lockoutOnFailure: true);
+        SignInResult result = await _signInManager.PasswordSignInAsync(
+            request.Username,
+            request.Password,
+            true,
+            lockoutOnFailure: true);
 
         if (!result.Succeeded)
         {
@@ -41,12 +44,6 @@ public class AuthController : ApiBaseController
                 Detail = result.ToString()
             });
         }
-
-        IdentityUser user = (await _userManager.FindByNameAsync(request.Username))!;
-
-        Manager? manager = await _context.Managers.FirstOrDefaultAsync(m => m.IdentityUserId == user.Id);
-        if (manager != null)
-            await _userManager.AddClaimAsync(user, new Claim(AppIdentityConst.ManagerIdClaim, manager.Id.ToString()));
 
         return Created();
     }

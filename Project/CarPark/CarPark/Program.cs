@@ -29,6 +29,7 @@ public class Program
 
         builder.Services.AddSimpleIdentity<IdentityUser>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
+        builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, AppUserClaimsPrincipalFactory>();
 
         builder.Services.AddProblemDetails();
 

@@ -1,6 +1,8 @@
-﻿namespace CarPark.Shared.DateTimes;
+﻿using System.Numerics;
 
-public readonly record struct UtcDateTimeOffset
+namespace CarPark.Shared.DateTimes;
+
+public readonly record struct UtcDateTimeOffset : IComparable<DateTimeOffset>
 {
     public UtcDateTimeOffset(DateTimeOffset dateTimeOffset)
     {
@@ -21,4 +23,17 @@ public readonly record struct UtcDateTimeOffset
     }
 
     public static implicit operator DateTimeOffset(UtcDateTimeOffset d) => d.Value;
+
+    /// <inheritdoc cref="IComparisonOperators{TSelf,TOther,TResult}.op_LessThanOrEqual(TSelf, TOther)" />
+    public static bool operator <=(UtcDateTimeOffset left, UtcDateTimeOffset right) =>
+        left.Value.UtcDateTime <= right.Value.UtcDateTime;
+
+    /// <inheritdoc cref="IComparisonOperators{TSelf, TOther, TResult}.op_GreaterThanOrEqual(TSelf, TOther)" />
+    public static bool operator >=(UtcDateTimeOffset left, UtcDateTimeOffset right) =>
+        left.Value.UtcDateTime >= right.Value.UtcDateTime;
+
+    public int CompareTo(DateTimeOffset other)
+    {
+        return Value.CompareTo(other);
+    }
 }

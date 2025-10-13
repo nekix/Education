@@ -11,8 +11,14 @@ public class InfrastractureModuleConfigurator : IModuleConfigurator
 {
     public void ConfigureModule(IServiceCollection services, IConfiguration configuration)
     {
-        string connectionString = configuration.GetConnectionString("Default") 
+        string connectionString = configuration.GetConnectionString("Default")
                                   ?? throw new InvalidOperationException("Unable to find database connection string. 'ConnectionStrings:Default' must be defined in configuration.");
+
+        // Add Timezone=UTC to connection string to prevent PostgreSQL from converting timestamptz to local timezone
+        if (!connectionString.Contains("Timezone=", StringComparison.OrdinalIgnoreCase))
+        {
+            connectionString += ";Timezone=UTC";
+        }
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString, o => o.UseNetTopologySuite())

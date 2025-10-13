@@ -1,4 +1,4 @@
-﻿namespace CarPark.Services.GeoServices;
+﻿namespace CarPark.Services.GeoServices.GeoCodingServices;
 
 public interface IGeoCodingService
 {

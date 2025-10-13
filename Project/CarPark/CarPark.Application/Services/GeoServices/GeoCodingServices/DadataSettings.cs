@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CarPark.Services.GeoServices;
+namespace CarPark.Services.GeoServices.GeoCodingServices;
 
 public class DadataSettings
 {

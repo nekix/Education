@@ -6,13 +6,15 @@ using CarPark.ManagersOperations.ExportImport;
 using CarPark.ManagersOperations.ExportImport.Commands;
 using CarPark.ManagersOperations.ExportImport.Queries;
 using CarPark.ManagersOperations.Models.Commands;
+using CarPark.ManagersOperations.Reports.Queries;
 using CarPark.ManagersOperations.Rides.Queries;
 using CarPark.ManagersOperations.Tracks.Queries;
 using CarPark.ManagersOperations.Tracks.Queries.Models;
 using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.ManagersOperations.Vehicles.Queries;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
-using CarPark.Services.GeoServices;
+using CarPark.Reports;
+using CarPark.Services.GeoServices.GeoCodingServices;
 using CarPark.Services.TimeZones;
 using CarPark.Shared.CQ;
 using CarPark.Shared.Modules;
@@ -64,6 +66,8 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
         services.AddScoped<IQueryHandler<ExportModelsQuery, Result<List<ModelExportImportDto>>>, ManagersExportImportHandler>();
         services.AddScoped<IQueryHandler<ExportVehicleRidesQuery, Result<List<VehicleRideExportImportDto>>>, ManagersExportImportHandler>();
         services.AddScoped<IQueryHandler<ExportVehicleTrackQuery, Result<List<VehicleGeoTimePointExportImportDto>>>, ManagersExportImportHandler>();
+
+        services.AddScoped<IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>>, ReportsQueryHandler>();
     }
 
     private static void ConfigureGeoCodingServies(IServiceCollection services, IConfiguration configuration)

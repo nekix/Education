@@ -2,7 +2,7 @@
 using Dadata.Model;
 using Microsoft.Extensions.Options;
 
-namespace CarPark.Services.GeoServices;
+namespace CarPark.Services.GeoServices.GeoCodingServices;
 
 public class DadataGeoCodingService : IGeoCodingService
 {

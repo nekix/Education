@@ -68,6 +68,8 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
         services.AddScoped<IQueryHandler<ExportVehicleTrackQuery, Result<List<VehicleGeoTimePointExportImportDto>>>, ManagersExportImportHandler>();
 
         services.AddScoped<IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>>, ReportsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetEnterpriseRidesReportQuery, Result<EnterpriseRidesPeriodReport>>, ReportsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetEnterpriseModelsReportQuery, Result<EnterpriseVehiclesModelsReport>>, ReportsQueryHandler>();
     }
 
     private static void ConfigureGeoCodingServies(IServiceCollection services, IConfiguration configuration)

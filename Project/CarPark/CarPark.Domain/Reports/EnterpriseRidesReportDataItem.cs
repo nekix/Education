@@ -2,26 +2,32 @@
 
 public class EnterpriseRidesReportDataItem
 {
-    public int RidesCount { get; private init; }
+    public int ActiveRidesCount { get; private init; }
 
-    public TimeSpan RidesTotalTime { get; private init; }
+    public TimeSpan TotalTime { get; private init; }
 
-    public TimeSpan RidesAvgTime { get; private init; }
+    public TimeSpan AvgTime { get; private init; }
 
-    public double RidesTotalMileageKm { get; private init; }
+    public double TotalMileageKm { get; private init; }
 
-    public double RidesAvgMileageKm { get; private init; }
+    public double AvgMileageKm { get; private init; }
 
-    public EnterpriseRidesReportDataItem(int ridesCount, 
-        TimeSpan ridesTotalTime, 
-        TimeSpan ridesAvgTime, 
-        double ridesTotalMileageKm, 
-        double ridesAvgMileageKm)
+    public EnterpriseRidesReportDataItem(
+        int activeRidesCount, 
+        TimeSpan totalTime, 
+        TimeSpan avgTime, 
+        double totalMileageKm, 
+        double avgMileageKm)
     {
-        RidesCount = ridesCount;
-        RidesTotalTime = ridesTotalTime;
-        RidesAvgTime = ridesAvgTime;
-        RidesTotalMileageKm = ridesTotalMileageKm;
-        RidesAvgMileageKm = ridesAvgMileageKm;
+        ActiveRidesCount = activeRidesCount;
+        TotalTime = totalTime;
+        AvgTime = avgTime;
+        TotalMileageKm = totalMileageKm;
+        AvgMileageKm = avgMileageKm;
+    }
+
+    private EnterpriseRidesReportDataItem()
+    {
+
     }
 }

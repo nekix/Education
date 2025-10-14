@@ -13,14 +13,20 @@ namespace CarPark.Controllers.Api.Controllers;
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class ReportsController : ApiBaseController
 {
-    private readonly IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>> _reportsQueryHandler;
+    private readonly IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>> _getVehicleMileageQueryHandler;
+    private readonly IQueryHandler<GetEnterpriseRidesReportQuery, Result<EnterpriseRidesPeriodReport>> _getEnterpriseRidesQueryHandler;
+    private readonly IQueryHandler<GetEnterpriseModelsReportQuery, Result<EnterpriseVehiclesModelsReport>> _getEnterpriseModelsQueryHandler;
 
-    public ReportsController(IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>> reportsQueryHandler)
+    public ReportsController(IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>> getVehicleMileageQueryHandler,
+        IQueryHandler<GetEnterpriseRidesReportQuery, Result<EnterpriseRidesPeriodReport>> getEnterpriseRidesQueryHandler,
+        IQueryHandler<GetEnterpriseModelsReportQuery, Result<EnterpriseVehiclesModelsReport>> getEnterpriseModelsQueryHandler)
     {
-        _reportsQueryHandler = reportsQueryHandler;
+        _getVehicleMileageQueryHandler = getVehicleMileageQueryHandler;
+        _getEnterpriseRidesQueryHandler = getEnterpriseRidesQueryHandler;
+        _getEnterpriseModelsQueryHandler = getEnterpriseModelsQueryHandler;
     }
 
-    [HttpGet]
+    [HttpGet("vehicle-mileage")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleMileagePeriodReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetVehicleMileageReport(Guid vehicleId, DateTimeOffset startDate, DateTimeOffset endDate, PeriodType period)
@@ -36,7 +42,7 @@ public class ReportsController : ApiBaseController
             EndDate = new UtcDateTimeOffset(endDate)
         };
 
-        Result<VehicleMileagePeriodReport> result = await _reportsQueryHandler.Handle(query);
+        Result<VehicleMileagePeriodReport> result = await _getVehicleMileageQueryHandler.Handle(query);
 
         if (result.IsSuccess)
         {
@@ -46,39 +52,52 @@ public class ReportsController : ApiBaseController
         return BadRequest();
     }
 
-    //public async Task<IActionResult> GetEnterpriseRidesReport(Guid enterpriseId)
-    //{
-    //    Guid managerId = GetCurrentManagerId();
+    [HttpGet("enterprise-rides")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseRidesPeriodReport))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetEnterpriseRidesReport(Guid enterpriseId, DateTimeOffset startDate, DateTimeOffset endDate, PeriodType period)
+    {
+        Guid managerId = GetCurrentManagerId();
 
-    //    GetEnterpriseRidesReportQuery query = new GetEnterpriseRidesReportQuery
-    //    {
-    //        RequestingManagerId = managerId,
-    //        EnterpriseId = enterpriseId
-    //    };
+        GetEnterpriseRidesReportQuery query = new GetEnterpriseRidesReportQuery
+        {
+            StartDate = new UtcDateTimeOffset(startDate),
+            EndDate = new UtcDateTimeOffset(endDate),
+            Period = period,
+            RequestingManagerId = managerId,
+            EnterpriseId = enterpriseId
+        };
 
-    //    Result<EnterpriseRidesPeriodReport> result = await _reportsQueryHandler.Handle(query);
+        Result<EnterpriseRidesPeriodReport> result = await _getEnterpriseRidesQueryHandler.Handle(query);
 
-    //    if (result.IsSuccess)
-    //    {
-    //        return Ok(result.Value);
-    //    }
-    //}
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
 
-    //public async Task<IActionResult> GetEnterpriseModelsReport(Guid enterpriseId)
-    //{
-    //    Guid managerId = GetCurrentManagerId();
+        return BadRequest();
+    }
 
-    //    GetEnterpriseModelsReportQuery query = new GetEnterpriseModelsReportQuery
-    //    {
-    //        RequestingManagerId = managerId,
-    //        EnterpriseId = enterpriseId
-    //    };
+    [HttpGet("enterprise-models")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseVehiclesModelsReport))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetEnterpriseModelsReport(Guid enterpriseId)
+    {
+        Guid managerId = GetCurrentManagerId();
 
-    //    Result<EnterpriseVehiclesModelsReport> result = await _reportsQueryHandler.Handle(query);
+        GetEnterpriseModelsReportQuery query = new GetEnterpriseModelsReportQuery
+        {
+            RequestingManagerId = managerId,
+            EnterpriseId = enterpriseId
+        };
 
-    //    if (result.IsSuccess)
-    //    {
-    //        return Ok(result.Value);
-    //    }
-    //}
+        Result<EnterpriseVehiclesModelsReport> result = await _getEnterpriseModelsQueryHandler.Handle(query);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest();
+    }
 }

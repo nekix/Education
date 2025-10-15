@@ -49,12 +49,20 @@
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs" id="managementTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab" aria-controls="vehicles" aria-selected="true">
+                    <button class="nav-link active" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles"
+                            type="button" role="tab" aria-controls="vehicles" aria-selected="true">
                         <i class="fas fa-car me-2"></i>Vehicles
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports"
+                            type="button" role="tab" aria-controls="reports" aria-selected="false">
+                        <i class="fas fa-file-alt me-2"></i>Reports
                     </button>
                 </li>
             </ul>
         </div>
+
         <div class="card-body">
             <div class="tab-content" id="managementTabsContent">
                 <!-- Vehicles Tab -->
@@ -62,26 +70,147 @@
                     <div class="row">
                         <div class="col-md-8">
                             <h5 class="mb-3">Vehicle Management</h5>
-                            <p class="text-muted mb-4">Manage all vehicles belonging to this enterprise. You can view, add, edit, and remove vehicles from your fleet.</p>
-                            
+                            <p class="text-muted mb-4">
+                                Manage all vehicles belonging to this enterprise. You can view, add, edit, and remove vehicles from your fleet.
+                            </p>
+
                             <div class="d-flex gap-2 flex-wrap">
-                                <a asp-area="" asp-controller="Vehicles" asp-action="Index" asp-route-enterpriseId="@Model.Id" class="btn btn-primary">
+                                <a asp-area="" asp-controller="Vehicles" asp-action="Index" asp-route-enterpriseId="@Model.Id"
+                                   class="btn btn-primary">
                                     <i class="fas fa-list me-2"></i>View All Vehicles
                                 </a>
-                                <a asp-area="" asp-controller="Vehicles" asp-action="Create" asp-route-enterpriseId="@Model.Id" class="btn btn-success">
+                                <a asp-area="" asp-controller="Vehicles" asp-action="Create" asp-route-enterpriseId="@Model.Id"
+                                   class="btn btn-success">
                                     <i class="fas fa-plus me-2"></i>Add New Vehicle
                                 </a>
                             </div>
                         </div>
-@*                         <div class="col-md-4">
-                            <div class="bg-light p-3 rounded">
-                                <h6 class="fw-bold mb-2">Quick Stats</h6>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-muted">Total Vehicles:</span>
-                                    <span class="fw-bold">-</span>
-                                </div>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5 class="mb-3">Reports</h5>
+                            <p class="text-muted mb-4">Access and generate reports related to your enterprise vehicles.</p>
+
+                            <!-- Report Type Selection -->
+                            <div class="mb-4">
+                                <label for="reportTypeSelect" class="form-label fw-bold">Выберите тип отчета</label>
+                                <select class="form-select" id="reportTypeSelect">
+                                    <option value="">Выберите тип отчета...</option>
+                                    <option value="vehicleMileage">Отчет о пробеге транспортного средства</option>
+                                    <option value="enterpriseRides">Отчет о поездках предприятия</option>
+                                    <option value="enterpriseModels">Отчет о моделях предприятия</option>
+                                </select>
                             </div>
-                        </div> *@
+
+                            <!-- Report Forms Container -->
+                            <div id="reportFormsContainer">
+                                <!-- Vehicle Mileage Form -->
+                                <form class="report-form" id="vehicleMileageForm" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Vehicle Mileage Report Parameters</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="vehicleId" class="form-label">ID транспортного средства</label>
+                                                        <input type="text" class="form-control" id="vehicleId" name="vehicleId" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="startDate" class="form-label">Дата начала</label>
+                                                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="endDate" class="form-label">Дата окончания</label>
+                                                        <input type="date" class="form-control" id="endDate" name="endDate" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <div class="mb-3">
+                                                        <label for="period" class="form-label">Период</label>
+                                                        <select class="form-select" id="period" name="period" required>
+                                                            <option value="0">День</option>
+                                                            <option value="1">Месяц</option>
+                                                            <option value="2">Год</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-chart-line me-2"></i>Сформировать отчет
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <!-- Enterprise Rides Form -->
+                                <form class="report-form" id="enterpriseRidesForm" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Enterprise Rides Report Parameters</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="ridesStartDate" class="form-label">Дата начала</label>
+                                                        <input type="date" class="form-control" id="ridesStartDate" name="startDate" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="ridesEndDate" class="form-label">Дата окончания</label>
+                                                        <input type="date" class="form-control" id="ridesEndDate" name="endDate" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="ridesPeriod" class="form-label">Период</label>
+                                                        <select class="form-select" id="ridesPeriod" name="period" required>
+                                                            <option value="0">День</option>
+                                                            <option value="1">Месяц</option>
+                                                            <option value="2">Год</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-route me-2"></i>Сформировать отчет
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <!-- Enterprise Models Form -->
+                                <form class="report-form" id="enterpriseModelsForm" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Enterprise Models Report Parameters</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted">Этот отчет показывает распределение моделей транспортных средств в вашем предприятии.</p>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-car me-2"></i>Сформировать отчет
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Report Results Container -->
+                            <div id="reportResultsContainer" class="mt-4">
+                                <!-- Results will be displayed here -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,3 +223,14 @@
         </a>
     </div>
 </div>
+@section Scripts
+{
+    <script>
+        window.enterpriseTimeZone = '@Model.TimeZone?.Name';
+        window.enterpriseTimeZoneId = '@Model.TimeZone?.Id';
+        window.enterpriseId = '@Model.Id';
+    </script>
+    <script src="~/lib/axios/axios.js"></script>
+    <script src="~/js/api-clients/reports-api-client.js"></script>
+    <script src="~/js/views/enterprises/details-reports.js"></script>
+}

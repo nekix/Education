@@ -4,6 +4,7 @@ using CarPark.Reports;
 using CarPark.Reports.Abstract;
 using CarPark.Shared.CQ;
 using CarPark.Shared.DateTimes;
+using CarPark.ManagersOperations.Reports;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,9 @@ public class ReportsController : ApiBaseController
     [HttpGet("vehicle-mileage")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleMileagePeriodReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetVehicleMileageReport(Guid vehicleId, DateTimeOffset startDate, DateTimeOffset endDate, PeriodType period)
     {
         Guid managerId = GetCurrentManagerId();
@@ -49,12 +53,30 @@ public class ReportsController : ApiBaseController
             return Ok(result.Value);
         }
 
-        return BadRequest();
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.VehicleNotFound))
+        {
+            return NotFound();
+        }
+
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.ManagerNotAllowedToVehicle))
+        {
+            return Forbid();
+        }
+
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.UnknownPeriodType))
+        {
+            return BadRequest("Unknown period type");
+        }
+
+        return StatusCode(500);
     }
 
     [HttpGet("enterprise-rides")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseRidesPeriodReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetEnterpriseRidesReport(Guid enterpriseId, DateTimeOffset startDate, DateTimeOffset endDate, PeriodType period)
     {
         Guid managerId = GetCurrentManagerId();
@@ -75,12 +97,30 @@ public class ReportsController : ApiBaseController
             return Ok(result.Value);
         }
 
-        return BadRequest();
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.EnterpriseNotFound))
+        {
+            return NotFound();
+        }
+
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.UnknownPeriodType))
+        {
+            return BadRequest("Unknown period type");
+        }
+
+        return StatusCode(500);
     }
 
     [HttpGet("enterprise-models")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseVehiclesModelsReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetEnterpriseModelsReport(Guid enterpriseId)
     {
         Guid managerId = GetCurrentManagerId();
@@ -98,6 +138,16 @@ public class ReportsController : ApiBaseController
             return Ok(result.Value);
         }
 
-        return BadRequest();
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.EnterpriseNotFound))
+        {
+            return NotFound();
+        }
+
+        if (result.HasError(e => e.Message == ReportsHandlerErrors.ManagerNotAllowedToEnterprise))
+        {
+            return Forbid();
+        }
+
+        return StatusCode(500);
     }
 }

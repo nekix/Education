@@ -89,6 +89,14 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 showLoading();
                 const report = await getEnterpriseModelsReport(enterpriseId);
+
+                console.log(report);
+
+                for (const item of report.dataItems) {
+                    const model = await getModel(item.modelId);
+                    item.modelName = model.modelName;
+                }       
+
                 displayEnterpriseModelsReport(report);
             } catch (error) {
                 showError('Ошибка загрузки отчета о моделях предприятия');
@@ -226,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Модель</th>
+                                    <th>Название модели</th>
                                     <th>Количество транспортных средств</th>
                                 </tr>
                             </thead>
@@ -236,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function () {
         report.dataItems.forEach(item => {
             html += `
                 <tr>
-                    <td>${item.modelId}</td>
+                    <td>${item.modelName}</td>
                     <td>${item.vehiclesCount}</td>
                 </tr>
             `;

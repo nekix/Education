@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML.Report" Version="0.2.12" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="icu.net" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
@@ -42,7 +43,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Reports\Xlsx\Templates\" />
     <Folder Include="Views\Shared\Reports\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Reports\Xlsx\Templates\EnterpriseModelsReportTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Reports\Xlsx\Templates\EnterpriseRidesReportTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Reports\Xlsx\Templates\VehicleMileageReportTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

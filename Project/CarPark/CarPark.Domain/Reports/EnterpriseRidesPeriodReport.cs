@@ -7,8 +7,11 @@ public class EnterpriseRidesPeriodReport : BasePeriodReport<EnterpriseRidesRepor
 {
     public Guid EnterpriseId { get; private init; }
 
+    public string EnterpriseName { get; private init; }
+
     public EnterpriseRidesPeriodReport(
-        Guid enterpriseId, 
+        Guid enterpriseId,
+        string enterpriseName,
         PeriodType period, 
         UtcDateTimeOffset startDate, 
         UtcDateTimeOffset endDate, 
@@ -16,5 +19,6 @@ public class EnterpriseRidesPeriodReport : BasePeriodReport<EnterpriseRidesRepor
         : base("EnterpriseRides", period, startDate, endDate, dataItems)
     {
         EnterpriseId = enterpriseId;
+        EnterpriseName = enterpriseName;
     }
 }

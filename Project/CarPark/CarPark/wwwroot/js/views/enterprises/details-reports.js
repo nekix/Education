@@ -49,12 +49,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
                 showLoading();
-                const report = await getVehicleMileageReport(vehicleId, startDate, endDate, period);
-                displayVehicleMileageReport(report);
+
+                if (e.submitter.attributes.getNamedItem("id").nodeValue == "vehicleMileageFormDownloadXlsxButton") {
+                    const report = await getVehicleMileageReportFile(vehicleId, startDate, endDate, period, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                    saveAs(report.data, report.fileName);
+
+                    hideLoading();
+                }
+                else {
+                    const report = await getVehicleMileageReport(vehicleId, startDate, endDate, period);
+                    displayVehicleMileageReport(report);
+                }
+
             } catch (error) {
                 showError('Ошибка загрузки отчета о пробеге транспортного средства');
-            } finally {
-                hideLoading();
             }
         });
     }
@@ -71,38 +80,46 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
                 showLoading();
-                const report = await getEnterpriseRidesReport(enterpriseId, startDate, endDate, period);
-                displayEnterpriseRidesReport(report);
+
+                if (e.submitter.attributes.getNamedItem("id").nodeValue == "enterpriseRidesFormDownloadXlsxButton") {
+                    const report = await getEnterpriseRidesReportFile(enterpriseId, startDate, endDate, period, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                    saveAs(report.data, report.fileName);
+
+                    hideLoading();
+                }
+                else {
+                    const report = await getEnterpriseRidesReport(enterpriseId, startDate, endDate, period);
+                    displayEnterpriseRidesReport(report);
+                }
             } catch (error) {
                 showError('Ошибка загрузки отчета о поездках предприятия');
-            } finally {
-                hideLoading();
             }
         });
     }
 
     // Enterprise Models Report
     if (enterpriseModelsForm) {
-        enterpriseModelsForm.addEventListener('submit', async function(e) {
+        enterpriseModelsForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             try {
                 showLoading();
-                const report = await getEnterpriseModelsReport(enterpriseId);
 
-                console.log(report);
+                if (e.submitter.attributes.getNamedItem("id").nodeValue == "enterpriseModelsFormShowDownloadXlsxButton") {
+                    const report = await getEnterpriseModelsReportFile(enterpriseId, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-                for (const item of report.dataItems) {
-                    const model = await getModel(item.modelId);
-                    item.modelName = model.modelName;
-                }       
+                    saveAs(report.data, report.fileName);
 
-                displayEnterpriseModelsReport(report);
+                    hideLoading();
+                }
+                else {
+                    const report = await getEnterpriseModelsReport(enterpriseId);
+                    displayEnterpriseModelsReport(report);
+                }
             } catch (error) {
                 showError('Ошибка загрузки отчета о моделях предприятия');
-            } finally {
-                hideLoading();
-            }
+            } 
         });
     }
 
@@ -118,7 +135,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function hideLoading() {
-        // Loading will be replaced by results
+        console.log('test');
+        console.log(reportResultsContainer);
+        reportResultsContainer.innerHTML = ``;
+        console.log(reportResultsContainer);
     }
 
     function showError(message) {

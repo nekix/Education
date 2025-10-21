@@ -19,6 +19,11 @@
       "provider": "cdnjs",
       "library": "axios@1.11.0",
       "destination": "wwwroot/lib/axios"
+    },
+    {
+      "provider": "unpkg",
+      "library": "file-saver@2.0.5",
+      "destination": "wwwroot/lib/file-saver/"
     }
   ]
 }

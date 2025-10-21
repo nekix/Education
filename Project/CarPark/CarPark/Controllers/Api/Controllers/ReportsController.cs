@@ -1,19 +1,23 @@
 ﻿using CarPark.Identity;
+using CarPark.ManagersOperations.Reports;
 using CarPark.ManagersOperations.Reports.Queries;
 using CarPark.Reports;
 using CarPark.Reports.Abstract;
 using CarPark.Shared.CQ;
 using CarPark.Shared.DateTimes;
-using CarPark.ManagersOperations.Reports;
+using ClosedXML.Report;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace CarPark.Controllers.Api.Controllers;
 
 [Authorize(AppIdentityConst.ManagerPolicy)]
 public class ReportsController : ApiBaseController
 {
+    private const string XLSX_ACCEPT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
     private readonly IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>> _getVehicleMileageQueryHandler;
     private readonly IQueryHandler<GetEnterpriseRidesReportQuery, Result<EnterpriseRidesPeriodReport>> _getEnterpriseRidesQueryHandler;
     private readonly IQueryHandler<GetEnterpriseModelsReportQuery, Result<EnterpriseVehiclesModelsReport>> _getEnterpriseModelsQueryHandler;
@@ -28,6 +32,7 @@ public class ReportsController : ApiBaseController
     }
 
     [HttpGet("vehicle-mileage")]
+    [Produces("application/json", XLSX_ACCEPT_TYPE)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VehicleMileagePeriodReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,6 +55,13 @@ public class ReportsController : ApiBaseController
 
         if (result.IsSuccess)
         {
+            if (IsXlsxRequested())
+            {
+                return await XlsxReportFile("VehicleMileageReport",
+                    result.Value,
+                    @".\Reports\Xlsx\Templates\VehicleMileageReportTemplate.xlsx");
+            }
+
             return Ok(result.Value);
         }
 
@@ -72,6 +84,7 @@ public class ReportsController : ApiBaseController
     }
 
     [HttpGet("enterprise-rides")]
+    [Produces("application/json", XLSX_ACCEPT_TYPE)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseRidesPeriodReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -94,6 +107,13 @@ public class ReportsController : ApiBaseController
 
         if (result.IsSuccess)
         {
+            if (IsXlsxRequested())
+            {
+                return await XlsxReportFile("EnterpriseRidesReport",
+                    result.Value,
+                    @".\Reports\Xlsx\Templates\EnterpriseRidesReportTemplate.xlsx");
+            }
+
             return Ok(result.Value);
         }
 
@@ -116,6 +136,7 @@ public class ReportsController : ApiBaseController
     }
 
     [HttpGet("enterprise-models")]
+    [Produces("application/json", XLSX_ACCEPT_TYPE)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EnterpriseVehiclesModelsReport))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -135,6 +156,13 @@ public class ReportsController : ApiBaseController
 
         if (result.IsSuccess)
         {
+            if (IsXlsxRequested())
+            {
+                return await XlsxReportFile("EnterpriseModelsReport", 
+                    result.Value,
+                    @".\Reports\Xlsx\Templates\EnterpriseModelsReportTemplate.xlsx");
+            }
+
             return Ok(result.Value);
         }
 
@@ -149,5 +177,41 @@ public class ReportsController : ApiBaseController
         }
 
         return StatusCode(500);
+    }
+
+    private bool IsXlsxRequested()
+    {
+        IList<MediaTypeHeaderValue> acceptHeader = Request.GetTypedHeaders().Accept;
+
+        if (acceptHeader.Count == 0)
+            return false;
+
+        bool result = acceptHeader.MaxBy(v => v.Quality)?.MediaType.Equals(XLSX_ACCEPT_TYPE, StringComparison.OrdinalIgnoreCase) == true;
+
+        return result;
+    }
+
+    // Helper methods for file export
+    private static string GenerateFileName(string entityType, string format)
+    {
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        return $"{entityType}_report_{timestamp}.{format}";
+    }
+
+    private async Task<FileStreamResult> XlsxReportFile<T>(string reportName, T data, string templateFilePath)
+    {
+        XLTemplate template = new XLTemplate(templateFilePath);
+
+        template.AddVariable(data);
+        template.Generate();
+
+        MemoryStream stream = new MemoryStream();
+        template.SaveAs(stream, true);
+        await stream.FlushAsync();
+        stream.Position = 0;
+
+        string fileName = GenerateFileName(reportName, "xlsx");
+
+        return File(stream, XLSX_ACCEPT_TYPE, fileName);
     }
 }

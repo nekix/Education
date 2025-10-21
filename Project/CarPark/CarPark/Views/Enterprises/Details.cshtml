@@ -145,8 +145,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button type="submit" class="btn btn-primary">
+                                            <button id="vehicleMileageFormShowButton" type="submit" class="btn btn-primary">
                                                 <i class="fas fa-chart-line me-2"></i>Сформировать отчет
+                                            </button>
+                                            <button id="vehicleMileageFormDownloadXlsxButton" type="submit" class="btn btn-primary">
+                                                <i class="fas fa-car me-2"></i>Скачать EXCEL
                                             </button>
                                         </div>
                                     </div>
@@ -183,8 +186,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button type="submit" class="btn btn-primary">
+                                            <button id="enterpriseRidesFormShowButton" type="submit" class="btn btn-primary">
                                                 <i class="fas fa-route me-2"></i>Сформировать отчет
+                                            </button>
+                                            <button id="enterpriseRidesFormDownloadXlsxButton" type="submit" class="btn btn-primary">
+                                                <i class="fas fa-car me-2"></i>Скачать EXCEL
                                             </button>
                                         </div>
                                     </div>
@@ -198,8 +204,11 @@
                                         </div>
                                         <div class="card-body">
                                             <p class="text-muted">Этот отчет показывает распределение моделей транспортных средств в вашем предприятии.</p>
-                                            <button type="submit" class="btn btn-primary">
+                                            <button id="enterpriseModelsFormShowButton" type="submit" class="btn btn-primary">
                                                 <i class="fas fa-car me-2"></i>Сформировать отчет
+                                            </button>
+                                            <button id="enterpriseModelsFormShowDownloadXlsxButton" type="submit" class="btn btn-primary">
+                                                <i class="fas fa-car me-2"></i>Скачать EXCEL
                                             </button>
                                         </div>
                                     </div>
@@ -231,6 +240,7 @@
         window.enterpriseId = '@Model.Id';
     </script>
     <script src="~/lib/axios/axios.js"></script>
+    <script src="~/lib/file-saver/src/FileSaver.js"></script>
     <script src="~/js/api-clients/reports-api-client.js"></script>
     <script src="~/js/api-clients/models-api-client.js"></script>
     <script src="~/js/api-clients/reports-api-client.js"></script>

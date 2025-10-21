@@ -15,7 +15,7 @@ public readonly record struct UtcDateTimeOffset : IComparable<DateTimeOffset>
         get => _value;
         init
         {
-            // Проверка на UTC
+            // Проверка на UTC.
             _value = value.TotalOffsetMinutes != 0 
                 ? value.ToUniversalTime() 
                 : value;

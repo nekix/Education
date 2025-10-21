@@ -6,10 +6,15 @@ public class EnterpriseVehiclesModelsReport : BaseReport<IReadOnlyList<Enterpris
 {
     public Guid EnterpriseId { get; private init; }
 
-    public EnterpriseVehiclesModelsReport(Guid enterpriseId,
+    public string EnterpriseName { get; private init; }
+
+    public EnterpriseVehiclesModelsReport(
+        Guid enterpriseId,
+        string enterpriseName,
         IEnumerable<EnterpriseVehiclesModelsReportData> data) 
         : base("EnterpriseVehiclesModelsReport", data.ToList())
     {
         EnterpriseId = enterpriseId;
+        EnterpriseName = enterpriseName;
     }
 }

@@ -14,11 +14,15 @@ public static class EntitiesDbConfigurationExtensions
 {
     public static void ConfigureModel(this ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Model>()
-            .ToTable("model");
+        modelBuilder.Entity<Model>(entity =>
+        {
+            entity.ToTable("model");
 
-        modelBuilder.Entity<Model>()
-            .HasKey(m => m.Id);
+            entity.HasKey(m => m.Id);
+
+            entity.HasIndex(m => m.ModelName)
+                .IsUnique();
+        });
     }
 
     public static void ConfigureVehicle(this ModelBuilder modelBuilder)

@@ -205,7 +205,10 @@ public class ReportsQueryHandler : BaseManagersHandler,
             .ToList();
 
         VehicleMileagePeriodReport report = new VehicleMileagePeriodReport(
+            vehicle.Enterprise.Id,
+            vehicle.Enterprise.Name,
             vehicle.Id,
+            vehicle.VinNumber,
             query.Period,
             query.StartDate,
             query.EndDate,
@@ -260,7 +263,8 @@ public class ReportsQueryHandler : BaseManagersHandler,
             .ToList();
 
         EnterpriseRidesPeriodReport report = new EnterpriseRidesPeriodReport(
-            query.EnterpriseId,
+            enterprise.Id,
+            enterprise.Name,
             query.Period,
             query.StartDate,
             query.EndDate,
@@ -303,18 +307,22 @@ public class ReportsQueryHandler : BaseManagersHandler,
 
         List<EnterpriseVehiclesModelsReportData> data = DbContext.Vehicles
             .Where(v => v.Enterprise.Id == enterprise.Id)
-            .GroupBy(v => v.Model.Id)
+            .GroupBy(v => new { v.Model.Id, v.Model.ModelName })
             .Select(g => new
             {
-                ModelId = g.Key,
+                ModelId = g.Key.Id,
+                ModelName = g.Key.ModelName,
                 VehiclesCount = g.Count()
             })
             .OrderByDescending(dto => dto.VehiclesCount)
             .ToList()
-            .Select(dto => new EnterpriseVehiclesModelsReportData(dto.ModelId, dto.VehiclesCount))
+            .Select(dto => new EnterpriseVehiclesModelsReportData(dto.ModelId, dto.ModelName, dto.VehiclesCount))
             .ToList();
 
-        EnterpriseVehiclesModelsReport report = new EnterpriseVehiclesModelsReport(query.EnterpriseId, data);
+        EnterpriseVehiclesModelsReport report = new EnterpriseVehiclesModelsReport(
+            enterprise.Id,
+            enterprise.Name,
+            data);
 
         return Result.Ok<EnterpriseVehiclesModelsReport>(report);
     }

@@ -20,6 +20,9 @@ using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using System.Xml;
+using CarPark.ManagersOperations.Tracks.Commands;
+using NetTopologySuite.IO;
 
 namespace CarPark.Controllers.Api.Controllers;
 
@@ -33,8 +36,10 @@ public class VehiclesController : ApiBaseController
     private readonly IQueryHandler<GetVehicleQuery, Result<VehicleDto>> _getVehicleQueryHandler;
     private readonly IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> _getVehiclesListQueryHandler;
 
+    private readonly ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>> _createRideFromGpxFileCommandHandler;
     private readonly IQueryHandler<GetTrackQuery, Result<TrackViewModel>> _getTrackQueryHandler;
     private readonly IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>> _getTrackFeatureCollectionQueryHandler;
+    
     private readonly IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>> _getRidesTrackQueryHandler;
     private readonly IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>> _getRidesTrackFeatureCollectionHandler;
 
@@ -46,6 +51,7 @@ public class VehiclesController : ApiBaseController
         ICommandHandler<CreateVehicleCommand, Result<Guid>> createVehicleHandler,
         ICommandHandler<UpdateVehicleCommand, Result<Guid>> updateVehicleHandler,
         ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler,
+        ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>> uploadTrackQueryHandler,
         IQueryHandler<GetTrackQuery, Result<TrackViewModel>> getTrackQueryHandler,
         IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>> getTrackFeatureCollectionQueryHandler,
         IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>> getRidesTrackQueryHandler,
@@ -59,6 +65,7 @@ public class VehiclesController : ApiBaseController
         _updateVehicleHandler = updateVehicleHandler;
         _deleteVehicleHandler = deleteVehicleHandler;
 
+        _createRideFromGpxFileCommandHandler = uploadTrackQueryHandler;
         _getTrackQueryHandler = getTrackQueryHandler;
         _getTrackFeatureCollectionQueryHandler = getTrackFeatureCollectionQueryHandler;
 
@@ -449,6 +456,60 @@ public class VehiclesController : ApiBaseController
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
         public Point Point { get; set; } = default!;
     }
+
+    [HttpPost("{vehicleId}/rides")]
+    [AppValidateAntiForgeryToken]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> CreateRide(Guid vehicleId, IFormFile file)
+    {
+        Guid managerId = GetCurrentManagerId();
+
+        if (Path.GetExtension(file.FileName) != ".gpx")
+        {
+            return BadRequest("Not supported file extension.");
+        }
+
+        await using Stream gpxFileStream = file.OpenReadStream();
+
+        CreateRideFromGpxFileCommand command = new CreateRideFromGpxFileCommand
+        {
+            RequestingManagerId = managerId,
+            VehicleId = vehicleId,
+            GpxFileStream = gpxFileStream
+        };
+
+        Result<Guid> createRide = await _createRideFromGpxFileCommandHandler.Handle(command);
+
+        if (createRide.IsSuccess)
+            return CreatedAtAction("GetRides", new { vehicleId }, null);
+
+        if (createRide.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        {
+            return Forbid();
+        }
+        else if (createRide.HasError(e => e.Message == TrackHandlersErrors.VehicleNotFound))
+        {
+            return NotFound();
+        }
+        else if (createRide.HasError(e => e.Message == TrackHandlersErrors.ManagerNotAllowedToVehicle))
+        {
+            return Forbid();
+        }
+        else if (createRide.HasError(e => e.Message == TrackHandlersErrors.TracksNotSequential) ||
+                 createRide.HasError(e => e.Message == TrackHandlersErrors.TracksOverlapWithExisting) ||
+                 createRide.HasError(e => e.Message == RidesHandlerErrors.RidesOverlapWithExisting))
+        {
+            return BadRequest();
+        }
+        else
+        {
+            return BadRequest();
+        }
+    }
+
 
     #endregion
 

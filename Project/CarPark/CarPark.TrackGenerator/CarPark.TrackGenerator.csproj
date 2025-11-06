@@ -9,24 +9,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.9">
+    <PackageReference Include="icu.net" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.10" />
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.4" />
-    <PackageReference Include="NSwag.ApiDescription.Client" Version="14.5.0">
+    <PackageReference Include="NSwag.ApiDescription.Client" Version="14.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta6.25358.103" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-rc.2.25502.107" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark\CarPark.Web.csproj" />
+    <ProjectReference Include="..\CarPark.Application\CarPark.Application.csproj" />
+    <ProjectReference Include="..\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

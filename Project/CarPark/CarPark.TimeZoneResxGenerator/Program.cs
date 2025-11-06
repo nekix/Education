@@ -41,10 +41,7 @@ internal class Program
     {
         Icu.Wrapper.Init();
 
-        
-
         IReadOnlyCollection<string> ianaIds = GetCanonicalLocationIanaIds();
-
 
         ianaIds.ToList().ForEach(tzid =>
         {

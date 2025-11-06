@@ -1,0 +1,16 @@
+{
+  "profiles": {
+   "Test Seed Reference": {
+     "commandName": "Project",
+     "commandLineArgs": "generate seed-reference --seed 42 --connection-string \"Host=localhost;Port=5432;Database=carpark_test;Username=postgres;Password=test;\""
+   },
+   "Test Full Demo": {
+     "commandName": "Project",
+     "commandLineArgs": "generate full-demo --seed 42 --enterprises 2 --vehicles-per-enterprise 5 --drivers-per-enterprise 5 --export-vehicle-ids vehicles.txt --connection-string \"Host=localhost;Port=5432;Database=carpark_test;Username=postgres;Password=test;\""
+   },
+   "Test Old Vehicles Drivers": {
+     "commandName": "Project",
+     "commandLineArgs": "generate old-vehicles-drivers --enterprise-ids 550e8400-e29b-41d4-a716-446655440000 --vehicles-per-enterprise 5 --drivers-per-enterprise 5 --connection-string \"Host=localhost;Port=5432;Database=carpark_test;Username=postgres;Password=test;\""
+   }
+  }
+}

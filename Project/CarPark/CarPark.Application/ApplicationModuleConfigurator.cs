@@ -8,6 +8,7 @@ using CarPark.ManagersOperations.ExportImport.Queries;
 using CarPark.ManagersOperations.Models.Commands;
 using CarPark.ManagersOperations.Reports.Queries;
 using CarPark.ManagersOperations.Rides.Queries;
+using CarPark.ManagersOperations.Tracks.Commands;
 using CarPark.ManagersOperations.Tracks.Queries;
 using CarPark.ManagersOperations.Tracks.Queries.Models;
 using CarPark.ManagersOperations.Vehicles.Commands;
@@ -21,6 +22,7 @@ using CarPark.Shared.Modules;
 using FluentResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NetTopologySuite;
 using NetTopologySuite.Features;
 
 namespace CarPark;
@@ -29,6 +31,8 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
 {
     public void ConfigureModule(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddSingleton(NtsGeometryServices.Instance);
+
         ConfigureGeoCodingServies(services, configuration);
         ConfigureTimezoneServices(services);
         ConfigureCommandQueriesHandlers(services);
@@ -55,6 +59,7 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
 
         services.AddScoped<IQueryHandler<GetRidesQuery, Result<RidesViewModel>>, RidesQueryHandler>();
 
+        services.AddScoped<ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>>, ManagersTrackCommandHandler>();
         services.AddScoped<IQueryHandler<GetTrackQuery, Result<TrackViewModel>>, ManagersTrackQueryHandler>();
         services.AddScoped<IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>>, ManagersTrackQueryHandler>();
         services.AddScoped<IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>>, ManagersTrackQueryHandler>();
@@ -76,7 +81,8 @@ public class ApplicationModuleConfigurator : IModuleConfigurator
     {
         services.AddOptions<DadataSettings>()
             .Bind(configuration.GetSection(DadataSettings.ConfigurationSectionName))
-            .ValidateDataAnnotations();
+            .ValidateDataAnnotations()
+            .ValidateOnStart();;
 
         services.AddHttpClient<IGeoCodingService, DadataGeoCodingService>();
 

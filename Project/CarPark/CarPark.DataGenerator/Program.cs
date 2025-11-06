@@ -1,6 +1,7 @@
 ﻿using CarPark.Data;
 using CarPark.Models;
 using CarPark.Services.TimeZones;
+using CarPark.TimeZones;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.CommandLine;
@@ -8,54 +9,151 @@ using System.Text.Json;
 using CarPark.Drivers;
 using CarPark.Enterprises;
 using CarPark.Vehicles;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace CarPark.DataGenerator;
 
-internal class Program
+public sealed class Program
 {
-    static async Task<int> Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
+        Icu.Wrapper.Init();
+
         RootCommand rootCommand = new RootCommand("Утилита генерации тестовых данных для CarPark");
 
-        // Команда vehicles-drivers
+        Command generateCommand = new Command("generate", "Генерация данных");
+        
+        generateCommand.Add(CreateGenerateVehiclesAndDriversCommand());
+        generateCommand.Add(CreateNewFullDemoCommandCommand());
+        generateCommand.Add(CreateNewSeedReferenceCommand());
+
+        rootCommand.Add(generateCommand);
+
+        Icu.Wrapper.Cleanup();
+
+        return await rootCommand.Parse(args).InvokeAsync();
+    }
+
+    static Command CreateNewFullDemoCommandCommand()
+    {
+        Option<int> seedOption = new Option<int>("--seed") { Required = true, Description = "Seed для генератора" };
+        Option<int> enterprisesOption = new Option<int>("--enterprises", "-e") { Required = true };
+        Option<int> vehiclesOption = new Option<int>("--vehicles-per-enterprise", "-v") { Required = true };
+        Option<int> driversOption = new Option<int>("--drivers-per-enterprise", "-d") { Required = true };
+        Option<string> exportVehicleIdsOption = new Option<string>("--export-vehicle-ids", "-o") { Description = "Путь к файлу для экспорта ID активных автомобилей" };
+        Option<string> connStringFullOption = new Option<string>("--connection-string", "-c") { Required = true };
+
+        Command fullDemoCommand = new Command("full-demo", "Генерация полного набора демо-данных")
+        {
+            seedOption,
+            enterprisesOption,
+            vehiclesOption,
+            driversOption,
+            exportVehicleIdsOption,
+            connStringFullOption
+        };
+
+        fullDemoCommand.SetAction(parseResult => GenerateFullDemo(
+            parseResult.GetRequiredValue<int>(seedOption),
+            parseResult.GetRequiredValue<int>(enterprisesOption),
+            parseResult.GetRequiredValue<int>(vehiclesOption),
+            parseResult.GetRequiredValue<int>(driversOption),
+            parseResult.GetValue<string>(exportVehicleIdsOption),
+            parseResult.GetRequiredValue<string>(connStringFullOption)
+            ));
+
+        return fullDemoCommand;
+    }
+
+    static Command CreateNewSeedReferenceCommand()
+    {
+        Option<string> connStringSeedOption = new Option<string>("--connection-string", "-c") { Description = "Строка подключения к БД", Required = true };
+
+        Option<int> seedOption = new Option<int>("--seed") { Required = true, Description = "Seed для генератора" };
+
+        Command seedReferenceCommand = new Command("seed-reference", "Генерация справочных данных")
+        {
+            seedOption,
+            connStringSeedOption
+        };
+
+        seedReferenceCommand.SetAction(parseResult => GenerateSeedReference(
+            parseResult.GetValue(seedOption),
+            parseResult.GetRequiredValue(connStringSeedOption)));
+
+        return seedReferenceCommand;
+    }
+
+    static async Task GenerateSeedReference(int seed, string connectionString)
+    {
+        Console.WriteLine($"Генерация справочных данных с seed = {seed}");
+
+        IServiceProvider serviceProvider = CreateServiceProvider(connectionString);
+        await using ApplicationDbContext context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // 1. Временные зоны (TzInfo)
+        using var tzService = new LocalIcuTimezoneService();
+        var tzInfos = GenerateTzInfos(tzService);
+
+        foreach (var info in tzInfos.GroupBy(x => x.Id).Where(x => x.Count() > 1).SelectMany(x => x))
+        {
+            Console.WriteLine($"{info.Id} {info.IanaTzId} {info.WindowsTzId}");
+        }
+
+        context.TzInfos.AddRange(tzInfos);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"Создано {tzInfos.Count} временных зон");
+    }
+
+    static Command CreateGenerateVehiclesAndDriversCommand()
+    {
         Option<string> enterpriseIdsOption = new Option<string>("--enterprise-ids", "-e") { Description = "Список ID предприятий через запятую", Required = true };
         Option<int> vehiclesPerEnterpriseOption = new Option<int>("--vehicles-per-enterprise", "-v") { Description = "Количество машин на предприятие", Required = true };
         Option<int> driversPerEnterpriseOption = new Option<int>("--drivers-per-enterprise", "-d") { Description = "Количество водителей на предприятие", Required = true };
         Option<string> outputVehiclesOption = new Option<string>("--output", "-o") { Description = "Путь к выходному JSON файлу" };
         Option<string> connectionStringVehiclesOption = new Option<string>("--connection-string", "-c") { Description = "Строка подключения к БД", Required = true };
+        Option<int> seedOption = new Option<int>("--seed") { Description = "Seed для генератора", Required = true };
 
-        Command generateCommand = new Command("generate", "Генерация данных");
-        
-        Command vehiclesDriversCommand = new Command("vehicles-drivers", "Генерация автомобилей и водителей")
+        Command vehiclesDriversCommand = new Command("old-vehicles-drivers", "Генерация автомобилей и водителей")
         {
             enterpriseIdsOption,
             vehiclesPerEnterpriseOption,
             driversPerEnterpriseOption,
             outputVehiclesOption,
-            connectionStringVehiclesOption
+            connectionStringVehiclesOption,
+            seedOption
         };
 
         vehiclesDriversCommand.SetAction(async parseResult => await GenerateVehiclesAndDrivers(
-            parseResult.GetValue(enterpriseIdsOption)!,
+            parseResult.GetRequiredValue(enterpriseIdsOption),
             parseResult.GetValue(vehiclesPerEnterpriseOption),
             parseResult.GetValue(driversPerEnterpriseOption),
             parseResult.GetValue(outputVehiclesOption),
-            parseResult.GetValue(connectionStringVehiclesOption)!));
+            parseResult.GetValue(connectionStringVehiclesOption)!,
+            parseResult.GetValue(seedOption)));
 
-        generateCommand.Add(vehiclesDriversCommand);
-
-        rootCommand.Add(generateCommand);
-
-        return rootCommand.Parse(args).Invoke();
+        return vehiclesDriversCommand;
     }
 
-    static ApplicationDbContext CreateDbContext(string connectionString, LocalIcuTimezoneService tzService)
+    static IServiceProvider CreateServiceProvider(string connectionString)
     {
-        DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseNpgsql(connectionString)
-            .UseSnakeCaseNamingConvention();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Default"] = connectionString
+            })
+            .Build();
 
-        return new ApplicationDbContext(optionsBuilder.Options);
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
+
+        var configurator = new InfrastractureModuleConfigurator();
+        configurator.ConfigureModule(services, configuration, null);
+
+        return services.BuildServiceProvider();
     }
 
     static List<Model> LoadModelsFromDatabase(ApplicationDbContext context)
@@ -81,7 +179,7 @@ internal class Program
         return existingEnterprises;
     }
 
-    static async Task GenerateVehiclesAndDrivers(string enterpriseIdsString, int vehiclesPerEnterprise, int driversPerEnterprise, string? outputPath, string connectionString)
+    static async Task GenerateVehiclesAndDrivers(string enterpriseIdsString, int vehiclesPerEnterprise, int driversPerEnterprise, string? outputPath, string connectionString, int seed)
     {
         // Парсим список ID предприятий
         List<Guid> enterpriseIds = enterpriseIdsString.Split(',')
@@ -104,10 +202,10 @@ internal class Program
         Console.WriteLine();
 
         // Создаем контекст БД
-        using LocalIcuTimezoneService tzService = new LocalIcuTimezoneService();
-        await using ApplicationDbContext dbContext = CreateDbContext(connectionString, tzService);
+        IServiceProvider serviceProvider = CreateServiceProvider(connectionString);
+        await using ApplicationDbContext dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync();
 
         // Загружаем модели из БД
         List<Model> models = LoadModelsFromDatabase(dbContext);
@@ -125,7 +223,7 @@ internal class Program
             return;
         }
 
-        DataGenerator generator = new DataGenerator();
+        DataGenerator generator = new DataGenerator(seed);
         
         // Генерируем автомобили и водителей для каждого предприятия
         List<Vehicle> allVehicles = new List<Vehicle>();
@@ -213,7 +311,7 @@ internal class Program
                     ActiveDriverId = v.ActiveAssignedDriver?.Id,
                     AssignedDriverIds = v.AssignedDrivers.Select(d => d.Id).ToList()
                 }).ToList(),
-                
+
                 Drivers = drivers.Select(d => new DriverDto
                 {
                     Id = d.Id,
@@ -230,13 +328,174 @@ internal class Program
                 WriteIndented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
-            
+
             File.WriteAllText(filePath, json);
             Console.WriteLine($"\nДанные сохранены в файл: {filePath}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка при сохранении файла: {ex.Message}");
+            throw;
         }
+    }
+
+
+    static async Task GenerateFullDemo(
+        int seed,
+        int enterprisesCount,
+        int vehiclesPerEnterprise,
+        int driversPerEnterprise,
+        string? exportVehicleIdsFile,
+        string connectionString)
+    {
+        Console.WriteLine($"   Генерация полного набора демо-данных с seed={seed}");
+        Console.WriteLine($"   Предприятий: {enterprisesCount}");
+        Console.WriteLine($"   Машин на предприятие: {vehiclesPerEnterprise}");
+        Console.WriteLine($"   Водителей на предприятие: {driversPerEnterprise}");
+
+        IServiceProvider serviceProvider = CreateServiceProvider(connectionString);
+        await using ApplicationDbContext context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync();
+
+        try
+        {
+            // 1. Enterprises
+            EnterprisesGenerator enterprisesGen = new EnterprisesGenerator(seed);
+            List<Enterprise> enterprises = enterprisesGen.GenerateEnterprises(enterprisesCount);
+            context.Enterprises.AddRange(enterprises);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"Создано {enterprises.Count} предприятий");
+
+            // 2. Managers
+            var managersGen = new ManagersGenerator(seed);
+            var (identityUsers, managers) = managersGen.GenerateManagers(enterprises);
+            context.Users.AddRange(identityUsers);
+            await context.SaveChangesAsync();
+            context.Managers.AddRange(managers);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"Создано {managers.Count} менеджеров");
+
+            // 2.5. Models (if not exist)
+            if (!context.Models.Any())
+            {
+                var modelsGen = new ModelsGenerator(seed);
+                var modelsList = modelsGen.GenerateModels();
+                context.Models.AddRange(modelsList);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"Создано {modelsList.Count} моделей автомобилей");
+            }
+
+            // 3. Vehicles and Drivers
+            DataGenerator dataGen = new DataGenerator(seed);
+            List<Model> models = context.Models.ToList();
+
+            List<Vehicle> allVehicles = new List<Vehicle>();
+            List<Driver> allDrivers = new List<Driver>();
+
+            foreach (var enterprise in enterprises)
+            {
+                List<Vehicle> vehicles = dataGen.GenerateVehicles(enterprise, models)
+                    .Take(vehiclesPerEnterprise)
+                    .ToList();
+
+                List<Driver> drivers = dataGen.GenerateDrivers(enterprise)
+                    .Take(driversPerEnterprise)
+                    .ToList();
+
+                allVehicles.AddRange(vehicles);
+                allDrivers.AddRange(drivers);
+            }
+
+            context.Vehicles.AddRange(allVehicles);
+            context.Drivers.AddRange(allDrivers);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"Создано {allVehicles.Count} автомобилей");
+            Console.WriteLine($"Создано {allDrivers.Count} водителей");
+
+            // 4. Vehicle-Driver relationships
+            dataGen.EstablishVehicleDriverRelationships(allVehicles, allDrivers,
+                activeDriverRatio: 0.3,
+                assignmentRatio: 0.7,
+                minDriversPerVehicle: 0,
+                maxDriversPerVehicle: Math.Min(10, driversPerEnterprise));
+            await context.SaveChangesAsync();
+            Console.WriteLine($"Установлены связи Vehicle-Driver");
+
+            // 5. Export vehicle IDs если нужно
+            if (!string.IsNullOrEmpty(exportVehicleIdsFile))
+            {
+                List<string> activeVehicles = allVehicles
+                    .Where(v => v.ActiveAssignedDriver != null)
+                    .Select(v => v.Id.ToString())
+                    .ToList();
+
+                await File.WriteAllLinesAsync(exportVehicleIdsFile, activeVehicles);
+                Console.WriteLine($"Экспортировано {activeVehicles.Count} активных vehicle IDs в {exportVehicleIdsFile}");
+            }
+
+            await transaction.CommitAsync();
+            Console.WriteLine($"Генерация успешно завершена!");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            Console.WriteLine($"Ошибка: {ex.Message}");
+            throw;
+        }
+    }
+
+    static List<TzInfo> GenerateTzInfos(LocalIcuTimezoneService tzService)
+    {
+        IReadOnlyCollection<string> ianaIds = tzService.GetAvailableIanaIds();
+        IReadOnlyCollection<KeyValuePair<string, string>> mappings = tzService.MapIanaIdsToWindowsIds(ianaIds);
+        List<TzInfo> result = new List<TzInfo>();
+
+        foreach (var mapping in mappings)
+        {
+            Guid id = GenerateDeterministicGuid(mapping.Key + mapping.Value);
+            result.Add(new TzInfo(id, mapping.Key, mapping.Value));
+        }
+
+        return result;
+    }
+
+    private static Guid GenerateDeterministicGuid(string input)
+    {
+        // Choose a namespace — this can be any GUID you define for your app
+        var namespaceGuid = Guid.Parse("6ba7b811-9dad-11d1-80b4-00c04fd430c8"); // DNS namespace, per RFC 4122
+
+        // Convert namespace + name to bytes
+        byte[] namespaceBytes = namespaceGuid.ToByteArray();
+        SwapByteOrder(namespaceBytes);
+        byte[] nameBytes = Encoding.UTF8.GetBytes(input);
+
+        // Compute hash of namespace + name
+        byte[] hash = SHA1.HashData(Combine(namespaceBytes, nameBytes));
+
+        // Use first 16 bytes of the hash to make a GUID
+        byte[] newGuid = new byte[16];
+        Array.Copy(hash, 0, newGuid, 0, 16);
+
+        // Set version (5) and variant bits (RFC 4122)
+        newGuid[6] = (byte)((newGuid[6] & 0x0F) | (5 << 4));
+        newGuid[8] = (byte)((newGuid[8] & 0x3F) | 0x80);
+
+        SwapByteOrder(newGuid);
+        return new Guid(newGuid);
+    }
+
+    private static byte[] Combine(byte[] a, byte[] b)
+    {
+        byte[] result = new byte[a.Length + b.Length];
+        Buffer.BlockCopy(a, 0, result, 0, a.Length);
+        Buffer.BlockCopy(b, 0, result, a.Length, b.Length);
+        return result;
+    }
+
+    // Swap to match network byte order (RFC 4122)
+    private static void SwapByteOrder(byte[] guid)
+    {
+        void Swap(int a, int b) { byte t = guid[a]; guid[a] = guid[b]; guid[b] = t; }
+        Swap(0, 3); Swap(1, 2); Swap(4, 5); Swap(6, 7);
     }
 }

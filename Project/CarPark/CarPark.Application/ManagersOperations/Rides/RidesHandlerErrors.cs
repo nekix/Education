@@ -6,4 +6,6 @@ public static class RidesHandlerErrors
 
     public const string VehicleNotFound = Prefix + "VehicleNotFound";
     public const string ManagerNotAllowedToVehicle = Prefix + "ManagerNotAllowedToVehicle";
+
+    public const string RidesOverlapWithExisting = Prefix + "RidesOverlapWithExisting";
 }

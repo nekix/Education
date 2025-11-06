@@ -17,7 +17,6 @@ public class TrackGenerationService : ITrackGenerationService
 
     public async Task<Track> GenerateTrackAsync(TrackGenerationOptions options)
     {
-        // 1. Получаем маршрут через RouteGenerationService
         RouteGenerationOptions routeOptions = new RouteGenerationOptions
         {
             CenterPoint = options.CenterPoint,
@@ -28,10 +27,29 @@ public class TrackGenerationService : ITrackGenerationService
 
         LineString route = await _routeGenerationService.GenerateRouteAsync(routeOptions);
 
-        // 2. Генерируем точки трека с временными метками
         List<GeoTimePoint> points = GenerateGeoTimePoints(route, options);
 
-        // 3. Создаем трек
+        return new Track
+        {
+            VehicleId = Guid.NewGuid(), // Будет переопределен вызывающим кодом
+            Points = points
+        };
+    }
+
+    public async Task<Track> GenerateTrackFromPointAsync(Point startPoint, TrackGenerationOptions options)
+    {
+        RouteGenerationOptions routeOptions = new RouteGenerationOptions
+        {
+            CenterPoint = startPoint,
+            RadiusKm = options.RadiusKm,
+            TargetLengthKm = options.TargetLengthKm,
+            Profile = RouteProfile.Car
+        };
+
+        LineString route = await _routeGenerationService.GenerateRouteFromPointAsync(startPoint, routeOptions);
+
+        List<GeoTimePoint> points = GenerateGeoTimePoints(route, options);
+        
         return new Track
         {
             VehicleId = Guid.NewGuid(), // Будет переопределен вызывающим кодом

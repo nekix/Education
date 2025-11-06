@@ -25,6 +25,19 @@ public class RouteGenerationService : IRouteGenerationService
     {
         // 1) Генерируем случайную начальную точку
         Point startPoint = GenerateRandomPointInRadius(options.CenterPoint, options.RadiusKm);
+
+        return await GenerateRouteFromPointAsync(startPoint, options);
+    }
+
+    public async Task<LineString> GenerateRouteFromPointAsync(Point startPoint, RouteGenerationOptions options)
+    {
+        // Проверяем, что startPoint находится в пределах заданной области
+        double distanceFromCenter = CalculateDistanceKm(startPoint, options.CenterPoint);
+        if (distanceFromCenter > options.RadiusKm)
+        {
+            throw new ArgumentException($"Start point is outside the specified area. Distance from center: {distanceFromCenter:F2} km, radius: {options.RadiusKm} km");
+        }
+
         List<Point> routePoints = new List<Point> { startPoint };
 
         double directRouteLengthKm = 0;

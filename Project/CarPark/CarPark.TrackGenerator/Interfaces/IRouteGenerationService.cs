@@ -5,6 +5,7 @@ namespace CarPark.TrackGenerator.Interfaces;
 public interface IRouteGenerationService
 {
     Task<LineString> GenerateRouteAsync(RouteGenerationOptions options);
+    Task<LineString> GenerateRouteFromPointAsync(Point startPoint, RouteGenerationOptions options);
 }
 
 public class RouteGenerationOptions

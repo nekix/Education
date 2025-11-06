@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
-using NetTopologySuite;
 using NetTopologySuite.IO.Converters;
 
 namespace CarPark;
@@ -24,6 +23,10 @@ public class Program
                 options.JsonSerializerOptions.Converters.Add(geoJsonConverterFactory);
             });
 
+        builder.Services
+            .AddHealthChecks()
+            .AddDbContextCheck<ApplicationDbContext>("Database");
+
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(AppIdentityConst.ManagerPolicy, policy => policy.RequireClaim(AppIdentityConst.ManagerIdClaim));
 
@@ -36,62 +39,58 @@ public class Program
         builder.Services.AddAntiforgery();
         builder.Services.AddSingleton<ValidateAntiforgeryTokenAuthorizationFilter>();
 
-        builder.Services.AddSingleton(NtsGeometryServices.Instance);
-
         if (builder.Environment.IsDevelopment())
         {
-            builder.Services.AddOpenApi(static options =>
-            {
-                options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
-
-                options.AddDocumentTransformer((document, context, token) =>
-                {
-                    document.Components ??= new OpenApiComponents();
-
-                    document.Components.SecuritySchemes.Add("csrf", new OpenApiSecurityScheme
-                    {
-                        Name = "RequestVerificationToken",
-                        Type = SecuritySchemeType.ApiKey,
-                        In = ParameterLocation.Header,
-                        Description = "CSRF Token",
-                    });
-
-                    foreach (KeyValuePair<OperationType, OpenApiOperation> operation in document.Paths.Values.SelectMany(path => path.Operations))
-                    {
-                        operation.Value.Security.Add(new OpenApiSecurityRequirement
-                        {
-                            {
-                                new OpenApiSecurityScheme
-                                {
-                                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "csrf" }
-                                },
-                                Array.Empty<string>()
-                            }
-                        });
-                    }
-
-                    return Task.CompletedTask;
-                });
-            });
-
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         }
+        
+        builder.Services.AddOpenApi(static options =>
+        {
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+
+            options.AddDocumentTransformer((document, context, token) =>
+            {
+                document.Components ??= new OpenApiComponents();
+
+                document.Components.SecuritySchemes.Add("csrf", new OpenApiSecurityScheme
+                {
+                    Name = "RequestVerificationToken",
+                    Type = SecuritySchemeType.ApiKey,
+                    In = ParameterLocation.Header,
+                    Description = "CSRF Token",
+                });
+
+                foreach (KeyValuePair<OperationType, OpenApiOperation> operation in document.Paths.Values.SelectMany(path => path.Operations))
+                {
+                    operation.Value.Security.Add(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "csrf" }
+                            },
+                            Array.Empty<string>()
+                        }
+                    });
+                }
+
+                return Task.CompletedTask;
+            });
+        });
+
 
         builder.AddDataProvidersServices();
         builder.AddApplicationServices();
 
         WebApplication app = builder.Build();
 
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
+        app.MapOpenApi();
 
-            app.UseSwaggerUI(options =>
-            {
-                options.InjectStylesheet("/swagger-ui/custom.css");
-                options.SwaggerEndpoint("/openapi/v1.json", "v1");
-            });
-        }
+        app.UseSwaggerUI(options =>
+        {
+            options.InjectStylesheet("/swagger-ui/custom.css");
+            options.SwaggerEndpoint("/openapi/v1.json", "v1");
+        });
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
@@ -122,6 +121,8 @@ public class Program
             name: "error",
             pattern: "Error/Index");
 
+        app.MapHealthChecks("/health");
+
         app.Run();
     }
 }
@@ -132,7 +133,7 @@ public static class ServiceCollectionExtensions
     {
         InfrastractureModuleConfigurator infrastractureModule = new InfrastractureModuleConfigurator();
 
-        infrastractureModule.ConfigureModule(builder.Services, builder.Configuration);
+        infrastractureModule.ConfigureModule(builder.Services, builder.Configuration, null);
     }
 
     public static void AddApplicationServices(this WebApplicationBuilder builder)

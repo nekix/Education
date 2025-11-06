@@ -10,11 +10,12 @@
   <ItemGroup>
     <PackageReference Include="Dadata" Version="25.7.0" />
     <PackageReference Include="icu.net" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.10" />
     <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
     <PackageReference Include="NetTopologySuite.Features" Version="2.2.0" />
+    <PackageReference Include="NetTopologySuite.IO.GPX" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>

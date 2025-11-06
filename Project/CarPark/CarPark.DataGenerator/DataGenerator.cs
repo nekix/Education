@@ -8,13 +8,46 @@ namespace CarPark.DataGenerator;
 
 public class DataGenerator
 {
-    private readonly Faker<Vehicle> _vehicleFaker;
+    private readonly int _seed;
+    private readonly Random _random;
+    private readonly Faker<VehicleDto> _vehicleFaker;
     private readonly Faker<Driver> _driverFaker;
-        
-    public DataGenerator()
+
+    private class VehicleDto
     {
-        // Настройка генератора машин
-        _vehicleFaker = new Faker<Vehicle>("ru")
+        public required Guid Id { get; init; }
+
+        public required Model Model { get; init; }
+
+        public required Enterprise Enterprise { get; init; }
+
+        public required string VinNumber { get; init; }
+
+        public required decimal Price { get; init; }
+
+        public required int ManufactureYear { get; init; }
+
+        public required int Mileage { get; init; }
+
+        public required string Color { get; init; }
+
+        public required List<Driver> AssignedDrivers { get; init; }
+
+        public required Driver? ActiveAssignedDriver { get; init; }
+
+        public required DateTimeOffset AddedToEnterpriseAt { get; init; }
+    }
+
+    public DataGenerator(int seed)
+    {
+        _seed = seed;
+        _random = new Random(seed);
+
+        // Создать Faker с фиксированным Randomizer
+        Randomizer.Seed = new Random(seed);
+
+        _vehicleFaker = new Faker<VehicleDto>("ru")
+            .UseSeed(seed)  // Добавить UseSeed
             .RuleFor(v => v.Id, f => default)
             .RuleFor(v => v.VinNumber, f => f.Vehicle.Vin())
             .RuleFor(v => v.Price, f => f.Random.Decimal(500000, 5000000))
@@ -24,8 +57,8 @@ public class DataGenerator
             .RuleFor(v => v.AssignedDrivers, f => new List<Driver>())
             .RuleFor(v => v.ActiveAssignedDriver, f => (Driver?)null);
 
-        // Настройка генератора водителей
         _driverFaker = new Faker<Driver>("ru")
+            .UseSeed(seed)  // Добавить UseSeed
             .RuleFor(d => d.Id, f => default)
             .RuleFor(d => d.FullName, f => f.Name.FullName())
             .RuleFor(d => d.DriverLicenseNumber, f => f.Random.Replace("## ## ######"))
@@ -44,7 +77,21 @@ public class DataGenerator
         return _vehicleFaker
             .RuleFor(v => v.Enterprise, f => enterprise)
             .RuleFor(v => v.Model, f => f.PickRandom(models))
-            .GenerateForever();
+            .RuleFor(v => v.Id, f => GenerateDeterministicGuid())
+            .GenerateForever()
+            .Select(v => Vehicle.Create(
+                v.Id,
+                v.Model,
+                v.Enterprise, 
+                v.VinNumber, 
+                v.Price, 
+                v.ManufactureYear, 
+                v.Mileage,
+                v.Color,
+                v.AssignedDrivers,
+                v.ActiveAssignedDriver,
+                v.AddedToEnterpriseAt
+                ).Value);
     }
 
     /// <summary>
@@ -56,6 +103,7 @@ public class DataGenerator
     {
         return _driverFaker
             .RuleFor(d => d.EnterpriseId, f => enterprise.Id)
+            .RuleFor(d => d.Id, f => GenerateDeterministicGuid())
             .GenerateForever();
     }
 
@@ -69,8 +117,8 @@ public class DataGenerator
     /// <param name="minDriversPerVehicle">Минимальное количество водителей на автомобиль</param>
     /// <param name="maxDriversPerVehicle">Максимальное количество водителей на автомобиль</param>
     public void EstablishVehicleDriverRelationships(
-        List<Vehicle> vehicles, 
-        List<Driver> drivers, 
+        List<Vehicle> vehicles,
+        List<Driver> drivers,
         double activeDriverRatio,
         double assignmentRatio,
         int minDriversPerVehicle,
@@ -125,15 +173,15 @@ public class DataGenerator
             foreach (Vehicle vehicle in enterpriseVehicles)
             {
                 // Применяем коэффициент назначенных водителей
-                if (Random.Shared.NextDouble() < assignmentRatio && enterpriseDrivers.Any())
+                if (_random.NextDouble() < assignmentRatio && enterpriseDrivers.Any())
                 {
                     // Случайное количество водителей на автомобиль
-                    int selectedDriversCount = Random.Shared.Next(
-                        minDriversPerVehicle, 
+                    int selectedDriversCount = _random.Next(
+                        minDriversPerVehicle,
                         Math.Min(maxDriversPerVehicle + 1, enterpriseDrivers.Count + 1)
                     );
                     List<Driver> selectedDrivers = enterpriseDrivers
-                        .OrderBy(x => Random.Shared.Next())
+                        .OrderBy(x => _random.Next())
                         .Take(selectedDriversCount)
                         .ToList();
 
@@ -151,7 +199,7 @@ public class DataGenerator
             // 2. Назначаем активных водителей
             List<Vehicle> vehiclesWithDrivers = enterpriseVehicles
                 .Where(v => v.AssignedDrivers.Any())
-                .OrderBy(x => Random.Shared.Next())
+                .OrderBy(x => _random.Next())
                 .ToList();
 
             HashSet<Guid> usedDriverIds = new HashSet<Guid>();
@@ -162,7 +210,7 @@ public class DataGenerator
             foreach (Vehicle vehicle in vehiclesWithDrivers)
             {
                 // Применяем коэффициент активных водителей
-                if (Random.Shared.NextDouble() < fixedActiveDriverRation)
+                if (_random.NextDouble() < fixedActiveDriverRation)
                 {
                     Driver? availableDriver = vehicle.AssignedDrivers
                         .FirstOrDefault(d => !usedDriverIds.Contains(d.Id));
@@ -176,5 +224,12 @@ public class DataGenerator
                 }
             }
         }
+    }
+                        
+    private Guid GenerateDeterministicGuid()
+    {
+        byte[] bytes = new byte[16];
+        _random.NextBytes(bytes);
+        return new Guid(bytes);
     }
 }

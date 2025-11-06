@@ -18,7 +18,7 @@ public class MigrationDbContextFactory : IDesignTimeDbContextFactory<Application
             connectionString += ";Timezone=UTC";
         }
 
-        optionsBuilder.UseNpgsql(args[0], o => o.UseNetTopologySuite())
+        optionsBuilder.UseNpgsql(connectionString, o => o.UseNetTopologySuite())
             .UseSnakeCaseNamingConvention();
 
         return new ApplicationDbContext(optionsBuilder.Options);

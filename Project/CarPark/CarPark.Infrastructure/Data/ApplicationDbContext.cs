@@ -50,28 +50,28 @@ public class ApplicationDbContext : IdentityDbContext, IModelsDbSet, IVehiclesDb
         configurationBuilder.UseUtcDateTimeOffset();
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        base.OnConfiguring(optionsBuilder);
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    base.OnConfiguring(optionsBuilder);
 
-        optionsBuilder.UseSeeding((context, _) =>
-        {
-            if (!context.Set<IdentityUser>().Any())
-            {
-                context.Set<IdentityUser>().AddRange(SeedIdentityUsers());
-                context.SaveChanges();
-            }
-        });
+    //    optionsBuilder.UseSeeding((context, _) =>
+    //    {
+    //        if (!context.Set<IdentityUser>().Any())
+    //        {
+    //            context.Set<IdentityUser>().AddRange(SeedIdentityUsers());
+    //            context.SaveChanges();
+    //        }
+    //    });
 
-        optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) =>
-        {
-            if (!await context.Set<IdentityUser>().AnyAsync())
-            {
-                await context.Set<IdentityUser>().AddRangeAsync(SeedIdentityUsers());
-                await context.SaveChangesAsync();
-            }
-        });
-    }
+    //    optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) =>
+    //    {
+    //        if (!await context.Set<IdentityUser>().AnyAsync())
+    //        {
+    //            await context.Set<IdentityUser>().AddRangeAsync(SeedIdentityUsers());
+    //            await context.SaveChangesAsync();
+    //        }
+    //    });
+    //}
 
     //optionsBuilder.UseSeeding((context, _) =>
     //{

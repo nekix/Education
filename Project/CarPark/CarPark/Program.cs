@@ -2,6 +2,7 @@ using CarPark.Attributes;
 using CarPark.Data;
 using CarPark.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
@@ -22,6 +23,12 @@ public class Program
                 GeoJsonConverterFactory geoJsonConverterFactory = new GeoJsonConverterFactory();
                 options.JsonSerializerOptions.Converters.Add(geoJsonConverterFactory);
             });
+
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        });
 
         builder.Services
             .AddHealthChecks()
@@ -83,6 +90,8 @@ public class Program
         builder.AddApplicationServices();
 
         WebApplication app = builder.Build();
+
+        app.UseForwardedHeaders();
 
         app.MapOpenApi();
 

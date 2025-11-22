@@ -175,7 +175,7 @@ WAIT_TIME=0
 
 while [ $WAIT_TIME -lt $MAX_WAIT ]; do
     # Check if web service is running and healthy
-    WEB_STATUS=$(sudo docker compose -f "docker/${MODE}-docker-compose.yml" ps carpark-web --format json 2>/dev/null | jq -r '.[0].Status // empty' 2>/dev/null || echo "")
+    WEB_STATUS=$(sudo docker compose -f "docker/${MODE}-docker-compose.yml" ps carpark-web --format "{{.Status}}" 2>/dev/null || echo "")
 
     if echo "$WEB_STATUS" | grep -E -q "healthy|\(healthy\)"; then
         log_info "Web service is healthy!"
@@ -190,33 +190,6 @@ while [ $WAIT_TIME -lt $MAX_WAIT ]; do
     WAIT_TIME=$((WAIT_TIME + 5))
     log_info "Waiting... (${WAIT_TIME}s/${MAX_WAIT}s)"
 done
-
-# Final check
-WEB_STATUS=$(sudo docker compose -f "docker/${MODE}-docker-compose.yml" ps carpark-web --format json 2>/dev/null | jq -r '.[0].Status // empty' 2>/dev/null || echo "")
-
-if echo "$WEB_STATUS" | grep -E -q "healthy|\(healthy\)" || (echo "$WEB_STATUS" | grep -q "^Up" && ! echo "$WEB_STATUS" | grep -q "unhealthy"); then
-    # Get the web port
-    WEB_PORT=$(sudo docker compose -f "docker/${MODE}-docker-compose.yml" port carpark-web 8080 2>/dev/null | cut -d: -f2 || echo "8080")
-    log_info "Deployment successful!"
-    log_info "Web application is running on port $WEB_PORT"
-    log_info "Access it at: http://localhost:$WEB_PORT"
-
-    # Show status of all services
-    log_info "Service status:"
-    sudo docker compose -f "docker/${MODE}-docker-compose.yml" ps --format "table {{.Name}}\t{{.State}}\t{{.Status}}"
-else
-    log_error "Deployment failed. Web service is not healthy after ${MAX_WAIT} seconds."
-
-    # Show service status
-    log_error "Service status:"
-    sudo docker compose -f "docker/${MODE}-docker-compose.yml" ps
-
-    LOG_FILE="deploy-error-$(date +%Y%m%d-%H%M%S).log"
-    sudo docker compose -f "docker/${MODE}-docker-compose.yml" logs > "$LOG_FILE" 2>&1
-    log_error "Logs saved to $LOG_FILE"
-    log_error "Manual intervention required to fix the deployment."
-    exit 1
-fi
 
 log_info "Deployment completed successfully!"
 

@@ -19,16 +19,6 @@ jobs:
     steps:
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.0
-      env:
-        POSTGRES_DB: ${{ secrets.CAR_PARK_POSTGRES_DB }}
-        POSTGRES_USER: ${{ secrets.CAR_PARK_POSTGRES_USER }}
-        POSTGRES_PASSWORD: ${{ secrets.CAR_PARK_POSTGRES_PASSWORD }}
-        GRAPHHOPPER_API_KEY: ${{ secrets.CAR_PARK_GRAPHHOPPER_API_KEY }}
-        DADATA_TOKEN: ${{ secrets.CAR_PARK_DADATA_TOKEN }}
-        DEMO_SEED: ${{ secrets.CAR_PARK_DEMO_SEED }}
-        DEMO_START_DATE: ${{ secrets.CAR_PARK_DEMO_START_DATE }}
-        DEMO_END_DATE: ${{ secrets.CAR_PARK_DEMO_END_DATE }}
-        WEB_PORT: ${{ secrets.CAR_PARK_WEB_PORT }}
       with:
         host: ${{ secrets.CAR_PARK_SERVER_HOST }}
         username: ${{ secrets.CAR_PARK_SERVER_USER }}
@@ -36,9 +26,15 @@ jobs:
         port: ${{ secrets.CAR_PARK_SERVER_PORT }}
         script: |
           set -e
-          echo "POSTGRES_DB=$POSTGRES_DB"
-          echo "POSTGRES_USER=$POSTGRES_USER"
-          echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:0:5}..."  # mask password
+          export POSTGRES_DB="${{ secrets.CAR_PARK_POSTGRES_DB }}"
+          export POSTGRES_USER="${{ secrets.CAR_PARK_POSTGRES_USER }}"
+          export POSTGRES_PASSWORD="${{ secrets.CAR_PARK_POSTGRES_PASSWORD }}"
+          export GRAPHHOPPER_API_KEY="${{ secrets.CAR_PARK_GRAPHHOPPER_API_KEY }}"
+          export DADATA_TOKEN="${{ secrets.CAR_PARK_DADATA_TOKEN }}"
+          export DEMO_SEED="${{ secrets.CAR_PARK_DEMO_SEED }}"
+          export DEMO_START_DATE="${{ secrets.CAR_PARK_DEMO_START_DATE }}"
+          export DEMO_END_DATE="${{ secrets.CAR_PARK_DEMO_END_DATE }}"
+          export WEB_PORT="${{ secrets.CAR_PARK_WEB_PORT }}"
           # Create .env file
           cat > ~/.env << EOF
           POSTGRES_DB=$POSTGRES_DB

@@ -96,9 +96,9 @@ log_info "Starting local deployment to $REMOTE_HOST:$REMOTE_PORT as $REMOTE_USER
 
 # Test SSH connection
 log_info "Testing SSH connection..."
-if ! ssh -p "$REMOTE_PORT" -o ConnectTimeout=10 -o BatchMode=yes "$REMOTE_USER@$REMOTE_HOST" "echo 'SSH connection successful'" >/dev/null 2>&1; then
+if ! ssh -p "$REMOTE_PORT" -o ConnectTimeout=10 "$REMOTE_USER@$REMOTE_HOST" "echo 'SSH connection successful'" >/dev/null 2>&1; then
     log_error "Cannot connect to $REMOTE_USER@$REMOTE_HOST:$REMOTE_PORT via SSH."
-    log_error "Make sure SSH key authentication is set up."
+    log_error "Make sure SSH authentication is set up (key or password)."
     exit 1
 fi
 
@@ -122,3 +122,4 @@ ssh -p "$REMOTE_PORT" "$REMOTE_USER@$REMOTE_HOST" "
 "
 
 log_info "Local deployment completed!"
+

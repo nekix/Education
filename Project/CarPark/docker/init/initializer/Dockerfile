@@ -51,5 +51,5 @@ CMD dotnet CarPark.Initializer.dll init demo --connection-string "Host=postgres;
 
 FROM base_init AS minimal
 
-# Run demo initialization
-CMD dotnet CarPark.Initializer.dll init minimal --connection-string "Host=postgres;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Timezone=UTC" --graphhopper-api-key "$GRAPHHOPPER_API_KEY"
+# Run minimal initialization
+CMD dotnet CarPark.Initializer.dll init minimal --connection-string "Host=postgres;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Timezone=UTC"

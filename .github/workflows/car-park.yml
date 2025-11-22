@@ -50,4 +50,4 @@ jobs:
           EOF
           wget -q https://raw.githubusercontent.com/nekix/Education/main/Project/CarPark/deploy/deploy.sh -O deploy.sh
           chmod +x deploy.sh
-          ./deploy.sh -m ${{ inputs.mode }} -g https://github.com/nekix/Education.git
+          ./deploy.sh -e ~/.env -m ${{ inputs.mode }} -g https://github.com/nekix/Education.git

@@ -36,6 +36,9 @@ jobs:
         port: ${{ secrets.CAR_PARK_SERVER_PORT }}
         script: |
           set -e
+          echo "POSTGRES_DB=$POSTGRES_DB"
+          echo "POSTGRES_USER=$POSTGRES_USER"
+          echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:0:5}..."  # mask password
           # Create .env file
           cat > ~/.env << EOF
           POSTGRES_DB=$POSTGRES_DB

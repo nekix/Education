@@ -20,10 +20,10 @@ jobs:
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.0
       with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        password: ${{ secrets.SERVER_PASSWORD }}
-        port: ${{ secrets.SERVER_PORT }}
+        host: ${{ secrets.CAR_PARK_SERVER_HOST }}
+        username: ${{ secrets.CAR_PARK_SERVER_USER }}
+        password: ${{ secrets.CAR_PARK_SERVER_PASSWORD }}
+        port: ${{ secrets.CAR_PARK_SERVER_PORT }}
         script: |
           set -e
           wget -q https://raw.githubusercontent.com/nekix/Education/main/Project/CarPark/deploy/deploy.sh -O deploy.sh

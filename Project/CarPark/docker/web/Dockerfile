@@ -3,7 +3,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 
 RUN apt-get update && \
-    apt-get install -y libicu-dev && \
+    apt-get install -y libicu-dev curl && \
     rm -rf /var/lib/apt/lists/*
 
 USER $APP_UID

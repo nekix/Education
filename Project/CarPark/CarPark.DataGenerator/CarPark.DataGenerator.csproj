@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
     <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-rc.2.25502.107" />
     <PackageReference Include="Bogus" Version="35.6.5" />
@@ -20,7 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark.Application\CarPark.Application.csproj" />
+    <ProjectReference Include="..\CarPark.Application.Geo\CarPark.Application.Geo.csproj" />
+    <ProjectReference Include="..\CarPark.Application.TimeZones\CarPark.Application.TimeZones.csproj" />
+    <ProjectReference Include="..\CarPark.Domain\CarPark.Domain.csproj" />
     <ProjectReference Include="..\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
   </ItemGroup>
 

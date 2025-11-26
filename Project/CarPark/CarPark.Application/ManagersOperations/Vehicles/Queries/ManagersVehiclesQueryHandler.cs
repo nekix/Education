@@ -1,9 +1,9 @@
 ﻿using CarPark.Data;
 using CarPark.Managers;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
-using CarPark.Services.TimeZones;
 using CarPark.Shared.CQ;
 using CarPark.TimeZones;
+using CarPark.TimeZones.Conversion;
 using CarPark.Vehicles;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;

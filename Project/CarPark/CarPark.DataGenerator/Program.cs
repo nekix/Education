@@ -1,6 +1,5 @@
 ﻿using CarPark.Data;
 using CarPark.Models;
-using CarPark.Services.TimeZones;
 using CarPark.TimeZones;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using System.Security.Cryptography;
+using CarPark.TimeZones.Providers;
 
 namespace CarPark.DataGenerator;
 

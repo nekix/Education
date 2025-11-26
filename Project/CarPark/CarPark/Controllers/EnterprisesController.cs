@@ -2,8 +2,8 @@
 using CarPark.Enterprises;
 using CarPark.Identity;
 using CarPark.Managers;
-using CarPark.Services.TimeZones;
 using CarPark.TimeZones;
+using CarPark.TimeZones.Providers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;

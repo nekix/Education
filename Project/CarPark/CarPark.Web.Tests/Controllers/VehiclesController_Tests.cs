@@ -1,21 +1,22 @@
-using Microsoft.AspNetCore.Mvc;
-using NSubstitute;
-using CarPark.Shared.CQ;
-using FluentResults;
-using System.Security.Claims;
 using CarPark.Identity;
-using Microsoft.AspNetCore.Http;
-using VehiclesController = CarPark.Controllers.Api.Controllers.VehiclesController;
-using CarPark.ManagersOperations.Vehicles.Commands;
-using CarPark.ManagersOperations.Vehicles;
-using CarPark.ManagersOperations.Vehicles.Queries;
-using CarPark.ManagersOperations.Vehicles.Queries.Models;
+using CarPark.ManagersOperations.Rides.Queries;
+using CarPark.ManagersOperations.Tracks.Commands;
 using CarPark.ManagersOperations.Tracks.Queries;
 using CarPark.ManagersOperations.Tracks.Queries.Models;
-using CarPark.ManagersOperations.Rides.Queries;
+using CarPark.ManagersOperations.Vehicles;
+using CarPark.ManagersOperations.Vehicles.Commands;
+using CarPark.ManagersOperations.Vehicles.Queries;
+using CarPark.ManagersOperations.Vehicles.Queries.Models;
+using CarPark.Shared.CQ;
 using CarPark.Shared.CQ;
 using FluentResults;
+using FluentResults;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Features;
+using NSubstitute;
+using System.Security.Claims;
+using VehiclesController = CarPark.Controllers.Api.Controllers.VehiclesController;
 
 namespace CarPark.Web.Tests.Controllers;
 
@@ -24,13 +25,14 @@ public class VehiclesController_Tests
     private readonly IQueryHandler<GetVehicleQuery, Result<VehicleDto>> _mockGetVehicleHandler;
     private readonly IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> _mockGetVehiclesListHandler;
     private readonly IQueryHandler<GetTrackQuery, Result<TrackViewModel>> _mockGetTrackHandler;
-    private readonly IQueryHandler<GetTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetTrackFeatureCollectionHandler;
+    private readonly IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>> _mockGetTrackFeatureCollectionHandler;
     private readonly IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>> _mockGetRidesTrackHandler;
-    private readonly IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<NetTopologySuite.Features.FeatureCollection>> _mockGetRidesTrackFeatureCollectionHandler;
-    private readonly IQueryHandler<GetRidesQuery, Result<RidesViewModel>> _mockGetRidesHandler;
+    private readonly IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>> _mockGetRidesTrackFeatureCollectionHandler;
     private readonly ICommandHandler<CreateVehicleCommand, Result<Guid>> _mockCreateHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _mockDeleteHandler;
     private readonly ICommandHandler<UpdateVehicleCommand, Result<Guid>> _mockUpdateHandler;
+    private readonly IQueryHandler<GetRidesQuery, Result<RidesViewModel>> _mockGetRidesQueryHandler;
+    private readonly ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>> _mockCreateRideFromGpxFileCommandHandler;
     private readonly VehiclesController _controller;
 
     public VehiclesController_Tests()
@@ -41,10 +43,12 @@ public class VehiclesController_Tests
         _mockGetTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<GetTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
         _mockGetRidesTrackHandler = Substitute.For<IQueryHandler<GetRidesTrackQuery, Result<TrackViewModel>>>();
         _mockGetRidesTrackFeatureCollectionHandler = Substitute.For<IQueryHandler<GetRidesTrackFeatureCollectionQuery, Result<FeatureCollection>>>();
-        _mockGetRidesHandler = Substitute.For<IQueryHandler<GetRidesQuery, Result<RidesViewModel>>>();
         _mockCreateHandler = Substitute.For<ICommandHandler<CreateVehicleCommand, Result<Guid>>>();
         _mockDeleteHandler = Substitute.For<ICommandHandler<DeleteVehicleCommand, Result>>();
         _mockUpdateHandler = Substitute.For<ICommandHandler<UpdateVehicleCommand, Result<Guid>>>();
+        _mockGetRidesQueryHandler = Substitute.For<IQueryHandler<GetRidesQuery, Result<RidesViewModel>>>();
+        _mockCreateRideFromGpxFileCommandHandler =
+            Substitute.For<ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>>>();
 
         _controller = new VehiclesController(
             _mockGetVehicleHandler,
@@ -52,11 +56,12 @@ public class VehiclesController_Tests
             _mockCreateHandler,
             _mockUpdateHandler,
             _mockDeleteHandler,
+            _mockCreateRideFromGpxFileCommandHandler,
             _mockGetTrackHandler,
             _mockGetTrackFeatureCollectionHandler,
             _mockGetRidesTrackHandler,
             _mockGetRidesTrackFeatureCollectionHandler,
-            _mockGetRidesHandler);
+            _mockGetRidesQueryHandler);
 
         // Настраиваем авторизацию для тестов
         SetupAuthorization();

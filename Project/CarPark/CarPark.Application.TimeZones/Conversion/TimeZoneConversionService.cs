@@ -1,6 +1,6 @@
-using CarPark.TimeZones;
+using CarPark.TimeZones.Providers;
 
-namespace CarPark.Services.TimeZones;
+namespace CarPark.TimeZones.Conversion;
 
 public class TimeZoneConversionService : ITimeZoneConversionService
 {
@@ -105,11 +105,4 @@ public class TimeZoneConversionService : ITimeZoneConversionService
             };
         }
     }
-}
-
-public class TimeZoneDisplayInfo
-{
-    public required string DisplayName { get; set; }
-    public required TimeSpan Offset { get; set; }
-    public required string IanaId { get; set; }
 }

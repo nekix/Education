@@ -1,6 +1,4 @@
-﻿using CarPark.TimeZones;
-
-namespace CarPark.Services.TimeZones;
+﻿namespace CarPark.TimeZones.Conversion;
 
 public interface ITimeZoneConversionService
 {

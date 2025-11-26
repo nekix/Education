@@ -1,16 +1,8 @@
-﻿using Icu;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Reflection;
+using Icu;
 
-namespace CarPark.Services.TimeZones;
-
-public enum DisplayNameType
-{
-    Standard,
-    ShortStandard,
-    DST,
-    ShortDST
-}
+namespace CarPark.TimeZones.Providers;
 
 public class LocalIcuTimezoneService : IDisposable
 {
@@ -431,14 +423,4 @@ public class LocalIcuTimezoneService : IDisposable
         GC.SuppressFinalize(this);
     }
     #endregion
-}
-
-public class TzInfoServiceException : Exception
-{
-    /// <summary>
-    /// Creates exception with the provided message.
-    /// </summary>
-    /// <param name="message">The message that describes the error.</param>
-    public TzInfoServiceException(string message) : base(message)
-    { }
 }

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehicleViewModel = CarPark.ViewModels.Vehicles.VehicleViewModel;
 using CarPark.ViewModels.Common;
-using CarPark.Services.TimeZones;
+using CarPark.TimeZones.Conversion;
 using CarPark.Vehicles;
 
 namespace CarPark.Controllers;

@@ -1,4 +1,4 @@
-﻿namespace CarPark.Services.GeoServices.GeoCodingServices;
+﻿namespace CarPark.Application.Geo.GeoCoding;
 
 public class GetGeoDatailsRequest
 {

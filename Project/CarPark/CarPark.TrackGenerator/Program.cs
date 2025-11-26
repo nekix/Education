@@ -1,5 +1,4 @@
 ﻿using CarPark.Data;
-using CarPark.Services.TimeZones;
 using CarPark.TrackGenerator.GraphHopper;
 using CarPark.TrackGenerator.Interfaces;
 using CarPark.TrackGenerator.Models;
@@ -8,13 +7,12 @@ using CarPark.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using System.CommandLine;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+//using CarPark.TimeZones.Providers;
 
 namespace CarPark.TrackGenerator;
 
@@ -422,8 +420,8 @@ public sealed class Program
                    .UseSnakeCaseNamingConvention());
         await using ServiceProvider tempProvider = tempServices.BuildServiceProvider();
 
-        using var scope = tempProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        using IServiceScope scope = tempProvider.CreateScope();
+        ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         List<Guid> vehicleIds = await context.VehicleGeoTimePoints
             .Where(p => p.Time >= startDate.ToUniversalTime() && p.Time <= endDate.ToUniversalTime())
@@ -626,7 +624,7 @@ public sealed class Program
             options.UseNpgsql(connectionString, x => x.UseNetTopologySuite())
                    .UseSnakeCaseNamingConvention());
 
-        services.AddSingleton<LocalIcuTimezoneService>();
+        //services.AddSingleton<LocalIcuTimezoneService>();
 
         services.Configure<GraphHopperOptions>(options =>
         {
@@ -650,7 +648,7 @@ public sealed class Program
             options.UseNpgsql(connectionString, x => x.UseNetTopologySuite())
                    .UseSnakeCaseNamingConvention());
 
-        services.AddSingleton<LocalIcuTimezoneService>();
+        //services.AddSingleton<LocalIcuTimezoneService>();
 
         // GraphHopper конфигурация
         services.Configure<GraphHopperOptions>(options =>
@@ -686,7 +684,7 @@ public sealed class Program
         Console.WriteLine();
 
         // 1. Load templates
-        var templates = await LoadTemplatesAsync(templatesDir);
+        List<TrackTemplate> templates = await LoadTemplatesAsync(templatesDir);
         if (templates.Count == 0)
         {
             Console.WriteLine("❌ No templates found!");
@@ -701,19 +699,19 @@ public sealed class Program
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // 3. Get all vehicles
-        using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var vehicles = await context.Vehicles.ToListAsync();
+        using IServiceScope scope = serviceProvider.CreateScope();
+        ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        List<Vehicle> vehicles = await context.Vehicles.ToListAsync();
 
         Console.WriteLine($"📋 Processing {vehicles.Count} vehicles in batches");
 
         // 4. Generate tracks for vehicles in batches
-        var random = new Random();
-        var geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        Random random = new Random();
+        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
         for (int i = 0; i < vehicles.Count; i += batchSize)
         {
-            var batch = vehicles.Skip(i).Take(batchSize).ToList();
+            List<Vehicle> batch = vehicles.Skip(i).Take(batchSize).ToList();
             Console.WriteLine($"Processing batch {i / batchSize + 1} ({batch.Count} vehicles)...");
 
             foreach (var vehicle in batch)
@@ -721,7 +719,7 @@ public sealed class Program
                 Console.WriteLine($"  Processing vehicle {vehicle.Id} ({vehicle.VinNumber})");
 
                 // Generate track for this vehicle using templates
-                var trackPoints = await GenerateTrackFromTemplatesAsync(vehicle, templates, startDate, endDate,
+                List<VehicleGeoTimePoint> trackPoints = await GenerateTrackFromTemplatesAsync(vehicle, templates, startDate, endDate,
                     activeDaysRatio, minAvgDailyDistance, maxAvgDailyDistance, random, geometryFactory);
 
                 // Save track points to database
@@ -736,19 +734,19 @@ public sealed class Program
 
     static async Task<List<TrackTemplate>> LoadTemplatesAsync(string templatesDir)
     {
-        var templates = new List<TrackTemplate>();
-        var geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        List<TrackTemplate> templates = new List<TrackTemplate>();
+        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
         Console.WriteLine($"Looking for templates in: {Path.GetFullPath(templatesDir)}");
         Console.WriteLine($"Directory exists: {Directory.Exists(templatesDir)}");
-        var jsonFiles = Directory.GetFiles(templatesDir, "*.json");
+        string[] jsonFiles = Directory.GetFiles(templatesDir, "*.json");
         Console.WriteLine($"Found {jsonFiles.Length} json files");
 
-        foreach (var file in jsonFiles)
+        foreach (string file in jsonFiles)
         {
             try
             {
-                var json = await File.ReadAllTextAsync(file);
-                var template = ParseGeoJsonTemplate(json, geometryFactory);
+                string json = await File.ReadAllTextAsync(file);
+                TrackTemplate? template = ParseGeoJsonTemplate(json, geometryFactory);
                 if (template != null)
                 {
                     templates.Add(template);

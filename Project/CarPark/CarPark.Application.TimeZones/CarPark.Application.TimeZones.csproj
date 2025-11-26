@@ -4,17 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>CarPark</RootNamespace>
+    <RootNamespace>CarPark.TimeZones</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentResults" Version="4.0.0" />
-    <PackageReference Include="NetTopologySuite" Version="2.6.0" />
+    <PackageReference Include="icu.net" Version="3.0.1" />
+    <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CarPark.Domain.TimeZones\CarPark.Domain.TimeZones.csproj" />
-    <ProjectReference Include="..\CarPark.Shared\CarPark.Shared.csproj" />
   </ItemGroup>
 
 </Project>

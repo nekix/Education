@@ -11,7 +11,6 @@ using CarPark.ManagersOperations.Vehicles;
 using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.ManagersOperations.Vehicles.Queries;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
-using CarPark.Shared.CQ;
 using CarPark.Vehicles;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -20,9 +19,8 @@ using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using System.Xml;
+using CarPark.CQ;
 using CarPark.ManagersOperations.Tracks.Commands;
-using NetTopologySuite.IO;
 
 namespace CarPark.Controllers.Api.Controllers;
 

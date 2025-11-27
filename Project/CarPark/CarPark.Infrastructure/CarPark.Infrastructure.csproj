@@ -29,4 +29,8 @@
     <ProjectReference Include="..\CarPark.Shared\CarPark.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+
 </Project>

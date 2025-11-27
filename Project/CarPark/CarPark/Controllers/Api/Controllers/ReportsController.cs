@@ -1,10 +1,10 @@
-﻿using CarPark.Identity;
+﻿using CarPark.CQ;
+using CarPark.DateTimes;
+using CarPark.Identity;
 using CarPark.ManagersOperations.Reports;
 using CarPark.ManagersOperations.Reports.Queries;
 using CarPark.Reports;
 using CarPark.Reports.Abstract;
-using CarPark.Shared.CQ;
-using CarPark.Shared.DateTimes;
 using ClosedXML.Report;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -77,7 +77,7 @@ public class ReportsController : ApiBaseController
 
         if (result.HasError(e => e.Message == ReportsHandlerErrors.UnknownPeriodType))
         {
-            return BadRequest("Unknown period type");
+            return BadRequest("CreateModelRequest period type");
         }
 
         return StatusCode(500);
@@ -129,7 +129,7 @@ public class ReportsController : ApiBaseController
 
         if (result.HasError(e => e.Message == ReportsHandlerErrors.UnknownPeriodType))
         {
-            return BadRequest("Unknown period type");
+            return BadRequest("CreateModelRequest period type");
         }
 
         return StatusCode(500);

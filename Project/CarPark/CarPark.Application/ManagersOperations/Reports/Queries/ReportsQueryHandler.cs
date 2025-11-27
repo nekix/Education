@@ -1,10 +1,10 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
+using CarPark.DateTimes;
 using CarPark.Enterprises;
 using CarPark.Managers;
 using CarPark.Reports;
 using CarPark.Reports.Abstract;
-using CarPark.Shared.CQ;
-using CarPark.Shared.DateTimes;
 using CarPark.Vehicles;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;

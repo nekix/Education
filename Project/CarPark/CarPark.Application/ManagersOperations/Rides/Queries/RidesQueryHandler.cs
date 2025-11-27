@@ -1,8 +1,8 @@
-﻿using CarPark.Application.Geo.GeoCoding;
+﻿using CarPark.CQ;
 using CarPark.Data;
+using CarPark.Geo.GeoCoding;
 using CarPark.Managers;
 using CarPark.Rides;
-using CarPark.Shared.CQ;
 using CarPark.TimeZones;
 using CarPark.TimeZones.Conversion;
 using CarPark.Vehicles;

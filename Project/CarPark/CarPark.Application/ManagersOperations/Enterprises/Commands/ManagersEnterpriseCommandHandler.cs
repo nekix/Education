@@ -1,7 +1,7 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
 using CarPark.Enterprises;
 using CarPark.Managers;
-using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 

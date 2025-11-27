@@ -1,4 +1,5 @@
-﻿using CarPark.Application.Geo.GeoCoding;
+﻿using CarPark.CQ;
+using CarPark.Geo.GeoCoding;
 using CarPark.ManagersOperations.Drivers.Queries;
 using CarPark.ManagersOperations.Drivers.Queries.Models;
 using CarPark.ManagersOperations.Enterprises.Commands;
@@ -16,8 +17,6 @@ using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.ManagersOperations.Vehicles.Queries;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
 using CarPark.Reports;
-using CarPark.Shared.CQ;
-using CarPark.Shared.Modules;
 using CarPark.TimeZones.Conversion;
 using CarPark.TimeZones.Providers;
 using FluentResults;
@@ -28,7 +27,7 @@ using NetTopologySuite.Features;
 
 namespace CarPark;
 
-public class ApplicationModuleConfigurator : IModuleConfigurator
+public class ApplicationModuleConfigurator
 {
     public void ConfigureModule(IServiceCollection services, IConfiguration configuration)
     {

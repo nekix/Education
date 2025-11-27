@@ -4,11 +4,11 @@ using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.Drivers;
 using CarPark.ManagersOperations.Drivers.Queries;
 using CarPark.ManagersOperations.Drivers.Queries.Models;
-using CarPark.Shared.CQ;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using CarPark.CQ;
 
 namespace CarPark.Controllers.Api.Controllers;
 

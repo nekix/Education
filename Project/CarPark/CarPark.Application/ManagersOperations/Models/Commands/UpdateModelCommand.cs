@@ -1,7 +1,10 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
 using CarPark.Models;
-using CarPark.Shared.CQ;
+using CarPark.Models.Errors;
+using CarPark.Models.Services;
 using FluentResults;
+using CarPark.Errors;
 
 namespace CarPark.ManagersOperations.Models.Commands;
 
@@ -28,10 +31,12 @@ public class UpdateModelCommand : ICommand<Result<Guid>>
     public class Handler : ICommandHandler<UpdateModelCommand, Result<Guid>>
     {
         private readonly ApplicationDbContext _context;
+        private readonly IModelsService _modelsService;
 
-        public Handler(ApplicationDbContext context)
+        public Handler(ApplicationDbContext context, IModelsService modelsService)
         {
             _context = context;
+            _modelsService = modelsService;
         }
 
         public async Task<Result<Guid>> Handle(UpdateModelCommand command)
@@ -40,32 +45,30 @@ public class UpdateModelCommand : ICommand<Result<Guid>>
 
             if (model == null)
             {
-                return Result.Fail(Errors.NotFound);
+                return Result.Fail<Guid>(new WebApiError(404, "Model not found."));
             }
 
-            if (model.ModelName != command.ModelName)
-                model.ModelName = command.ModelName;
+            UpdateModelRequest request = new UpdateModelRequest
+            {
+                ModelName = command.ModelName,
+                VehicleType = command.VehicleType,
+                SeatsCount = command.SeatsCount,
+                MaxLoadingWeightKg = command.MaxLoadingWeightKg,
+                EnginePowerKW = command.EnginePowerKW,
+                TransmissionType = command.TransmissionType,
+                FuelSystemType = command.FuelSystemType,
+                FuelTankVolumeLiters = command.FuelTankVolumeLiters
+            };
 
-            if (model.VehicleType != command.VehicleType)
-                model.VehicleType = command.VehicleType;
+            Result updateModel = _modelsService.UpdateModel(model, request);
+            if (updateModel.IsFailed)
+            {
+                IEnumerable<WebApiError> apiErrors = updateModel.Errors
+                    .OfType<ModelDomainError>()
+                    .Select(ModelsErrors.MapDomainError);
 
-            if (model.SeatsCount != command.SeatsCount)
-                model.SeatsCount = command.SeatsCount;
-
-            if (model.MaxLoadingWeightKg != command.MaxLoadingWeightKg)
-                model.MaxLoadingWeightKg = command.MaxLoadingWeightKg;
-
-            if (model.EnginePowerKW != command.EnginePowerKW)
-                model.EnginePowerKW = command.EnginePowerKW;
-
-            if (model.TransmissionType != command.TransmissionType)
-                model.TransmissionType = command.TransmissionType;
-
-            if (model.FuelSystemType != command.FuelSystemType)
-                model.FuelSystemType = command.FuelSystemType;
-
-            if (model.FuelTankVolumeLiters != command.FuelTankVolumeLiters)
-                model.FuelTankVolumeLiters = command.FuelTankVolumeLiters;
+                return Result.Fail(apiErrors);
+            }
 
             await _context.SaveChangesAsync();
 
@@ -73,8 +76,4 @@ public class UpdateModelCommand : ICommand<Result<Guid>>
         }
     }
 
-    public static class Errors
-    {
-        public const string NotFound = "NotFound";
-    }
 }

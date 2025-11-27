@@ -1,5 +1,5 @@
-﻿using CarPark.Reports;
-using CarPark.Shared.CQ;
+﻿using CarPark.CQ;
+using CarPark.Reports;
 using FluentResults;
 
 namespace CarPark.ManagersOperations.Reports.Queries;

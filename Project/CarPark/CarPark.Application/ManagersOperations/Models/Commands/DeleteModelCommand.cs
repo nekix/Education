@@ -1,9 +1,15 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
+using CarPark.Errors;
 using CarPark.Models;
-using CarPark.Shared.CQ;
+using CarPark.Models.Errors;
+using CarPark.Models.Services;
+using CarPark.ManagersOperations.Models;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using System.Linq;
+using CarPark.Vehicles;
 
 namespace CarPark.ManagersOperations.Models.Commands;
 
@@ -14,10 +20,12 @@ public class DeleteModelCommand : ICommand<Result>
     public class Handler : ICommandHandler<DeleteModelCommand, Result>
     {
         private readonly ApplicationDbContext _context;
+        private readonly IModelsService _modelsService;
 
-        public Handler(ApplicationDbContext context)
+        public Handler(ApplicationDbContext context, IModelsService modelsService)
         {
             _context = context;
+            _modelsService = modelsService;
         }
 
         public async Task<Result> Handle(DeleteModelCommand command)
@@ -26,7 +34,19 @@ public class DeleteModelCommand : ICommand<Result>
 
             if (model == null)
             {
-                return Result.Fail(Errors.NotFound);
+                return Result.Fail(new WebApiError(404, "Model not found."));
+            }
+
+            List<Vehicle> vehicles = await _context.Vehicles
+                .Where(v => v.Model.Id == model.Id).ToListAsync();
+
+            Result checkCanDeleteModel = _modelsService.CheckCanDeleteModel(model, vehicles);
+            if (checkCanDeleteModel.IsFailed)
+            {
+                IEnumerable<WebApiError> apiErrors = checkCanDeleteModel.Errors
+                    .OfType<ModelDomainError>()
+                    .Select(ModelsErrors.MapDomainError);
+                return Result.Fail(apiErrors);
             }
 
             try
@@ -36,19 +56,13 @@ public class DeleteModelCommand : ICommand<Result>
             }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23503" })
             {
-                return new Error(Errors.Conflict)
+                return Result.Fail(new WebApiError(409, "Cannot delete model because it is referenced by vehicles.")
                     .WithMetadata("ModelId", command.Id)
-                    .CausedBy(new ExceptionalError(ex));
+                    .CausedBy(new ExceptionalError(ex)));
             }
 
             return Result.Ok();
         }
     }
 
-    public static class Errors
-    {
-        public const string NotFound = "NotFound";
-
-        public const string Conflict = "Conflict";
-    }
 }

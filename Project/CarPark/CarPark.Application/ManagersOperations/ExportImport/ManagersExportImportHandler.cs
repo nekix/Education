@@ -1,13 +1,14 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
+using CarPark.DateTimes;
 using CarPark.Drivers;
 using CarPark.Enterprises;
 using CarPark.Managers;
 using CarPark.ManagersOperations.ExportImport.Commands;
 using CarPark.ManagersOperations.ExportImport.Queries;
 using CarPark.Models;
+using CarPark.Models.Services;
 using CarPark.Rides;
-using CarPark.Shared.CQ;
-using CarPark.Shared.DateTimes;
 using CarPark.TimeZones;
 using CarPark.Vehicles;
 using FluentResults;
@@ -24,8 +25,11 @@ public class ManagersExportImportHandler : BaseManagersHandler,
     IQueryHandler<ExportModelsQuery, Result<List<ModelExportImportDto>>>,
     ICommandHandler<ImportCommand, Result>
 {
-    public ManagersExportImportHandler(ApplicationDbContext dbContext) : base(dbContext)
+    private readonly IModelsService _modelsService;
+
+    public ManagersExportImportHandler(ApplicationDbContext dbContext, IModelsService modelsService) : base(dbContext)
     {
+        _modelsService = modelsService;
     }
 
     public async Task<Result<EnterpriseExportImportDto>> Handle(ExportEnterpriseQuery query)
@@ -197,7 +201,7 @@ public class ManagersExportImportHandler : BaseManagersHandler,
         {
             foreach (ModelExportImportDto modelDto in command.Models)
             {
-                Model model = new Model
+                CreateModelRequest request = new CreateModelRequest
                 {
                     Id = modelDto.Id,
                     ModelName = modelDto.ModelName,
@@ -210,6 +214,13 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                     FuelTankVolumeLiters = modelDto.FuelTankVolumeLiters
                 };
 
+                Result<Model> createModel = _modelsService.CreateModel(request);
+                if (createModel.IsFailed)
+                {
+                    return createModel.ToResult();
+                }
+
+                Model model = createModel.Value;
                 newModels.Add(model);
 
                 DbContext.Models.Add(model);

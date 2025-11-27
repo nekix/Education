@@ -19,9 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark.Application.Geo\CarPark.Application.Geo.csproj" />
-    <ProjectReference Include="..\CarPark.Application.TimeZones\CarPark.Application.TimeZones.csproj" />
+    <ProjectReference Include="..\CarPark.Application.Shared\CarPark.Application.Shared.csproj" />
     <ProjectReference Include="..\CarPark.Domain\CarPark.Domain.csproj" />
+    <ProjectReference Include="..\CarPark.Infrastructure.Geo\CarPark.Infrastructure.Geo.csproj" />
+    <ProjectReference Include="..\CarPark.Infrastructure.TimeZones\CarPark.Infrastructure.TimeZones.csproj" />
     <ProjectReference Include="..\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
   </ItemGroup>
 

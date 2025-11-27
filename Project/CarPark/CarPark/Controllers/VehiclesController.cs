@@ -1,9 +1,9 @@
 ﻿using CarPark.Attributes;
+using CarPark.CQ;
 using CarPark.Data;
 using CarPark.Enterprises;
 using CarPark.Identity;
 using CarPark.ManagersOperations.Vehicles.Commands;
-using CarPark.Shared.CQ;
 using CarPark.ViewModels.Vehicles;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;

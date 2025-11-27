@@ -1,5 +1,5 @@
-﻿using CarPark.ManagersOperations.Vehicles.Queries.Models;
-using CarPark.Shared.CQ;
+﻿using CarPark.CQ;
+using CarPark.ManagersOperations.Vehicles.Queries.Models;
 using FluentResults;
 
 namespace CarPark.ManagersOperations.Vehicles.Queries;

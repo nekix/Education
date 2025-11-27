@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CarPark.Domain.Shared\CarPark.Domain.Shared.csproj" />
     <ProjectReference Include="..\CarPark.Domain.TimeZones\CarPark.Domain.TimeZones.csproj" />
-    <ProjectReference Include="..\CarPark.Shared\CarPark.Shared.csproj" />
   </ItemGroup>
 
 </Project>

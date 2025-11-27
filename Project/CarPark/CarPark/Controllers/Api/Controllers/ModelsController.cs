@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CarPark.Attributes;
-using CarPark.Shared.CQ;
+using CarPark.CQ;
 using FluentResults;
 using Microsoft.Build.Framework;
 using CarPark.Data.Interfaces;
 using CarPark.ManagersOperations.Models.Commands;
 using CarPark.Models;
+using CarPark.Errors;
 
 namespace CarPark.Controllers.Api.Controllers;
 
@@ -81,10 +82,11 @@ public class ModelsController : ApiBaseController
         if (!result.IsFailed)
             return NoContent();
 
-        // Errors handling
-        if (result.HasError(e => e.Message == UpdateModelCommand.Errors.NotFound))
+        // Handle WebApiError
+        WebApiError? apiError = result.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return NotFound();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
 
         // Undefined errors
@@ -117,6 +119,13 @@ public class ModelsController : ApiBaseController
         if (result.IsSuccess)
             return CreatedAtAction("GetModel", new { id = result.Value }, null);
 
+        // Handle WebApiError
+        WebApiError? apiError = result.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
+        {
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
+        }
+
         // Undefined errors
         return BadRequest();
     }
@@ -138,15 +147,11 @@ public class ModelsController : ApiBaseController
         if (!result.IsFailed) 
             return NoContent();
 
-        // Errors handling
-        if (result.HasError(e => e.Message == DeleteModelCommand.Errors.NotFound))
+        // Handle WebApiError
+        WebApiError? apiError = result.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return NotFound();
-        }
-
-        if (result.HasError(e => e.Message == DeleteModelCommand.Errors.Conflict))
-        {
-            return Conflict();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
 
         // Undefined errors

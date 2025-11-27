@@ -1,7 +1,7 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
 using CarPark.Managers;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
-using CarPark.Shared.CQ;
 using CarPark.TimeZones;
 using CarPark.TimeZones.Conversion;
 using CarPark.Vehicles;

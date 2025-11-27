@@ -1,5 +1,5 @@
+using CarPark.CQ;
 using FluentResults;
-using CarPark.Shared.CQ;
 
 namespace CarPark.ManagersOperations.Vehicles.Commands;
 

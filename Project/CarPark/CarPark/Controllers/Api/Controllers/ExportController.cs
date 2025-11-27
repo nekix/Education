@@ -2,7 +2,6 @@
 using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.ExportImport;
 using CarPark.ManagersOperations.ExportImport.Queries;
-using CarPark.Shared.CQ;
 using CsvHelper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using CarPark.CQ;
 
 namespace CarPark.Controllers.Api.Controllers;
 

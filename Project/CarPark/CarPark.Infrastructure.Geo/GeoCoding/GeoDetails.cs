@@ -1,4 +1,4 @@
-﻿namespace CarPark.Application.Geo.GeoCoding;
+﻿namespace CarPark.Geo.GeoCoding;
 
 public class GeoDetails
 {

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace CarPark.Shared.DateTimes;
+namespace CarPark.DateTimes;
 
 public readonly record struct UtcDateTimeOffset : IComparable<DateTimeOffset>, IComparable<UtcDateTimeOffset>
 {

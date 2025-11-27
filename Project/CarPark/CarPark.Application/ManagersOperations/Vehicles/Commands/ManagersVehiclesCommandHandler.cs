@@ -1,9 +1,9 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
 using CarPark.Drivers;
 using CarPark.Enterprises;
 using CarPark.Managers;
 using CarPark.Models;
-using CarPark.Shared.CQ;
 using CarPark.Vehicles;
 using FluentResults;
 using FluentResults.Extensions;

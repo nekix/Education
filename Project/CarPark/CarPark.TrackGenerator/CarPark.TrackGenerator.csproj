@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark.Application.Geo\CarPark.Application.Geo.csproj" />
+    <ProjectReference Include="..\CarPark.Infrastructure.Geo\CarPark.Infrastructure.Geo.csproj" />
     <ProjectReference Include="..\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
   </ItemGroup>
 

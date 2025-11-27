@@ -275,7 +275,7 @@ public class ModelsController_Tests
         // Arrange
         Guid modelId = Guid.Parse("72f3195d-8c1a-4c04-8277-99b0c3262c71");
 
-        _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail("Unknown error"));
+        _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail("CreateModelRequest error"));
 
         // Act
         IActionResult result = await _controller.DeleteModel(modelId);

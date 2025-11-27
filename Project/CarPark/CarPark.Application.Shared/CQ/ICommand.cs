@@ -1,4 +1,4 @@
-﻿namespace CarPark.Shared.CQ;
+﻿namespace CarPark.CQ;
 
 public interface ICommand<TResponse>
 {

@@ -2,8 +2,6 @@
 using CarPark.Managers;
 using CarPark.ManagersOperations.Rides;
 using CarPark.Rides;
-using CarPark.Shared.CQ;
-using CarPark.Shared.DateTimes;
 using CarPark.Vehicles;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +9,8 @@ using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using System.Xml;
+using CarPark.CQ;
+using CarPark.DateTimes;
 
 namespace CarPark.ManagersOperations.Tracks.Commands;
 

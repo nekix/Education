@@ -1,4 +1,4 @@
-﻿using CarPark.Shared.CQ;
+﻿using CarPark.CQ;
 using FluentResults;
 using NetTopologySuite.Features;
 

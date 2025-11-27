@@ -1,7 +1,7 @@
-﻿using CarPark.Reports;
+﻿using CarPark.CQ;
+using CarPark.DateTimes;
+using CarPark.Reports;
 using CarPark.Reports.Abstract;
-using CarPark.Shared.CQ;
-using CarPark.Shared.DateTimes;
 using FluentResults;
 
 namespace CarPark.ManagersOperations.Reports.Queries;

@@ -1,7 +1,10 @@
-﻿using CarPark.Data;
+﻿using CarPark.CQ;
+using CarPark.Data;
 using CarPark.Models;
-using CarPark.Shared.CQ;
+using CarPark.Models.Errors;
+using CarPark.Models.Services;
 using FluentResults;
+using CarPark.Errors;
 
 namespace CarPark.ManagersOperations.Models.Commands;
 
@@ -26,15 +29,18 @@ public class CreateModelCommand : ICommand<Result<Guid>>
     public class Handler : ICommandHandler<CreateModelCommand, Result<Guid>>
     {
         private readonly ApplicationDbContext _context;
+        private readonly IModelsService _modelsService;
 
-        public Handler(ApplicationDbContext context)
+        public Handler(ApplicationDbContext context,
+            IModelsService modelService)
         {
             _context = context;
+            _modelsService = modelService;
         }
 
         public async Task<Result<Guid>> Handle(CreateModelCommand command)
         {
-            Model model = new Model
+            CreateModelRequest request = new CreateModelRequest
             {
                 Id = default,
                 ModelName = command.ModelName,
@@ -47,10 +53,22 @@ public class CreateModelCommand : ICommand<Result<Guid>>
                 FuelTankVolumeLiters = command.FuelTankVolumeLiters
             };
 
+            Result<Model> createModel = _modelsService.CreateModel(request);
+            if (createModel.IsFailed)
+            {
+                IEnumerable<WebApiError> apiErrors = createModel.Errors
+                    .OfType<ModelDomainError>()
+                    .Select(ModelsErrors.MapDomainError);
+
+                return Result.Fail<Guid>(apiErrors);
+            }
+
+            Model model = createModel.Value;
+
             await _context.Models.AddAsync(model);
             await _context.SaveChangesAsync();
 
-            return model.Id;
+            return Result.Ok(model.Id);
         }
     }
 }

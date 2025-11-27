@@ -368,7 +368,7 @@ public class VehiclesController_Tests
         // Arrange
         Guid vehicleId = Guid.Parse("d66c478e-ba81-44d3-82e5-0b735f229073");
 
-        _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail("Unknown error"));
+        _mockDeleteHandler.Handle(Arg.Any<DeleteVehicleCommand>()).Returns(Result.Fail("CreateModelRequest error"));
 
         // Act
         IActionResult result = await _controller.DeleteVehicle(vehicleId);

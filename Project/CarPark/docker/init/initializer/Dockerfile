@@ -3,23 +3,23 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copy project files
-COPY ["src/DataGeneration/CarPark.Initializer/CarPark.Initializer.csproj", "CarPark.Initializer/"]
-COPY ["src/DataGeneration/CarPark.DataGenerator/CarPark.DataGenerator.csproj", "CarPark.DataGenerator/"]
-COPY ["src/DataGeneration/CarPark.TrackGenerator/CarPark.TrackGenerator.csproj", "CarPark.TrackGenerator/"]
-COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure.Geo/CarPark.Infrastructure.Geo.csproj", "CarPark.Infrastructure.Geo/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure.TimeZones/CarPark.Infrastructure.TimeZones.csproj", "CarPark.Infrastructure.TimeZones/"]
+# Copy project files in dependency order
+COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "src/Domain/CarPark.Domain/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "src/Infrastracture/CarPark.Infrastructure/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.Geo/CarPark.Infrastructure.Geo.csproj", "src/Infrastracture/CarPark.Infrastructure.Geo/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.TimeZones/CarPark.Infrastructure.TimeZones.csproj", "src/Infrastracture/CarPark.Infrastructure.TimeZones/"]
+COPY ["src/DataGeneration/CarPark.DataGenerator/CarPark.DataGenerator.csproj", "src/DataGeneration/CarPark.DataGenerator/"]
+COPY ["src/DataGeneration/CarPark.TrackGenerator/CarPark.TrackGenerator.csproj", "src/DataGeneration/CarPark.TrackGenerator/"]
+COPY ["src/DataGeneration/CarPark.Initializer/CarPark.Initializer.csproj", "src/DataGeneration/CarPark.Initializer/"]
 
 # Restore dependencies
-RUN dotnet restore "CarPark.Initializer/CarPark.Initializer.csproj"
+RUN dotnet restore "src/DataGeneration/CarPark.Initializer/CarPark.Initializer.csproj"
 
 # Copy source code
 COPY . .
 
 # Build and publish
-WORKDIR "/src/CarPark.Initializer"
+WORKDIR "/src/DataGeneration/CarPark.Initializer"
 RUN dotnet publish "CarPark.Initializer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Final stage

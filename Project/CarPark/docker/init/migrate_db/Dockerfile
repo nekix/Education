@@ -3,19 +3,19 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copy project files
-COPY ["src/DataGeneration/CarPark.DbMigrator/CarPark.DbMigrator.csproj", "CarPark.DbMigrator/"]
-COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
+# Copy project files in dependency order
+COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "src/Domain/CarPark.Domain/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "src/Infrastracture/CarPark.Infrastructure/"]
+COPY ["src/DataGeneration/CarPark.DbMigrator/CarPark.DbMigrator.csproj", "src/DataGeneration/CarPark.DbMigrator/"]
 
 # Restore dependencies
-RUN dotnet restore "CarPark.DbMigrator/CarPark.DbMigrator.csproj"
+RUN dotnet restore "src/DataGeneration/CarPark.DbMigrator/CarPark.DbMigrator.csproj"
 
 # Copy source code
 COPY . .
 
 # Build and publish
-WORKDIR "/src/CarPark.DbMigrator"
+WORKDIR "/src/DataGeneration/CarPark.DbMigrator"
 RUN dotnet publish "CarPark.DbMigrator.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Final stage

@@ -17,19 +17,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-# Copy solution and projects
-COPY ["src/Web/CarPark.Web/CarPark.Web.csproj", "CarPark/"]
+# Copy solution and projects in dependency order
+COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "src/Domain/CarPark.Domain/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "src/Infrastracture/CarPark.Infrastructure/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.Geo/CarPark.Infrastructure.Geo.csproj", "src/Infrastracture/CarPark.Infrastructure.Geo/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.TimeZones/CarPark.Infrastructure.TimeZones.csproj", "src/Infrastracture/CarPark.Infrastructure.TimeZones/"]
+COPY ["src/Application/CarPark.Application/CarPark.Application.csproj", "src/Application/CarPark.Application/"]
+COPY ["src/Application/CarPark.Application.Shared/CarPark.Application.Shared.csproj", "src/Application/CarPark.Application.Shared/"]
+COPY ["src/Web/CarPark.Web/CarPark.Web.csproj", "src/Web/CarPark.Web/"]
 
-COPY ["src/Application/CarPark.Application/CarPark.Application.csproj", "CarPark.Application/"]
-COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
-COPY ["src/Application/CarPark.Application.Shared/CarPark.Application.Shared.csproj", "CarPark.Application.Shared/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure.Geo/CarPark.Infrastructure.Geo.csproj", "CarPark.Infrastructure.Geo/"]
-COPY ["src/Infrastracture/CarPark.Infrastructure.TimeZones/CarPark.Infrastructure.TimeZones.csproj", "CarPark.Infrastructure.TimeZones/"]
-RUN dotnet restore "./CarPark/CarPark.Web.csproj"
+RUN dotnet restore "src/Web/CarPark.Web/CarPark.Web.csproj"
 COPY . .
-WORKDIR "/src/CarPark"
-RUN dotnet build "./CarPark.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Web/CarPark.Web"
+RUN dotnet build "CarPark.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Step 2: Publish
 # This stage is used to publish the service project to be copied to the final stage

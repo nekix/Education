@@ -158,6 +158,8 @@ public sealed class Program
         // Register domain services
         services.AddScoped<IVehiclesService, VehiclesService>();
         services.AddScoped<IManagersService, ManagersService>();
+        services.AddScoped<CarPark.Enterprises.Services.IEnterprisesService, CarPark.Enterprises.Services.EnterprisesService>();
+        services.AddScoped<CarPark.Models.Services.IModelsService, CarPark.Models.Services.ModelsService>();
 
         return services.BuildServiceProvider();
     }
@@ -366,7 +368,7 @@ public sealed class Program
         try
         {
             // 1. Enterprises
-            EnterprisesGenerator enterprisesGen = new EnterprisesGenerator(seed);
+            EnterprisesGenerator enterprisesGen = new EnterprisesGenerator(serviceProvider.GetRequiredService<CarPark.Enterprises.Services.IEnterprisesService>(), seed);
             List<Enterprise> enterprises = enterprisesGen.GenerateEnterprises(enterprisesCount);
             context.Enterprises.AddRange(enterprises);
             await context.SaveChangesAsync();
@@ -384,7 +386,7 @@ public sealed class Program
             // 2.5. Models (if not exist)
             if (!context.Models.Any())
             {
-                var modelsGen = new ModelsGenerator(seed);
+                var modelsGen = new ModelsGenerator(serviceProvider.GetRequiredService<CarPark.Models.Services.IModelsService>(), seed);
                 var modelsList = modelsGen.GenerateModels();
                 context.Models.AddRange(modelsList);
                 await context.SaveChangesAsync();

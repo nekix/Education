@@ -9,11 +9,11 @@ public class ModelsGenerator
     private readonly Random _random;
     private readonly IModelsService _modelsService;
 
-    public ModelsGenerator(int seed = 42)
+    public ModelsGenerator(IModelsService modelsService, int seed = 42)
     {
         _seed = seed;
         _random = new Random(seed);
-        _modelsService = new ModelsService();
+        _modelsService = modelsService;
     }
 
     public List<Model> GenerateModels()

@@ -19,8 +19,8 @@ RUN dotnet restore "src/DataGeneration/CarPark.Initializer/CarPark.Initializer.c
 COPY . .
 
 # Build and publish
-WORKDIR "/src/DataGeneration/CarPark.Initializer"
-RUN dotnet publish "CarPark.Initializer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR "/src"
+RUN dotnet publish "src/DataGeneration/CarPark.Initializer/CarPark.Initializer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Final stage
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base_init

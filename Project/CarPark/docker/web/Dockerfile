@@ -28,8 +28,8 @@ COPY ["src/Web/CarPark.Web/CarPark.Web.csproj", "src/Web/CarPark.Web/"]
 
 RUN dotnet restore "src/Web/CarPark.Web/CarPark.Web.csproj"
 COPY . .
-WORKDIR "/src/Web/CarPark.Web"
-RUN dotnet build "CarPark.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src"
+RUN dotnet build "src/Web/CarPark.Web/CarPark.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Step 2: Publish
 # This stage is used to publish the service project to be copied to the final stage

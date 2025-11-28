@@ -15,8 +15,8 @@ RUN dotnet restore "src/DataGeneration/CarPark.DbMigrator/CarPark.DbMigrator.csp
 COPY . .
 
 # Build and publish
-WORKDIR "/src/DataGeneration/CarPark.DbMigrator"
-RUN dotnet publish "CarPark.DbMigrator.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR "/src"
+RUN dotnet publish "src/DataGeneration/CarPark.DbMigrator/CarPark.DbMigrator.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Final stage
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final

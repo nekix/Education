@@ -4,6 +4,7 @@ using CarPark.Enterprises;
 using CarPark.Models;
 using CarPark.Vehicles;
 using CarPark.Vehicles.Services;
+using CarPark.Drivers.Services;
 using FluentResults;
 
 namespace CarPark.DataGenerator;
@@ -13,8 +14,9 @@ public class DataGenerator
     private readonly int _seed;
     private readonly Random _random;
     private readonly Faker<VehicleDto> _vehicleFaker;
-    private readonly Faker<Driver> _driverFaker;
+    private readonly Faker<DriverCreateDataDto> _driverFaker;
     private readonly IVehiclesService _vehiclesService;
+    private readonly IDriversService _driversService;
     private readonly List<Vehicle> _generatedVehicles = new();
 
     private class VehicleDto
@@ -42,11 +44,20 @@ public class DataGenerator
         public required DateTimeOffset AddedToEnterpriseAt { get; init; }
     }
 
-    public DataGenerator(int seed, IVehiclesService vehiclesService)
+    private class DriverCreateDataDto
+    {
+        public required Guid Id { get; init; }
+        public required Guid EnterpriseId { get; init; }
+        public required string FullName { get; init; }
+        public required string DriverLicenseNumber { get; init; }
+    }
+
+    public DataGenerator(int seed, IVehiclesService vehiclesService, IDriversService driversService)
     {
         _seed = seed;
         _random = new Random(seed);
         _vehiclesService = vehiclesService;
+        _driversService = driversService;
 
         // Создать Faker с фиксированным Randomizer
         Randomizer.Seed = new Random(seed);
@@ -62,13 +73,11 @@ public class DataGenerator
             .RuleFor(v => v.AssignedDrivers, f => new List<Driver>())
             .RuleFor(v => v.ActiveAssignedDriver, f => (Driver?)null);
 
-        _driverFaker = new Faker<Driver>("ru")
+        _driverFaker = new Faker<DriverCreateDataDto>("ru")
             .UseSeed(seed)  // Добавить UseSeed
             .RuleFor(d => d.Id, f => default)
             .RuleFor(d => d.FullName, f => f.Name.FullName())
-            .RuleFor(d => d.DriverLicenseNumber, f => f.Random.Replace("## ## ######"))
-            .RuleFor(d => d.AssignedVehicles, f => new List<Vehicle>())
-            .RuleFor(d => d.ActiveAssignedVehicle, f => (Vehicle?)null);
+            .RuleFor(d => d.DriverLicenseNumber, f => f.Random.Replace("## ## ######"));
     }
 
     /// <summary>
@@ -115,7 +124,19 @@ public class DataGenerator
         return _driverFaker
             .RuleFor(d => d.EnterpriseId, f => enterprise.Id)
             .RuleFor(d => d.Id, f => GenerateDeterministicGuid())
-            .GenerateForever();
+            .GenerateForever()
+            .Select(d =>
+            {
+                CreateDriverRequest request = new CreateDriverRequest
+                {
+                    Id = d.Id,
+                    EnterpriseId = d.EnterpriseId,
+                    FullName = d.FullName,
+                    DriverLicenseNumber = d.DriverLicenseNumber
+                };
+
+                return _driversService.CreateDriver(request).Value;
+            });
     }
 
     /// <summary>

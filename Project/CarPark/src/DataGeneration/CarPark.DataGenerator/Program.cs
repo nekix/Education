@@ -160,6 +160,7 @@ public sealed class Program
         services.AddScoped<IManagersService, ManagersService>();
         services.AddScoped<CarPark.Enterprises.Services.IEnterprisesService, CarPark.Enterprises.Services.EnterprisesService>();
         services.AddScoped<CarPark.Models.Services.IModelsService, CarPark.Models.Services.ModelsService>();
+        services.AddScoped<CarPark.Drivers.Services.IDriversService, CarPark.Drivers.Services.DriversService>();
 
         return services.BuildServiceProvider();
     }
@@ -231,7 +232,7 @@ public sealed class Program
             return;
         }
 
-        DataGenerator generator = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>());
+        DataGenerator generator = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>(), serviceProvider.GetRequiredService<CarPark.Drivers.Services.IDriversService>());
         
         // Генерируем автомобили и водителей для каждого предприятия
         List<Vehicle> allVehicles = new List<Vehicle>();
@@ -394,7 +395,7 @@ public sealed class Program
             }
 
             // 3. Vehicles and Drivers
-            DataGenerator dataGen = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>());
+            DataGenerator dataGen = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>(), serviceProvider.GetRequiredService<CarPark.Drivers.Services.IDriversService>());
             List<Model> models = context.Models.ToList();
 
             List<Vehicle> allVehicles = new List<Vehicle>();

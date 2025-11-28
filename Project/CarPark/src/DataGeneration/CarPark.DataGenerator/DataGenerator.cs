@@ -71,7 +71,8 @@ public class DataGenerator
             .RuleFor(v => v.Mileage, f => f.Random.Int(0, 300000))
             .RuleFor(v => v.Color, f => f.PickRandom("Белый", "Черный", "Серебристый", "Красный", "Синий", "Зеленый", "Серый"))
             .RuleFor(v => v.AssignedDrivers, f => new List<Driver>())
-            .RuleFor(v => v.ActiveAssignedDriver, f => (Driver?)null);
+            .RuleFor(v => v.ActiveAssignedDriver, f => (Driver?)null)
+            .RuleFor(v => v.AddedToEnterpriseAt, f => f.Date.Past(2));
 
         _driverFaker = new Faker<DriverCreateDataDto>("ru")
             .UseSeed(seed)  // Добавить UseSeed

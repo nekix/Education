@@ -22,7 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Infrastracture\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
   </ItemGroup>
+
 
 </Project>

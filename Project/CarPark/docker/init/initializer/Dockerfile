@@ -4,13 +4,13 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy project files
-COPY ["CarPark.Initializer/CarPark.Initializer.csproj", "CarPark.Initializer/"]
-COPY ["CarPark.DataGenerator/CarPark.DataGenerator.csproj", "CarPark.DataGenerator/"]
-COPY ["CarPark.TrackGenerator/CarPark.TrackGenerator.csproj", "CarPark.TrackGenerator/"]
-COPY ["CarPark.Shared/CarPark.Shared.csproj", "CarPark.Shared/"]
-COPY ["CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
-COPY ["CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
-COPY ["CarPark.Application/CarPark.Application.csproj", "CarPark.Application/"]
+COPY ["src/DataGeneration/CarPark.Initializer/CarPark.Initializer.csproj", "CarPark.Initializer/"]
+COPY ["src/DataGeneration/CarPark.DataGenerator/CarPark.DataGenerator.csproj", "CarPark.DataGenerator/"]
+COPY ["src/DataGeneration/CarPark.TrackGenerator/CarPark.TrackGenerator.csproj", "CarPark.TrackGenerator/"]
+COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.Geo/CarPark.Infrastructure.Geo.csproj", "CarPark.Infrastructure.Geo/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.TimeZones/CarPark.Infrastructure.TimeZones.csproj", "CarPark.Infrastructure.TimeZones/"]
 
 # Restore dependencies
 RUN dotnet restore "CarPark.Initializer/CarPark.Initializer.csproj"

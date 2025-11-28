@@ -20,11 +20,10 @@
     <PackageReference Include="TimeZoneConverter" Version="7.2.0" />
   </ItemGroup>
 
-  <ItemGroup>    
-    <ProjectReference Include="..\CarPark.Domain\CarPark.Domain.csproj" />
-    <ProjectReference Include="..\CarPark.Infrastructure.Geo\CarPark.Infrastructure.Geo.csproj" />
-    <ProjectReference Include="..\CarPark.Infrastructure.TimeZones\CarPark.Infrastructure.TimeZones.csproj" />
-    <ProjectReference Include="..\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Domain\CarPark.Domain\CarPark.Domain.csproj" />
+    <ProjectReference Include="..\..\Infrastracture\CarPark.Infrastructure.TimeZones\CarPark.Infrastructure.TimeZones.csproj" />
+    <ProjectReference Include="..\..\Infrastracture\CarPark.Infrastructure\CarPark.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

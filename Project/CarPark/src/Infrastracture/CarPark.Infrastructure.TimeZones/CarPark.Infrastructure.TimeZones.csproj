@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark.Domain.TimeZones\CarPark.Domain.TimeZones.csproj" />
+    <ProjectReference Include="..\..\Domain\CarPark.Domain.TimeZones\CarPark.Domain.TimeZones.csproj" />
   </ItemGroup>
 
 </Project>

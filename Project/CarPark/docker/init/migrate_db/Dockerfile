@@ -4,10 +4,9 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy project files
-COPY ["CarPark.DbMigrator/CarPark.DbMigrator.csproj", "CarPark.DbMigrator/"]
-COPY ["CarPark.Shared/CarPark.Shared.csproj", "CarPark.Shared/"]
-COPY ["CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
-COPY ["CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
+COPY ["src/DataGeneration/CarPark.DbMigrator/CarPark.DbMigrator.csproj", "CarPark.DbMigrator/"]
+COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
 
 # Restore dependencies
 RUN dotnet restore "CarPark.DbMigrator/CarPark.DbMigrator.csproj"

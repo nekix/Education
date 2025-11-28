@@ -17,13 +17,15 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-# Копировать solution и проекты
-COPY ["CarPark/CarPark.Web.csproj", "CarPark/"]
+# Copy solution and projects
+COPY ["src/Web/CarPark.Web/CarPark.Web.csproj", "CarPark/"]
 
-COPY ["CarPark.Shared/CarPark.Shared.csproj", "CarPark.Shared/"]
-COPY ["CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
-COPY ["CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
-COPY ["CarPark.Application/CarPark.Application.csproj", "CarPark.Application/"]
+COPY ["src/Application/CarPark.Application/CarPark.Application.csproj", "CarPark.Application/"]
+COPY ["src/Domain/CarPark.Domain/CarPark.Domain.csproj", "CarPark.Domain/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure/CarPark.Infrastructure.csproj", "CarPark.Infrastructure/"]
+COPY ["src/Application/CarPark.Application.Shared/CarPark.Application.Shared.csproj", "CarPark.Application.Shared/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.Geo/CarPark.Infrastructure.Geo.csproj", "CarPark.Infrastructure.Geo/"]
+COPY ["src/Infrastracture/CarPark.Infrastructure.TimeZones/CarPark.Infrastructure.TimeZones.csproj", "CarPark.Infrastructure.TimeZones/"]
 RUN dotnet restore "./CarPark/CarPark.Web.csproj"
 COPY . .
 WORKDIR "/src/CarPark"

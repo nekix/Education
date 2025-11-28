@@ -25,12 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CarPark.Domain\CarPark.Domain.csproj" />
-    <ProjectReference Include="..\CarPark.Shared\CarPark.Shared.csproj" />
+    <Folder Include="Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\" />
+    <ProjectReference Include="..\..\Domain\CarPark.Domain\CarPark.Domain.csproj" />
   </ItemGroup>
 
 </Project>

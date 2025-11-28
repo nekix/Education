@@ -12,6 +12,9 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using System.CommandLine;
 using System.Text.Json;
+using CarPark.DateTimes;
+using CarPark.Vehicles.Services;
+
 //using CarPark.TimeZones.Providers;
 
 namespace CarPark.TrackGenerator;
@@ -636,6 +639,10 @@ public sealed class Program
         services.AddScoped<ITrackGenerationService, TrackGenerationService>();
         services.AddScoped<BulkTrackGenerationService>();
         services.AddScoped<BulkRideGenerationService>();
+
+        // Register domain services
+        services.AddScoped<IVehiclesService, VehiclesService>();
+        services.AddScoped<IVehicleGeoTimePointsService, VehicleGeoTimePointsService>();
     }
 
     static void ConfigureServices(ServiceCollection services, string connectionString, string apiKey)
@@ -664,6 +671,10 @@ public sealed class Program
         services.AddScoped<ITrackGenerationService, TrackGenerationService>();
         services.AddScoped<TrackRealTimeWriterService>();
         services.AddScoped<TrackForceTimeWriterService>();
+
+        // Register domain services
+        services.AddTransient<IVehiclesService, VehiclesService>();
+        services.AddTransient<IVehicleGeoTimePointsService, VehicleGeoTimePointsService>();
     }
 
     static async Task GenerateFromTemplatesAsync(
@@ -698,9 +709,10 @@ public sealed class Program
         ConfigureServicesForBulk(services, connectionString, "dummy"); // No API key needed for template-based generation
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
 
-        // 3. Get all vehicles
+        // 3. Get all vehicles and services
         using IServiceScope scope = serviceProvider.CreateScope();
         ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        IVehicleGeoTimePointsService geoTimePointsService = scope.ServiceProvider.GetRequiredService<IVehicleGeoTimePointsService>();
         List<Vehicle> vehicles = await context.Vehicles.ToListAsync();
 
         Console.WriteLine($"📋 Processing {vehicles.Count} vehicles in batches");
@@ -720,7 +732,7 @@ public sealed class Program
 
                 // Generate track for this vehicle using templates
                 List<VehicleGeoTimePoint> trackPoints = await GenerateTrackFromTemplatesAsync(vehicle, templates, startDate, endDate,
-                    activeDaysRatio, minAvgDailyDistance, maxAvgDailyDistance, random, geometryFactory);
+                    activeDaysRatio, minAvgDailyDistance, maxAvgDailyDistance, random, geometryFactory, geoTimePointsService);
 
                 // Save track points to database
                 await SaveTrackPointsAsync(context, vehicle, trackPoints);
@@ -830,7 +842,8 @@ public sealed class Program
         double minAvgDailyDistance,
         double maxAvgDailyDistance,
         Random random,
-        GeometryFactory geometryFactory)
+        GeometryFactory geometryFactory,
+        IVehicleGeoTimePointsService geoTimePointsService)
     {
         var trackPoints = new List<VehicleGeoTimePoint>();
         var currentDate = startDate;
@@ -849,7 +862,7 @@ public sealed class Program
 
             // Generate track for this day
             var dailyPoints = await GenerateDailyTrackFromTemplatesAsync(vehicle, templates,
-                currentDate, dailyDistance, random, geometryFactory);
+                currentDate, dailyDistance, random, geometryFactory, geoTimePointsService);
 
             trackPoints.AddRange(dailyPoints);
             currentDate = currentDate.AddDays(1);
@@ -864,7 +877,8 @@ public sealed class Program
         DateTimeOffset date,
         double targetDistanceKm,
         Random random,
-        GeometryFactory geometryFactory)
+        GeometryFactory geometryFactory,
+        IVehicleGeoTimePointsService geoTimePointsService)
     {
         var points = new List<VehicleGeoTimePoint>();
         double currentDistance = 0;
@@ -927,7 +941,7 @@ public sealed class Program
             //var piece = selectedTemplate.Points.Skip(startIndex).Take(pieceLength).ToList();
 
             // Convert to VehicleGeoTimePoint with absolute timestamps
-            var piecePoints = ConvertTemplatePieceToGeoPoints(vehicle, piece, date, points.Count > 0 ? points.Last().Time.Value : date);
+            var piecePoints = ConvertTemplatePieceToGeoPoints(vehicle, piece, date, points.Count > 0 ? points.Last().Time.Value : date, geoTimePointsService);
 
             points.AddRange(piecePoints);
 
@@ -974,10 +988,11 @@ public sealed class Program
     }
 
     static List<VehicleGeoTimePoint> ConvertTemplatePieceToGeoPoints(
-    Vehicle vehicle,
-    List<GeoTimePoint> piece,
-    DateTimeOffset baseDate,
-    DateTimeOffset lastTimestamp)
+        Vehicle vehicle,
+        List<GeoTimePoint> piece,
+        DateTimeOffset baseDate,
+        DateTimeOffset lastTimestamp,
+        IVehicleGeoTimePointsService geoTimePointsService)
     {
         var points = new List<VehicleGeoTimePoint>();
 
@@ -990,13 +1005,15 @@ public sealed class Program
             var timeOffset = templatePoint.RelativeSeconds - baseRelativeSeconds;
             var pointTime = lastTimestamp.AddSeconds(timeOffset);
 
-            var result = VehicleGeoTimePoint.Create(
-                Guid.NewGuid(),
-                vehicle,
-                templatePoint.Location,
-                new CarPark.Shared.DateTimes.UtcDateTimeOffset(pointTime)
-            );
+            var request = new CreateVehicleGeoTimePointRequest
+            {
+                Id = Guid.NewGuid(),
+                Vehicle = vehicle,
+                Location = templatePoint.Location,
+                Time = new UtcDateTimeOffset(pointTime)
+            };
 
+            var result = geoTimePointsService.CreateVehicleGeoTimePoint(request);
             if (result.IsSuccess)
             {
                 points.Add(result.Value);

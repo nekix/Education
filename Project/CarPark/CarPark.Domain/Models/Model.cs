@@ -1,4 +1,4 @@
-﻿using CarPark.Vehicles;
+﻿using CarPark.Models.Errors;
 using FluentResults;
 using static CarPark.Models.Errors.ModelDomainErrorCodes;
 
@@ -112,7 +112,7 @@ public sealed class Model
     private static Result ValidateModelName(string modelName)
     {
         if (string.IsNullOrWhiteSpace(modelName))
-            return Result.Fail(ModelNameRequired);
+            return Result.Fail(new ModelDomainError(ModelNameRequired));
 
         return Result.Ok();
     }
@@ -120,7 +120,7 @@ public sealed class Model
     private static Result ValidateVehicleType(string vehicleType)
     {
         if (string.IsNullOrWhiteSpace(vehicleType))
-            return Result.Fail(VehicleTypeRequired);
+            return Result.Fail(new ModelDomainError(VehicleTypeRequired));
 
         return Result.Ok();
     }
@@ -128,7 +128,7 @@ public sealed class Model
     private static Result ValidateSeatsCount(int seatsCount)
     {
         if (seatsCount < 1)
-            return Result.Fail(SeatsCountMustBePositive);
+            return Result.Fail(new ModelDomainError(SeatsCountMustBePositive));
 
         return Result.Ok();
     }
@@ -136,7 +136,7 @@ public sealed class Model
     private static Result ValidateMaxLoadingWeightKg(double maxLoadingWeightKg)
     {
         if (maxLoadingWeightKg <= 0)
-            return Result.Fail(MaxLoadingWeightKgMustBePositive);
+            return Result.Fail(new ModelDomainError(MaxLoadingWeightKgMustBePositive));
 
         return Result.Ok();
     }
@@ -144,7 +144,7 @@ public sealed class Model
     private static Result ValidateEnginePowerKW(double enginePowerKW)
     {
         if (enginePowerKW <= 0)
-            return Result.Fail(EnginePowerKWMustBePositive);
+            return Result.Fail(new ModelDomainError(EnginePowerKWMustBePositive));
 
         return Result.Ok();
     }
@@ -152,7 +152,7 @@ public sealed class Model
     private static Result ValidateTransmissionType(string transmissionType)
     {
         if (string.IsNullOrWhiteSpace(transmissionType))
-            return Result.Fail(TransmissionTypeRequired);
+            return Result.Fail(new ModelDomainError(TransmissionTypeRequired));
 
         return Result.Ok();
     }
@@ -160,7 +160,7 @@ public sealed class Model
     private static Result ValidateFuelSystemType(string fuelSystemType)
     {
         if (string.IsNullOrWhiteSpace(fuelSystemType))
-            return Result.Fail(FuelSystemTypeRequired);
+            return Result.Fail(new ModelDomainError(FuelSystemTypeRequired));
 
         return Result.Ok();
     }
@@ -168,7 +168,7 @@ public sealed class Model
     private static Result ValidateFuelTankVolumeLiters(string fuelTankVolumeLiters)
     {
         if (string.IsNullOrWhiteSpace(fuelTankVolumeLiters))
-            return Result.Fail(FuelTankVolumeLitersRequired);
+            return Result.Fail(new ModelDomainError(FuelTankVolumeLitersRequired));
 
         return Result.Ok();
     }

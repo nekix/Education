@@ -1,4 +1,5 @@
-﻿using CarPark.Identity;
+﻿using CarPark.Errors;
+using CarPark.Identity;
 using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.ExportImport;
 using CarPark.ManagersOperations.ExportImport.Queries;
@@ -73,18 +74,13 @@ public class ExportController : ApiBaseController
             }
         }
 
-        if (exportEnterprise.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = exportEnterprise.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (exportEnterprise.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     [HttpGet("enterprises/{id}/vehicles")]
@@ -121,18 +117,13 @@ public class ExportController : ApiBaseController
             }
         }
 
-        if (exportVehicles.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = exportVehicles.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (exportVehicles.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     [HttpGet("vehicles/{id}/rides")]
@@ -172,18 +163,13 @@ public class ExportController : ApiBaseController
             }
         }
 
-        if (exportRides.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = exportRides.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (exportRides.HasError(e => e.Message == ExportImportHandlerErrors.VehicleNotExist))
-        {
-            return NotFound();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // GET: /api/export/models
@@ -220,14 +206,13 @@ public class ExportController : ApiBaseController
             }
         }
 
-        if (exportModels.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = exportModels.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // GET: /api/export/vehicles/{id}/tracks
@@ -268,22 +253,13 @@ public class ExportController : ApiBaseController
             }
         }
 
-        if (exportTracks.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = exportTracks.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (exportTracks.HasError(e => e.Message == ExportImportHandlerErrors.VehicleNotExist))
-        {
-            return NotFound();
-        }
-        else if (exportTracks.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     public class ExportVehicleTrackRequest

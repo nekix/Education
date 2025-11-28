@@ -1,5 +1,6 @@
 ﻿using CarPark.Attributes;
 using CarPark.Controllers.Api.Abstract;
+using CarPark.Errors;
 using CarPark.Identity;
 using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.Rides;
@@ -28,7 +29,7 @@ namespace CarPark.Controllers.Api.Controllers;
 public class VehiclesController : ApiBaseController
 {
     private readonly ICommandHandler<CreateVehicleCommand, Result<Guid>> _createVehicleHandler;
-    private readonly ICommandHandler<UpdateVehicleCommand, Result<Guid>> _updateVehicleHandler;
+    private readonly ICommandHandler<UpdateVehicleCommand, Result> _updateVehicleHandler;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteVehicleHandler;
 
     private readonly IQueryHandler<GetVehicleQuery, Result<VehicleDto>> _getVehicleQueryHandler;
@@ -47,7 +48,7 @@ public class VehiclesController : ApiBaseController
         IQueryHandler<GetVehicleQuery, Result<VehicleDto>> getVehicleQueryHandler,
         IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>> getVehiclesListQueryHandler,
         ICommandHandler<CreateVehicleCommand, Result<Guid>> createVehicleHandler,
-        ICommandHandler<UpdateVehicleCommand, Result<Guid>> updateVehicleHandler,
+        ICommandHandler<UpdateVehicleCommand, Result> updateVehicleHandler,
         ICommandHandler<DeleteVehicleCommand, Result> deleteVehicleHandler,
         ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>> uploadTrackQueryHandler,
         IQueryHandler<GetTrackQuery, Result<TrackViewModel>> getTrackQueryHandler,
@@ -96,14 +97,13 @@ public class VehiclesController : ApiBaseController
             return Ok(getVehiclesList.Value);
         }
 
-        if (getVehiclesList.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getVehiclesList.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // GET: api/Vehicles/5
@@ -128,22 +128,13 @@ public class VehiclesController : ApiBaseController
             return Ok(getVehicle.Value);
         }
 
-        if (getVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getVehicle.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (getVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-        else if (getVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
-        {
-            return NotFound();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // PUT: api/Vehicles/5
@@ -180,26 +171,13 @@ public class VehiclesController : ApiBaseController
             return NoContent();
         }
 
-        if (updateVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = updateVehicle.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
-        } 
-        else if (updateVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
-        {
-            return NotFound();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (updateVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else if (updateVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
-        {
-            return BadRequest();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // POST: api/Vehicles
@@ -237,26 +215,13 @@ public class VehiclesController : ApiBaseController
         }
 
         // Errors handling
-        if (createVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = createVehicle.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (createVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
-        {
-            return NotFound();
-        }
-        else if (createVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else if (createVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
-        {
-            return BadRequest();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // DELETE: api/Vehicles/5
@@ -286,30 +251,13 @@ public class VehiclesController : ApiBaseController
         }
 
         // Errors handling
-        if (deleteVehicle.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = deleteVehicle.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.VehicleNotExist))
-        {
-            return NotFound();
-        }
-        else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else if (deleteVehicle.HasError(e => e.Message == VehiclesHandlersErrors.ForbidDeleteVehicleWithAssignedDrivers))
-        {
-            return Conflict();
-        }
-        else if (deleteVehicle.HasError(e => VehiclesErrors.GetErrors().Contains(e.Message)))
-        {
-            return BadRequest();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     public class GetVehiclesRequest : IPaginationRequest
@@ -416,22 +364,13 @@ public class VehiclesController : ApiBaseController
             errorResult = getTrack.ToResult();
         }
 
-        if (errorResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = errorResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.VehicleNotFound))
-        {
-            return NotFound();
-        }
-        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     public class GetTrackRequest
@@ -484,28 +423,13 @@ public class VehiclesController : ApiBaseController
         if (createRide.IsSuccess)
             return CreatedAtAction("GetRides", new { vehicleId }, null);
 
-        if (createRide.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = createRide.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (createRide.HasError(e => e.Message == TrackHandlersErrors.VehicleNotFound))
-        {
-            return NotFound();
-        }
-        else if (createRide.HasError(e => e.Message == TrackHandlersErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-        else if (createRide.HasError(e => e.Message == TrackHandlersErrors.TracksNotSequential) ||
-                 createRide.HasError(e => e.Message == TrackHandlersErrors.TracksOverlapWithExisting) ||
-                 createRide.HasError(e => e.Message == RidesHandlerErrors.RidesOverlapWithExisting))
-        {
-            return BadRequest();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
 
@@ -565,22 +489,13 @@ public class VehiclesController : ApiBaseController
             errorResult = getRidesTrack.ToResult();
         }
 
-        if (errorResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = errorResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.VehicleNotFound))
-        {
-            return NotFound();
-        }
-        else if (errorResult.HasError(e => e.Message == TrackHandlersErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     public class GetRidesTrackRequest
@@ -626,22 +541,13 @@ public class VehiclesController : ApiBaseController
             return Ok(getRides.Value);
         }
 
-        if (getRides.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getRides.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (getRides.HasError(e => e.Message == RidesHandlerErrors.VehicleNotFound))
-        {
-            return NotFound();
-        }
-        else if (getRides.HasError(e => e.Message == RidesHandlerErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     public class GetRidesRequest

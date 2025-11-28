@@ -1,17 +1,17 @@
-﻿namespace CarPark.ManagersOperations.Tracks;
+﻿using CarPark.Errors;
+
+namespace CarPark.ManagersOperations.Tracks;
 
 public static class TrackHandlersErrors
 {
-    private const string Prefix = "TrackError";
+    public static readonly WebApiError VehicleNotFound = new WebApiError(404, "Vehicle not found.");
+    public static readonly WebApiError ManagerNotAllowedToVehicle = new WebApiError(403, "Manager is not allowed to access this vehicle.");
 
-    public const string VehicleNotFound = Prefix + "VehicleNotFound";
-    public const string ManagerNotAllowedToVehicle = Prefix + "ManagerNotAllowedToVehicle";
+    public static readonly WebApiError GpxContainLessThanTwoPoints = new WebApiError(400, "GPX file contains less than two points.");
+    public static readonly WebApiError GpxUnknowsGeometryType = new WebApiError(400, "Unknown geometry type in GPX file.");
+    public static readonly WebApiError GpxPointsDateTimeNotDefined = new WebApiError(400, "GPX points must have date and time defined.");
 
-    public const string GpxContainLessThanTwoPoints = Prefix + "GpxContainLessThanTwoPoints";
-    public const string GpxUnknowsGeometryType = Prefix + " GpxUnknowsGeometryType";
-    public const string GpxPointsDateTimeNotDefined = Prefix + "GpxPointsDateTimeNotDefined";
-
-    public const string TracksOverlapWithExisting = Prefix + "TracksOverlapWithExisting";
-    public const string TracksNotSequential = Prefix + "TracksNotSequential";
-    public const string GpxMustContainOneTrack = Prefix + "GpxMustContainOneTrack";
+    public static readonly WebApiError TracksOverlapWithExisting = new WebApiError(409, "Tracks overlap with existing tracks.");
+    public static readonly WebApiError TracksNotSequential = new WebApiError(400, "Tracks are not in sequential time order.");
+    public static readonly WebApiError GpxMustContainOneTrack = new WebApiError(400, "GPX file must contain exactly one track.");
 }

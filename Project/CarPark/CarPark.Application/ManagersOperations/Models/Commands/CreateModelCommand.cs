@@ -56,11 +56,10 @@ public class CreateModelCommand : ICommand<Result<Guid>>
             Result<Model> createModel = _modelsService.CreateModel(request);
             if (createModel.IsFailed)
             {
-                IEnumerable<WebApiError> apiErrors = createModel.Errors
-                    .OfType<ModelDomainError>()
-                    .Select(ModelsErrors.MapDomainError);
+                IEnumerable<IError> errors = createModel.Errors
+                    .Select(e => e is ModelDomainError domainError ? ModelsErrors.MapDomainError(domainError) : e);
 
-                return Result.Fail<Guid>(apiErrors);
+                return Result.Fail<Guid>(errors);
             }
 
             Model model = createModel.Value;

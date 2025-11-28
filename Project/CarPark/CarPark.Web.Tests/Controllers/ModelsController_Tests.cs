@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using CarPark.Controllers.Api.Controllers;
-using CarPark.Shared.CQ;
+using CarPark.CQ;
 using FluentResults;
 using CarPark.Data.Interfaces;
 using CarPark.Models;
@@ -224,7 +224,7 @@ public class ModelsController_Tests
             FuelTankVolumeLiters = "80"
         };
 
-        _mockUpdateHandler.Handle(Arg.Any<UpdateModelCommand>()).Returns(Result.Fail(UpdateModelCommand.Errors.NotFound));
+        _mockUpdateHandler.Handle(Arg.Any<UpdateModelCommand>()).Returns(Result.Fail(new CarPark.Errors.WebApiError(404, "Model not found.")));
 
         // Act
         IActionResult result = await _controller.PutModel(modelId, request);
@@ -241,7 +241,7 @@ public class ModelsController_Tests
         // Arrange
         Guid modelId = Guid.Parse("e519ae0e-29df-4cb0-81e6-0c2979c185a9");
 
-        _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail(DeleteModelCommand.Errors.NotFound));
+        _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail(new CarPark.Errors.WebApiError(404, "Model not found.")));
 
         // Act
         IActionResult result = await _controller.DeleteModel(modelId);
@@ -258,7 +258,7 @@ public class ModelsController_Tests
         // Arrange
         Guid modelId = Guid.Parse("a218ad02-9b37-4814-bbe1-5bef40d0b898");
 
-        _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail(DeleteModelCommand.Errors.Conflict));
+        _mockDeleteHandler.Handle(Arg.Any<DeleteModelCommand>()).Returns(Result.Fail(new CarPark.Errors.WebApiError(409, "Cannot delete model because it is referenced by vehicles.")));
 
         // Act
         IActionResult result = await _controller.DeleteModel(modelId);

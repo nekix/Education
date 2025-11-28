@@ -1,6 +1,8 @@
 ﻿using CarPark.DateTimes;
 using FluentResults;
 using NetTopologySuite.Geometries;
+using CarPark.Vehicles.Errors;
+using static CarPark.Vehicles.Errors.VehicleGeoTimePointDomainErrorCodes;
 
 namespace CarPark.Vehicles;
 
@@ -22,29 +24,55 @@ public sealed class VehicleGeoTimePoint
     }
     #pragma warning restore CS8618
 
-    public static Result<VehicleGeoTimePoint> Create(Guid id, Vehicle vehicle, Point location, UtcDateTimeOffset time)
+    internal static Result<VehicleGeoTimePoint> Create(VehicleGeoTimePointCreateData data)
     {
+        Result validationResult = ValidateVehicle(data.Vehicle)
+            .Bind(() => ValidateLocation(data.Location));
+
+        if (validationResult.IsFailed)
+            return Result.Fail<VehicleGeoTimePoint>(validationResult.Errors);
+
         #pragma warning disable CS0618
         VehicleGeoTimePoint point = new VehicleGeoTimePoint
         {
-            Id = id,
+            Id = data.Id,
+            Vehicle = data.Vehicle,
+            Location = data.Location,
+            Time = data.Time
         };
         #pragma warning restore CS0618
 
-        if (vehicle == null)
-        {
-            return Result.Fail<VehicleGeoTimePoint>(VehiclesGeoTimePointErrors.VehicleMustBeDefined);
-        }
-        point.Vehicle = vehicle;
-
-        if (location == null)
-        {
-            return Result.Fail<VehicleGeoTimePoint>(VehiclesGeoTimePointErrors.LocationMustBeDefined);
-        }
-        point.Location = location;
-
-        point.Time = time;
-
         return Result.Ok(point);
+    }
+
+    internal static Result Update(VehicleGeoTimePoint point, VehicleGeoTimePointUpdateData data)
+    {
+        Result validationResult = ValidateVehicle(data.Vehicle)
+            .Bind(() => ValidateLocation(data.Location));
+
+        if (validationResult.IsFailed)
+            return Result.Fail(validationResult.Errors);
+
+        point.Vehicle = data.Vehicle;
+        point.Location = data.Location;
+        point.Time = data.Time;
+
+        return Result.Ok();
+    }
+
+    private static Result ValidateVehicle(Vehicle vehicle)
+    {
+        if (vehicle == null)
+            return Result.Fail(new VehicleGeoTimePointDomainError(VehicleMustBeDefined));
+
+        return Result.Ok();
+    }
+
+    private static Result ValidateLocation(Point location)
+    {
+        if (location == null)
+            return Result.Fail(new VehicleGeoTimePointDomainError(LocationMustBeDefined));
+
+        return Result.Ok();
     }
 }

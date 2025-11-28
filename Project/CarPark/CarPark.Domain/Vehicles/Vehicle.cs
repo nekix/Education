@@ -2,6 +2,8 @@
 using CarPark.Enterprises;
 using CarPark.Models;
 using FluentResults;
+using static CarPark.Vehicles.Errors.VehicleDomainErrorCodes;
+using CarPark.Vehicles.Errors;
 
 namespace CarPark.Vehicles;
 
@@ -13,22 +15,22 @@ public sealed class Vehicle
 
     public Enterprise Enterprise { get; private set; }
 
-    public string VinNumber { get; set; }
+    public string VinNumber { get; private set; }
 
-    public decimal Price { get; set; }
+    public decimal Price { get; private set; }
 
-    public int ManufactureYear { get; set; }
+    public int ManufactureYear { get; private set; }
 
-    public int Mileage { get; set; }
+    public int Mileage { get; private set; }
 
-    public string Color { get; set; }
+    public string Color { get; private set; }
 
     private List<Driver> _assignedDrivers;
     public IReadOnlyList<Driver> AssignedDrivers => _assignedDrivers.AsReadOnly();
 
     public Driver? ActiveAssignedDriver { get; private set; }
 
-    public DateTimeOffset AddedToEnterpriseAt { get; set; }
+    public DateTimeOffset AddedToEnterpriseAt { get; private set; }
 
     #pragma warning disable CS8618
     [Obsolete("Only for ORM, fabric method and deserialization! Do not use!")]
@@ -38,129 +40,200 @@ public sealed class Vehicle
     }
     #pragma warning restore CS8618
 
-    public static Result<Vehicle> Create(
-        Guid id,
-        Model model,
-        Enterprise enterprise,
-        string vinNumber,
-        decimal price,
-        int manufactureYear,
-        int mileage,
-        string color,
-        List<Driver> assignedDrivers,
-        Driver? activeAssignedDriver,
-        DateTimeOffset addedToEnterpriseAt)
+    internal static Result<Vehicle> Create(VehicleCreateData data)
     {
+        Result validationResult = ValidateVinNumber(data.VinNumber)
+            .Bind(() => ValidatePrice(data.Price))
+            .Bind(() => ValidateManufactureYear(data.ManufactureYear))
+            .Bind(() => ValidateMileage(data.Mileage))
+            .Bind(() => ValidateColor(data.Color));
+
+        if (validationResult.IsFailed)
+            return Result.Fail<Vehicle>(validationResult.Errors);
+
         #pragma warning disable CS0618
         Vehicle vehicle = new Vehicle
         {
-            Id = id,
-            VinNumber = vinNumber,
-            Price = price,
-            ManufactureYear = manufactureYear,
-            Mileage = mileage,
-            Color = color,
+            Id = data.Id,
+            VinNumber = data.VinNumber,
+            Price = data.Price,
+            ManufactureYear = data.ManufactureYear,
+            Mileage = data.Mileage,
+            Color = data.Color,
             _assignedDrivers = new List<Driver>(),
-            ActiveAssignedDriver = activeAssignedDriver,
-            AddedToEnterpriseAt = addedToEnterpriseAt
+            ActiveAssignedDriver = null,
+            AddedToEnterpriseAt = data.AddedToEnterpriseAt
         };
-        #pragma warning restore CS0618 // Type or member is obsolete
+        #pragma warning restore CS0618
 
-        return vehicle.SetModel(model)
-            .Bind(v => v.SetEnterprise(enterprise))
-            .Bind(v =>
-            {
-                foreach (Driver newAssignedDriver in assignedDrivers)
-                {
-                    Result<Vehicle> addResult = v.AddAssignedDriver(newAssignedDriver);
-
-                    if (addResult.IsFailed)
-                        return addResult;
-                }
-
-                return Result.Ok<Vehicle>(v);
-            })
-            .Bind(v => v.SetActiveAssignedDriver(activeAssignedDriver));
+        return vehicle.SetModel(data.Model)
+            .Bind(() => vehicle.SetEnterprise(data.Enterprise))
+            .Bind(() => vehicle.SetAssignedDrivers(data.AssignedDrivers))
+            .Bind(() => vehicle.SetActiveAssignedDriver(data.ActiveAssignedDriver));
     }
 
-    public Result<Vehicle> SetModel(Model model)
+    internal static Result Update(Vehicle vehicle, VehicleUpdateData data)
+    {
+        Result validationResult = ValidateVinNumber(data.VinNumber)
+            .Bind(() => ValidatePrice(data.Price))
+            .Bind(() => ValidateManufactureYear(data.ManufactureYear))
+            .Bind(() => ValidateMileage(data.Mileage))
+            .Bind(() => ValidateColor(data.Color));
+
+        if (validationResult.IsFailed)
+            return Result.Fail(validationResult.Errors);
+
+        vehicle.VinNumber = data.VinNumber;
+        vehicle.Price = data.Price;
+        vehicle.ManufactureYear = data.ManufactureYear;
+        vehicle.Mileage = data.Mileage;
+        vehicle.Color = data.Color;
+
+        Result<Vehicle> result = vehicle.SetModel(data.Model);
+        if (result.IsFailed) return Result.Fail(result.Errors);
+
+        result = vehicle.SetEnterprise(data.Enterprise);
+        if (result.IsFailed) return Result.Fail(result.Errors);
+
+        result = vehicle.SetAssignedDrivers(data.AssignedDrivers);
+        if (result.IsFailed) return Result.Fail(result.Errors);
+
+        result = vehicle.SetActiveAssignedDriver(data.ActiveAssignedDriver);
+        if (result.IsFailed) return Result.Fail(result.Errors);
+
+        vehicle.AddedToEnterpriseAt = data.AddedToEnterpriseAt;
+
+        return Result.Ok();
+    }
+
+    private static Result ValidateVinNumber(string vinNumber)
+    {
+        if (string.IsNullOrWhiteSpace(vinNumber))
+            return Result.Fail(new VehicleDomainError(VinNumberRequired));
+        return Result.Ok();
+    }
+
+    private static Result ValidatePrice(decimal price)
+    {
+        if (price <= 0)
+            return Result.Fail(new VehicleDomainError(PriceMustBePositive));
+        return Result.Ok();
+    }
+
+    private static Result ValidateManufactureYear(int manufactureYear)
+    {
+        if (manufactureYear <= 0)
+            return Result.Fail(new VehicleDomainError(ManufactureYearMustBePositive));
+        return Result.Ok();
+    }
+
+    private static Result ValidateMileage(int mileage)
+    {
+        if (mileage < 0)
+            return Result.Fail(new VehicleDomainError(MileageMustBeNonNegative));
+        return Result.Ok();
+    }
+    
+    private static Result ValidateColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+            return Result.Fail(new VehicleDomainError(ColorRequired));
+        return Result.Ok();
+    }
+
+    private Result SetAssignedDrivers(IEnumerable<Driver> drivers)
+    {
+        List<Driver> newDrivers = drivers.ToList();
+
+        // Check for duplicates
+        bool hasDuplicates = newDrivers.GroupBy(d => d.Id)
+            .Where(g => g.Count() > 1)
+            .Any();
+
+        if (hasDuplicates)
+            return Result.Fail(new VehicleDomainError(DuplicatedAssignedDriver));
+
+        // Check enterprises
+        if (newDrivers.Any(d => d.EnterpriseId != Enterprise.Id))
+            return Result.Fail(new VehicleDomainError(AssignedDriverFromAnotherEnterprise));
+
+        // Check what is being removed
+        List<Driver> toRemove = _assignedDrivers
+            .Where(ad => !newDrivers.Any(nd => nd.Id == ad.Id))
+            .ToList();
+
+        // Cannot remove the active driver
+        if (toRemove.Any(rd => rd.Id == ActiveAssignedDriver?.Id))
+            return Result.Fail(new VehicleDomainError(BeingRemovedAssignedDriverIsActive));
+
+        // For new drivers
+        List<Driver> toAdd = newDrivers
+            .Where(nd => !_assignedDrivers.Any(cd => cd.Id == nd.Id))
+            .ToList();
+
+        // Apply changes
+        foreach (Driver d in toRemove)
+        {
+            _assignedDrivers.Remove(d);
+        }
+
+        foreach (Driver d in toAdd)
+        {
+            _assignedDrivers.Add(d);
+        }
+
+        return Result.Ok();
+    }
+
+    private Result SetModel(Model model)
     {
         if (model == null)
         {
-            return Result.Fail<Vehicle>(VehiclesErrors.ModelMustBeDefined);
+            return Result.Fail(new VehicleDomainError(ModelMustBeDefined));
         }
 
         Model = model;
 
-        return Result.Ok<Vehicle>(this);
+        return Result.Ok();
     }
 
-    public Result<Vehicle> SetEnterprise(Enterprise enterprise)
+    private Result SetEnterprise(Enterprise enterprise)
     {
         if (enterprise == null)
         {
-            return Result.Fail<Vehicle>(VehiclesErrors.EnterpriseMustBeDefined);
+            return Result.Fail(new VehicleDomainError(EnterpriseMustBeDefined));
         }
 
         if (AssignedDrivers.Count > 0)
         {
-            return Result.Fail<Vehicle>(VehiclesErrors.ForbidChangeEnterpriseWhenExistAssignedDrivers);
+            return Result.Fail(new VehicleDomainError(ForbidChangeEnterpriseWhenExistAssignedDrivers));
         }
 
         Enterprise = enterprise;
 
-        return Result.Ok<Vehicle>(this);
+        return Result.Ok();
     }
 
-    public Result<Vehicle> AddAssignedDriver(Driver newAssignedDriver)
-    {
-        if (newAssignedDriver.EnterpriseId != Enterprise.Id)
-        {
-            return Result.Fail<Vehicle>(VehiclesErrors.AssignedDriverFromAnotherEnterprise);
-        }
-
-        if (AssignedDrivers.Any(d => d.Id == newAssignedDriver.Id))
-        {
-            return Result.Fail<Vehicle>(VehiclesErrors.DuplicatedAssignedDriver);
-        }
-
-        _assignedDrivers.Add(newAssignedDriver);
-
-        return Result.Ok<Vehicle>(this);
-    }
-
-    public Result<Vehicle> DeleteAssignedDriver(Driver assignedDriver)
-    {
-        if (ActiveAssignedDriver != null && ActiveAssignedDriver.Id == assignedDriver.Id)
-        {
-            return Result.Fail<Vehicle>(VehiclesErrors.BeingRemovedAssignedDriverIsActive);
-        }
-
-        _assignedDrivers.Remove(assignedDriver);
-
-        return Result.Ok<Vehicle>(this);
-    }
-
-    public Result<Vehicle> SetActiveAssignedDriver(Driver? newActiveAssignedDriver)
+    private Result SetActiveAssignedDriver(Driver? newActiveAssignedDriver)
     {
         if (newActiveAssignedDriver == null)
         {
             ActiveAssignedDriver = newActiveAssignedDriver;
-            return Result.Ok<Vehicle>(this);
+            return Result.Ok();
         }
 
         if (newActiveAssignedDriver.EnterpriseId != Enterprise.Id)
         {
-            return Result.Fail<Vehicle>(VehiclesErrors.ActiveAssignedDriverFromAnotherEnterprise);
+            return Result.Fail(new VehicleDomainError(ActiveAssignedDriverFromAnotherEnterprise));
         }
 
         if (newActiveAssignedDriver != null && AssignedDrivers.All(d => d.Id != newActiveAssignedDriver.Id))
         {
-            return Result.Fail<Vehicle>(VehiclesErrors.ActiveAssignedDriverMustBeInAssignedDrivers);
+            return Result.Fail(new VehicleDomainError(ActiveAssignedDriverMustBeInAssignedDrivers));
         }
 
         ActiveAssignedDriver = newActiveAssignedDriver;
 
-        return Result.Ok<Vehicle>(this);
+        return Result.Ok();
     }
 }

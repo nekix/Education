@@ -1,8 +1,8 @@
-﻿namespace CarPark.ManagersOperations;
+﻿using CarPark.Errors;
+
+namespace CarPark.ManagersOperations;
 
 public static class ManagersOperationsErrors
 {
-    private const string Prefix = "ManagersOperationError:";
-
-    public const string ManagerNotExist = Prefix + "ManagerNotExist";
+    public static readonly WebApiError ManagerNotExist = new WebApiError(403, "Manager does not exist.");
 }

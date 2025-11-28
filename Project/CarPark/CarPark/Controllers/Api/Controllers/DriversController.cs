@@ -1,4 +1,5 @@
 ﻿using CarPark.Controllers.Api.Abstract;
+using CarPark.Errors;
 using CarPark.Identity;
 using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.Drivers;
@@ -48,14 +49,13 @@ public class DriversController : ApiBaseController
             return Ok(getDrivers.Value);
         }
 
-        if (getDrivers.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getDrivers.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // GET: api/Drivers/5
@@ -81,22 +81,13 @@ public class DriversController : ApiBaseController
             return Ok(getDriver.Value);
         }
 
-        if (getDriver.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getDriver.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (getDriver.HasError(e => e.Message == DriversHandlerErrors.DriverNotExist))
-        {
-            return NotFound();
-        }
-        else if (getDriver.HasError(e => e.Message == DriversHandlerErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     public class GetDriversRequest : IPaginationRequest

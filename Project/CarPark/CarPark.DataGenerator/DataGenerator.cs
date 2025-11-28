@@ -3,6 +3,8 @@ using CarPark.Drivers;
 using CarPark.Enterprises;
 using CarPark.Models;
 using CarPark.Vehicles;
+using CarPark.Vehicles.Services;
+using FluentResults;
 
 namespace CarPark.DataGenerator;
 
@@ -12,6 +14,8 @@ public class DataGenerator
     private readonly Random _random;
     private readonly Faker<VehicleDto> _vehicleFaker;
     private readonly Faker<Driver> _driverFaker;
+    private readonly IVehiclesService _vehiclesService;
+    private readonly List<Vehicle> _generatedVehicles = new();
 
     private class VehicleDto
     {
@@ -38,10 +42,11 @@ public class DataGenerator
         public required DateTimeOffset AddedToEnterpriseAt { get; init; }
     }
 
-    public DataGenerator(int seed)
+    public DataGenerator(int seed, IVehiclesService vehiclesService)
     {
         _seed = seed;
         _random = new Random(seed);
+        _vehiclesService = vehiclesService;
 
         // Создать Faker с фиксированным Randomizer
         Randomizer.Seed = new Random(seed);
@@ -79,19 +84,25 @@ public class DataGenerator
             .RuleFor(v => v.Model, f => f.PickRandom(models))
             .RuleFor(v => v.Id, f => GenerateDeterministicGuid())
             .GenerateForever()
-            .Select(v => Vehicle.Create(
-                v.Id,
-                v.Model,
-                v.Enterprise, 
-                v.VinNumber, 
-                v.Price, 
-                v.ManufactureYear, 
-                v.Mileage,
-                v.Color,
-                v.AssignedDrivers,
-                v.ActiveAssignedDriver,
-                v.AddedToEnterpriseAt
-                ).Value);
+            .Select(v =>
+            {
+                CreateVehicleRequest request = new CreateVehicleRequest
+                {
+                    Id = v.Id,
+                    Model = v.Model,
+                    Enterprise = v.Enterprise,
+                    VinNumber = v.VinNumber,
+                    Price = v.Price,
+                    ManufactureYear = v.ManufactureYear,
+                    Mileage = v.Mileage,
+                    Color = v.Color,
+                    AssignedDrivers = v.AssignedDrivers,
+                    ActiveAssignedDriver = v.ActiveAssignedDriver,
+                    AddedToEnterpriseAt = v.AddedToEnterpriseAt
+                };
+
+                return _vehiclesService.CreateVehicle(request).Value;
+            });
     }
 
     /// <summary>
@@ -185,14 +196,32 @@ public class DataGenerator
                         .Take(selectedDriversCount)
                         .ToList();
 
+                    List<Driver> currentAssigned = vehicle.AssignedDrivers.ToList();
                     foreach (Driver driver in selectedDrivers)
                     {
-                        if (!vehicle.AssignedDrivers.Contains(driver))
+                        if (!currentAssigned.Contains(driver))
                         {
-                            vehicle.AddAssignedDriver(driver);
+                            currentAssigned.Add(driver);
                             driver.AssignedVehicles.Add(vehicle);
                         }
                     }
+
+                    // Update vehicle with new assigned drivers
+                    UpdateVehicleRequest updateRequest = new UpdateVehicleRequest
+                    {
+                        Model = vehicle.Model,
+                        Enterprise = vehicle.Enterprise,
+                        VinNumber = vehicle.VinNumber,
+                        Price = vehicle.Price,
+                        ManufactureYear = vehicle.ManufactureYear,
+                        Mileage = vehicle.Mileage,
+                        Color = vehicle.Color,
+                        AssignedDrivers = currentAssigned,
+                        ActiveAssignedDriver = vehicle.ActiveAssignedDriver,
+                        AddedToEnterpriseAt = vehicle.AddedToEnterpriseAt
+                    };
+
+                    _vehiclesService.UpdateVehicle(vehicle, updateRequest);
                 }
             }
 
@@ -217,7 +246,23 @@ public class DataGenerator
 
                     if (availableDriver != null)
                     {
-                        vehicle.SetActiveAssignedDriver(availableDriver);
+                        // Update vehicle with active driver
+                        UpdateVehicleRequest updateRequest = new UpdateVehicleRequest
+                        {
+                            Model = vehicle.Model,
+                            Enterprise = vehicle.Enterprise,
+                            VinNumber = vehicle.VinNumber,
+                            Price = vehicle.Price,
+                            ManufactureYear = vehicle.ManufactureYear,
+                            Mileage = vehicle.Mileage,
+                            Color = vehicle.Color,
+                            AssignedDrivers = vehicle.AssignedDrivers.ToList(),
+                            ActiveAssignedDriver = availableDriver,
+                            AddedToEnterpriseAt = vehicle.AddedToEnterpriseAt
+                        };
+
+                        _vehiclesService.UpdateVehicle(vehicle, updateRequest);
+
                         availableDriver.ActiveAssignedVehicle = vehicle;
                         usedDriverIds.Add(availableDriver.Id);
                     }

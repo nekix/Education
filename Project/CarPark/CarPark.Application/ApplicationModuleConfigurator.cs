@@ -51,7 +51,7 @@ public class ApplicationModuleConfigurator
         services.AddScoped<IQueryHandler<GetVehicleQuery, Result<VehicleDto>>, ManagersVehiclesQueryHandler>();
         services.AddScoped<IQueryHandler<GetVehiclesListQuery, Result<PaginatedVehicles>>, ManagersVehiclesQueryHandler>();
         services.AddScoped<ICommandHandler<CreateVehicleCommand, Result<Guid>>, ManagersVehiclesCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result<Guid>>, ManagersVehiclesCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateVehicleCommand, Result>, ManagersVehiclesCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteVehicleCommand, Result>, ManagersVehiclesCommandHandler>();
         
         services.AddScoped<IQueryHandler<GetDriverQuery, Result<DriverDto>>, ManagersDriverQueryHandler>();

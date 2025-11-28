@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CarPark\CarPark.Web.csproj" />
+    <ProjectReference Include="..\CarPark.Application.Shared\CarPark.Application.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

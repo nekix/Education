@@ -1,8 +1,7 @@
 ﻿using CarPark.Attributes;
 using CarPark.CQ;
+using CarPark.Errors;
 using CarPark.Identity;
-using CarPark.ManagersOperations;
-using CarPark.ManagersOperations.Enterprises;
 using CarPark.ManagersOperations.Enterprises.Commands;
 using CarPark.ManagersOperations.Enterprises.Queries;
 using CarPark.ViewModels.Api;
@@ -51,14 +50,13 @@ public class EnterprisesController : ApiBaseController
             return Ok(getEnterprisesCollection.Value);
         }
 
-        if (getEnterprisesCollection.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getEnterprisesCollection.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // GET: api/Enterprises/5
@@ -83,18 +81,13 @@ public class EnterprisesController : ApiBaseController
             return Ok(getEnterprise.Value);
         }
 
-        if (getEnterprise.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = getEnterprise.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (getEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // DELETE: api/Enterprises/5
@@ -124,33 +117,12 @@ public class EnterprisesController : ApiBaseController
         }
 
         // Errors handling
-        if (deleteEnterprise.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = deleteEnterprise.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.EnterpriseNotExist))
-        {
-            return NotFound();
-        }
-        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ForbidDeleteEnterpriseWithOtherManagers))
-        {
-            return Conflict();
-        }
-        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ForbidDeleteWithAnyVehicles))
-        {
-            return Conflict();
-        }
-        else if (deleteEnterprise.HasError(e => e.Message == EnterprisesHandlersErrors.ForbidDeleteWithAnyDrivers))
-        {
-            return Conflict();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 }

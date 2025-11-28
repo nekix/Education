@@ -6,11 +6,15 @@ using CarPark.Enterprises;
 using CarPark.Managers;
 using CarPark.ManagersOperations.ExportImport.Commands;
 using CarPark.ManagersOperations.ExportImport.Queries;
+using CarPark.ManagersOperations.Vehicles;
 using CarPark.Models;
+using CarPark.Models.Errors;
 using CarPark.Models.Services;
 using CarPark.Rides;
 using CarPark.TimeZones;
 using CarPark.Vehicles;
+using CarPark.Vehicles.Errors;
+using CarPark.Vehicles.Services;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
@@ -26,10 +30,14 @@ public class ManagersExportImportHandler : BaseManagersHandler,
     ICommandHandler<ImportCommand, Result>
 {
     private readonly IModelsService _modelsService;
+    private readonly IVehiclesService _vehiclesService;
+    private readonly IVehicleGeoTimePointsService _vehicleGeoTimePointsService;
 
-    public ManagersExportImportHandler(ApplicationDbContext dbContext, IModelsService modelsService) : base(dbContext)
+    public ManagersExportImportHandler(ApplicationDbContext dbContext, IModelsService modelsService, IVehiclesService vehiclesService, IVehicleGeoTimePointsService vehicleGeoTimePointsService) : base(dbContext)
     {
         _modelsService = modelsService;
+        _vehiclesService = vehiclesService;
+        _vehicleGeoTimePointsService = vehicleGeoTimePointsService;
     }
 
     public async Task<Result<EnterpriseExportImportDto>> Handle(ExportEnterpriseQuery query)
@@ -217,7 +225,10 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                 Result<Model> createModel = _modelsService.CreateModel(request);
                 if (createModel.IsFailed)
                 {
-                    return createModel.ToResult();
+                    IEnumerable<IError> errors = createModel.Errors
+                        .Select(e => e is ModelDomainError domainError ? ImportErrors.Model.MapDomainError(domainError) : e);
+
+                    return Result.Fail(errors);
                 }
 
                 Model model = createModel.Value;
@@ -282,21 +293,30 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                 if (model == null)
                     return Result.Fail(ExportImportHandlerErrors.ModelNotFound);
 
-                Result<Vehicle> createVehicle = Vehicle.Create(
-                    vehicleDto.Id,
-                    model,
-                    enterprise,
-                    vehicleDto.VinNumber,
-                    vehicleDto.Price,
-                    vehicleDto.ManufactureYear,
-                    vehicleDto.Mileage,
-                    vehicleDto.Color,
-                    new List<Driver>(0),
-                    null,
-                    vehicleDto.AddedToEnterpriseAt);
+                CreateVehicleRequest createRequest = new CreateVehicleRequest
+                {
+                    Id = vehicleDto.Id,
+                    Model = model,
+                    Enterprise = enterprise,
+                    VinNumber = vehicleDto.VinNumber,
+                    Price = vehicleDto.Price,
+                    ManufactureYear = vehicleDto.ManufactureYear,
+                    Mileage = vehicleDto.Mileage,
+                    Color = vehicleDto.Color,
+                    AssignedDrivers = new List<Driver>(0),
+                    ActiveAssignedDriver = null,
+                    AddedToEnterpriseAt = vehicleDto.AddedToEnterpriseAt
+                };
+
+                Result<Vehicle> createVehicle = _vehiclesService.CreateVehicle(createRequest);
 
                 if (createVehicle.IsFailed)
-                    return createVehicle.ToResult();
+                {
+                    IEnumerable<IError> errors = createVehicle.Errors
+                        .Select(e => e is VehicleDomainError domainError ? ImportErrors.Vehicle.MapDomainError(domainError) : e);
+
+                    return Result.Fail(errors);
+                }
 
                 Vehicle vehicle = createVehicle.Value;
 
@@ -323,14 +343,23 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                 if (manager.Enterprises.All(e => e.Id != vehicle.Enterprise.Id))
                     return Result.Fail(ExportImportHandlerErrors.ManagerNotAllowedToEnterprise);
 
-                Result<VehicleGeoTimePoint> createPoint = VehicleGeoTimePoint.Create(
-                    pointDto.Id,
-                    vehicle,
-                    new Point(new Coordinate(pointDto.X, pointDto.Y)) { SRID = 4326 },
-                    new UtcDateTimeOffset(pointDto.Time));
+                CreateVehicleGeoTimePointRequest createRequest = new CreateVehicleGeoTimePointRequest
+                {
+                    Id = pointDto.Id,
+                    Vehicle = vehicle,
+                    Location = new Point(new Coordinate(pointDto.X, pointDto.Y)) { SRID = 4326 },
+                    Time = new UtcDateTimeOffset(pointDto.Time)
+                };
+
+                Result<VehicleGeoTimePoint> createPoint = _vehicleGeoTimePointsService.CreateVehicleGeoTimePoint(createRequest);
 
                 if (createPoint.IsFailed)
-                    return createPoint.ToResult();
+                {
+                    IEnumerable<IError> errors = createPoint.Errors
+                        .Select(e => e is VehicleGeoTimePointDomainError domainError ? ImportErrors.VehicleGeoTimePoint.MapDomainError(domainError) : e);
+
+                    return Result.Fail(errors);
+                }
 
                 VehicleGeoTimePoint point = createPoint.Value;
 

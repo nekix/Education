@@ -44,7 +44,7 @@ public class ModelsController : ApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Model>> GetModel(Guid id)
     {
-        var model = await _set.Models.FindAsync(id);
+        Model? model = await _set.Models.FindAsync(id);
 
         if (model == null)
         {

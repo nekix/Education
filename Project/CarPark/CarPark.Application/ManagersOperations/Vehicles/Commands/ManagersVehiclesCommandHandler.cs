@@ -2,23 +2,27 @@
 using CarPark.Data;
 using CarPark.Drivers;
 using CarPark.Enterprises;
+using CarPark.Errors;
 using CarPark.Managers;
 using CarPark.Models;
 using CarPark.Vehicles;
+using CarPark.Vehicles.Errors;
+using CarPark.Vehicles.Services;
 using FluentResults;
-using FluentResults.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarPark.ManagersOperations.Vehicles.Commands;
 
 internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
-    ICommandHandler<CreateVehicleCommand, Result<Guid>>, 
-    ICommandHandler<UpdateVehicleCommand, Result<Guid>>,
+    ICommandHandler<CreateVehicleCommand, Result<Guid>>,
+    ICommandHandler<UpdateVehicleCommand, Result>,
     ICommandHandler<DeleteVehicleCommand, Result>
 {
-    public ManagersVehiclesCommandHandler(ApplicationDbContext dbContext) : base(dbContext)
-    {
+    private readonly IVehiclesService _vehiclesService;
 
+    public ManagersVehiclesCommandHandler(ApplicationDbContext dbContext, IVehiclesService vehiclesService) : base(dbContext)
+    {
+        _vehiclesService = vehiclesService;
     }
 
     public async Task<Result<Guid>> Handle(CreateVehicleCommand command)
@@ -28,110 +32,111 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
         Result<Model> getModel = await getEnterprise.Bind(_ => GetModelAsync(command.ModelId));
         Result<List<Driver>> getAssignedDrivers = await getModel.Bind(_ => GetAssignedDriversAsync(command.DriverIds));
         Result<Driver?> getIfDefinedActiveAssignedDriver = await getAssignedDrivers.Bind(_ => GetIfDefinedActiveAssignedDriverAsync(command.ActiveDriverId));
+        if (getIfDefinedActiveAssignedDriver.IsFailed)
+            return Result.Fail<Guid>(getIfDefinedActiveAssignedDriver.Errors);
 
-        Result<Vehicle> createVehicle = getIfDefinedActiveAssignedDriver
-            .Bind(activeAssignedDriver => 
-                Vehicle.Create(
-                    default, 
-                    getModel.Value, 
-                    getEnterprise.Value, 
-                    command.VinNumber, 
-                    command.Price, 
-                    command.ManufactureYear,
-                    command.Mileage, 
-                    command.Color, 
-                    getAssignedDrivers.Value,
-                    activeAssignedDriver,
-                    command.AddedToEnterpriseAt));
+
+        CreateVehicleRequest request = new CreateVehicleRequest
+        {
+            Id = default,
+            Model = getModel.Value,
+            Enterprise = getEnterprise.Value,
+            VinNumber = command.VinNumber,
+            Price = command.Price,
+            ManufactureYear = command.ManufactureYear,
+            Mileage = command.Mileage,
+            Color = command.Color,
+            AssignedDrivers = getAssignedDrivers.Value,
+            ActiveAssignedDriver = getIfDefinedActiveAssignedDriver.Value,
+            AddedToEnterpriseAt = command.AddedToEnterpriseAt
+        };
+
+        Result<Vehicle> createVehicle = _vehiclesService.CreateVehicle(request);
+        if (createVehicle.IsFailed)
+        {
+            IEnumerable<IError> errors = createVehicle.Errors
+                .Select(e => e is VehicleDomainError domainError ? VehiclesErrors.MapDomainError(domainError) : e);
+
+            return Result.Fail<Guid>(errors);
+        }
 
         Result<Vehicle> saveNewVehicle = await createVehicle.Bind(SaveNewVehicleAsync);
 
         return saveNewVehicle.Map(v => v.Id);
     }
 
-    public async Task<Result<Guid>> Handle(UpdateVehicleCommand command)
+    public async Task<Result> Handle(UpdateVehicleCommand command)
     {
         Result<Manager> getManager = await GetManagerAsync(command.RequestingManagerId, false);
         Result<Vehicle> getVehicle = await getManager.Bind(_ => GetVehicleAsync(command.VehicleId));
         Result<Enterprise> getOldEnterprise = getManager.Bind(m => GetAllowedToManagerEnterprise(m, getVehicle.Value.Enterprise.Id));
         if (getOldEnterprise.IsFailed)
-            return getOldEnterprise.ToResult<Guid>();
+            return getOldEnterprise.ToResult();
 
         Vehicle vehicle = getVehicle.Value;
 
-        if (vehicle.Enterprise.Id != command.EnterpriseId)
+        // Load new entities
+        Result<Model> getModel = await GetModelAsync(command.ModelId);
+        if (getModel.IsFailed) return getModel.ToResult();
+
+        Result<Enterprise> getEnterprise = GetAllowedToManagerEnterprise(getManager.Value, command.EnterpriseId);
+        if (getEnterprise.IsFailed) return getEnterprise.ToResult();
+
+        Result<List<Driver>> getAssignedDrivers = await GetAssignedDriversAsync(command.DriverIds);
+        if (getAssignedDrivers.IsFailed) return getAssignedDrivers.ToResult();
+
+        Result<Driver?> getActiveDriver = await GetIfDefinedActiveAssignedDriverAsync(command.ActiveDriverId);
+        if (getActiveDriver.IsFailed) return getActiveDriver.ToResult();
+
+        UpdateVehicleRequest request = new UpdateVehicleRequest
         {
-            Result<Vehicle> setEnterprise = GetAllowedToManagerEnterprise(getManager.Value, command.EnterpriseId)
-                .Bind(e => vehicle.SetEnterprise(e));
-            if (setEnterprise.IsFailed)
-                return setEnterprise.ToResult<Guid>();
+            Model = getModel.Value,
+            Enterprise = getEnterprise.Value,
+            VinNumber = command.VinNumber,
+            Price = command.Price,
+            ManufactureYear = command.ManufactureYear,
+            Mileage = command.Mileage,
+            Color = command.Color,
+            AssignedDrivers = getAssignedDrivers.Value,
+            ActiveAssignedDriver = getActiveDriver.Value,
+            AddedToEnterpriseAt = command.AddedToEnterpriseAt
+        };
+
+        Result updateResult = _vehiclesService.UpdateVehicle(vehicle, request);
+        if (updateResult.IsFailed)
+        {
+            IEnumerable<IError> errors = updateResult.Errors
+                .Select(e => e is VehicleDomainError domainError ? VehiclesErrors.MapDomainError(domainError) : e);
+
+            return Result.Fail(errors);
         }
 
-        if (vehicle.Model.Id != command.ModelId)
-        {
-            Result<Vehicle> setModel = await GetModelAsync(command.ModelId)
-                .Bind(m => vehicle.SetModel(m));
-            if (setModel.IsFailed)
-                return setModel.ToResult<Guid>();
-        }
+        if (updateResult.IsFailed)
+            return updateResult;
 
-        if (vehicle.ActiveAssignedDriver?.Id != command.ActiveDriverId
-            || vehicle.AssignedDrivers.Count != command.DriverIds.Count
-            || vehicle.AssignedDrivers.IntersectBy(command.DriverIds, v => v.Id).Count() !=
-            vehicle.AssignedDrivers.Count)
-        {
-            Result<Vehicle> setDrivers = await SetDriversToVehicleAsync(vehicle, command.DriverIds, command.ActiveDriverId);
-            if (setDrivers.IsFailed)
-                return setDrivers.ToResult<Guid>();
-        }
+        await DbContext.SaveChangesAsync();
 
-        if (vehicle.VinNumber != command.VinNumber)
-        {
-            vehicle.VinNumber = command.VinNumber;
-        }
-
-        if (vehicle.Price != command.Price)
-        {
-            vehicle.Price = command.Price;
-        }
-
-        if (vehicle.ManufactureYear != command.ManufactureYear)
-        {
-            vehicle.ManufactureYear = command.ManufactureYear;
-        }
-
-        if (vehicle.Mileage != command.Mileage)
-        {
-            vehicle.Mileage = command.Mileage;
-        }
-
-        if (vehicle.Color != command.Color)
-        {
-            vehicle.Color = command.Color;
-        }
-
-        if (vehicle.AddedToEnterpriseAt != command.AddedToEnterpriseAt)
-        {
-            vehicle.AddedToEnterpriseAt = command.AddedToEnterpriseAt;
-        }
-
-        Result<Vehicle> saveChanges = await SaveVehicleChangesAsync(vehicle);
-
-        return saveChanges.Map(v => v.Id);
+        return Result.Ok();
     }
 
     public async Task<Result> Handle(DeleteVehicleCommand command)
     {
         Result<Manager> getManager = await GetManagerAsync(command.RequestingManagerId, false);
         Result<Vehicle> getVehicle = await getManager.Bind(_ => GetVehicleAsync(command.VehicleId));
-        Result<Enterprise> getEnterprise = getVehicle.Bind(manager => GetAllowedToManagerEnterprise(getManager.Value, command.VehicleId));
+        Result<Enterprise> getEnterprise = getVehicle.Bind(v => GetAllowedToManagerEnterprise(getManager.Value, v.Enterprise.Id));
         if (getEnterprise.IsFailed)
             return getEnterprise.ToResult();
 
         Vehicle vehicle = getVehicle.Value;
 
-        if (vehicle.AssignedDrivers.Count > 0)
-            return Result.Fail(VehiclesHandlersErrors.ForbidDeleteVehicleWithAssignedDrivers);
+        Result checkCanDelete = _vehiclesService.CheckCanDeleteVehicle(vehicle);
+        if (checkCanDelete.IsFailed)
+        {
+            IEnumerable<IError> errors = checkCanDelete.Errors
+                .Select(e => e is VehicleDomainError domainError ? VehiclesErrors.MapDomainError(domainError) : e);
+
+            return Result.Fail(errors);
+        }
 
         Result removeVehicle = await RemoveVehicleAsync(vehicle);
 
@@ -197,48 +202,6 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
     private async Task<Result<Vehicle>> SaveNewVehicleAsync(Vehicle vehicle)
     {
         await DbContext.Vehicles.AddAsync(vehicle);
-        await DbContext.SaveChangesAsync();
-
-        return Result.Ok(vehicle);
-    }
-
-    private async Task<Result<Vehicle>> SetDriversToVehicleAsync(Vehicle vehicle, List<Guid> assidnedDriversIds, Guid? activeAssignedDriverId)
-    {
-        Result<List<Driver>> getAssignedDrivers = await GetAssignedDriversAsync(assidnedDriversIds);
-        Result<Driver?> getIfDefinedActiveAssignedDriver = await getAssignedDrivers.Bind(_ => GetIfDefinedActiveAssignedDriverAsync(activeAssignedDriverId));
-        if (getIfDefinedActiveAssignedDriver.IsFailed)
-            return getIfDefinedActiveAssignedDriver.ToResult<Vehicle>();
-
-        foreach (Driver driver in getAssignedDrivers.Value)
-        {
-            if (vehicle.AssignedDrivers.All(d => d.Id != driver.Id))
-            {
-                Result<Vehicle> addDriver = vehicle.AddAssignedDriver(driver);
-                if (addDriver.IsFailed)
-                    return addDriver;
-            }
-        }
-
-        Result<Vehicle> setActiveAssignedDriver = vehicle.SetActiveAssignedDriver(getIfDefinedActiveAssignedDriver.Value);
-        if (setActiveAssignedDriver.IsFailed)
-            return setActiveAssignedDriver;
-
-        foreach (Driver driver in vehicle.AssignedDrivers)
-        {
-            if (getAssignedDrivers.Value.All(d => d.Id != driver.Id))
-            {
-                Result<Vehicle> deleteDriver = vehicle.DeleteAssignedDriver(driver);
-                if (deleteDriver.IsFailed)
-                    return deleteDriver;
-            }
-        }
-
-        return Result.Ok(vehicle);
-    }
-
-    private async Task<Result<Vehicle>> SaveVehicleChangesAsync(Vehicle vehicle)
-    {
-        DbContext.Vehicles.Update(vehicle);
         await DbContext.SaveChangesAsync();
 
         return Result.Ok(vehicle);

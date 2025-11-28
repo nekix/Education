@@ -1,13 +1,13 @@
-﻿namespace CarPark.ManagersOperations.ExportImport;
+﻿using CarPark.Errors;
+
+namespace CarPark.ManagersOperations.ExportImport;
 
 public static class ExportImportHandlerErrors
 {
-    private const string Prefix = "ExportImport:";
-
-    public const string ManagerNotAllowedToEnterprise = Prefix + "ManagerNotAllowedToEnterprise";
-    public const string VehicleNotExist = Prefix + "VehicleNotExist";
-    public const string TimeZoneNotExist = Prefix + "TimeZoneNotExist";
-    public const string EnterpriseNotFound = Prefix + "EnterpriseNotFound";
-    public const string ModelNotFound = Prefix + "ModelNotFound";
-    public const string RidePointNotFound = Prefix + "RidePointNotFound";
+    public static readonly WebApiError ManagerNotAllowedToEnterprise = new WebApiError(403, "Manager not allowed to enterprise.");
+    public static readonly WebApiError VehicleNotExist = new WebApiError(404, "Vehicle not found.");
+    public static readonly WebApiError TimeZoneNotExist = new WebApiError(400, "Time zone not found.");
+    public static readonly WebApiError EnterpriseNotFound = new WebApiError(404, "Enterprise not found.");
+    public static readonly WebApiError ModelNotFound = new WebApiError(404, "Model not found.");
+    public static readonly WebApiError RidePointNotFound = new WebApiError(404, "Ride point not found.");
 }

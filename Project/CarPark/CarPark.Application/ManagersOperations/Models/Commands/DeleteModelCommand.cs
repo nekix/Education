@@ -4,11 +4,9 @@ using CarPark.Errors;
 using CarPark.Models;
 using CarPark.Models.Errors;
 using CarPark.Models.Services;
-using CarPark.ManagersOperations.Models;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using System.Linq;
 using CarPark.Vehicles;
 
 namespace CarPark.ManagersOperations.Models.Commands;
@@ -43,10 +41,9 @@ public class DeleteModelCommand : ICommand<Result>
             Result checkCanDeleteModel = _modelsService.CheckCanDeleteModel(model, vehicles);
             if (checkCanDeleteModel.IsFailed)
             {
-                IEnumerable<WebApiError> apiErrors = checkCanDeleteModel.Errors
-                    .OfType<ModelDomainError>()
-                    .Select(ModelsErrors.MapDomainError);
-                return Result.Fail(apiErrors);
+                IEnumerable<IError> errors = checkCanDeleteModel.Errors
+                    .Select(e => e is ModelDomainError domainError ? ModelsErrors.MapDomainError(domainError) : e);
+                return Result.Fail(errors);
             }
 
             try

@@ -23,13 +23,13 @@ public class VehiclesController : BaseController
 {
     private readonly ApplicationDbContext _context;
     private readonly ICommandHandler<DeleteVehicleCommand, Result> _deleteHandler;
-    private readonly ICommandHandler<UpdateVehicleCommand, Result<Guid>> _updateHandler;
+    private readonly ICommandHandler<UpdateVehicleCommand, Result> _updateHandler;
     private readonly ICommandHandler<CreateVehicleCommand, Result<Guid>> _createHandler;
     private readonly ITimeZoneConversionService _timeZoneConversionService;
 
     public VehiclesController(ApplicationDbContext context,
         ICommandHandler<DeleteVehicleCommand, Result> deleteHandler,
-        ICommandHandler<UpdateVehicleCommand, Result<Guid>> updateHandler,
+        ICommandHandler<UpdateVehicleCommand, Result> updateHandler,
         ICommandHandler<CreateVehicleCommand, Result<Guid>> createHandler,
         ITimeZoneConversionService timeZoneConversionService)
     {

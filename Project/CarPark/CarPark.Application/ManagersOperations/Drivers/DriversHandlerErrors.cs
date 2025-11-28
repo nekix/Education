@@ -1,9 +1,9 @@
-﻿namespace CarPark.ManagersOperations.Drivers;
+﻿using CarPark.Errors;
 
-public class DriversHandlerErrors
+namespace CarPark.ManagersOperations.Drivers;
+
+public static class DriversHandlerErrors
 {
-    private const string Prefix = "DriverError:";
-
-    public const string DriverNotExist = Prefix + "DriverNotExist";
-    public const string ManagerNotAllowedToVehicle = Prefix + "ManagerNotAllowedToVehicle";
+    public static readonly WebApiError DriverNotExist = new WebApiError(404, "Driver not found.");
+    public static readonly WebApiError ManagerNotAllowedToVehicle = new WebApiError(403, "Manager is not allowed to access this vehicle.");
 }

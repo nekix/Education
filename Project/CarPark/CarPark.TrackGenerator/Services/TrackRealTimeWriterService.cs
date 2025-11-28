@@ -3,6 +3,7 @@ using CarPark.DateTimes;
 using CarPark.TrackGenerator.Interfaces;
 using CarPark.TrackGenerator.Models;
 using CarPark.Vehicles;
+using CarPark.Vehicles.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,15 +14,18 @@ public class TrackRealTimeWriterService
     private readonly ITrackGenerationService _trackGenerationService;
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<TrackRealTimeWriterService> _logger;
+    private readonly IVehicleGeoTimePointsService _geoTimePointsService;
 
     public TrackRealTimeWriterService(
         ITrackGenerationService trackGenerationService,
         ApplicationDbContext dbContext,
-        ILogger<TrackRealTimeWriterService> logger)
+        ILogger<TrackRealTimeWriterService> logger,
+        IVehicleGeoTimePointsService geoTimePointsService)
     {
         _trackGenerationService = trackGenerationService;
         _dbContext = dbContext;
         _logger = logger;
+        _geoTimePointsService = geoTimePointsService;
     }
 
     public async Task GenerateAndWriteTrackAsync(Guid vehicleId, TrackGenerationOptions options, int updateIntervalSeconds)
@@ -108,12 +112,17 @@ public class TrackRealTimeWriterService
             throw new InvalidOperationException($"Автомобиль с ID {vehicleId} не найден в базе данных");
         }
 
-        List<VehicleGeoTimePoint> dbPoints = points.Select(point => VehicleGeoTimePoint.Create(
-            Guid.NewGuid(),
-            vehicle,
-            point.Location,
-            new UtcDateTimeOffset(point.Timestamp.UtcDateTime)
-        ).Value).ToList();
+        List<VehicleGeoTimePoint> dbPoints = points.Select(point =>
+        {
+            var request = new CreateVehicleGeoTimePointRequest
+            {
+                Id = Guid.NewGuid(),
+                Vehicle = vehicle,
+                Location = point.Location,
+                Time = new UtcDateTimeOffset(point.Timestamp.UtcDateTime)
+            };
+            return _geoTimePointsService.CreateVehicleGeoTimePoint(request).Value;
+        }).ToList();
 
         _dbContext.VehicleGeoTimePoints.AddRange(dbPoints);
         await _dbContext.SaveChangesAsync();

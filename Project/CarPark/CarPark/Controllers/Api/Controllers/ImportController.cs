@@ -1,8 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using CarPark.CQ;
+﻿using CarPark.CQ;
+using CarPark.Errors;
 using CarPark.Identity;
 using CarPark.ManagersOperations;
 using CarPark.ManagersOperations.ExportImport;
@@ -11,6 +8,10 @@ using CsvHelper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
 
 namespace CarPark.Controllers.Api.Controllers;
 
@@ -65,22 +66,13 @@ public class ImportController : ApiBaseController
             return NoContent();
         }
 
-        if (importResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = importResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.TimeZoneNotExist))
-        {
-            return BadRequest("TimeZone not found");
-        }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // POST: /api/import/models
@@ -124,14 +116,13 @@ public class ImportController : ApiBaseController
             return NoContent();
         }
 
-        if (importResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = importResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // POST: /api/import/vehicles
@@ -177,26 +168,13 @@ public class ImportController : ApiBaseController
             return NoContent();
         }
 
-        if (importResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = importResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.EnterpriseNotFound))
-        {
-            return NotFound("Enterprise not found");
-        }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.ModelNotFound))
-        {
-            return NotFound("Model not found");
-        }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // POST: /api/import/rides
@@ -241,26 +219,13 @@ public class ImportController : ApiBaseController
             return NoContent();
         }
 
-        if (importResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = importResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.VehicleNotExist))
-        {
-            return NotFound("Vehicle not found");
-        }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.RidePointNotFound))
-        {
-            return NotFound("Ride point not found");
-        }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // POST: /api/import/tracks
@@ -305,22 +270,13 @@ public class ImportController : ApiBaseController
             return NoContent();
         }
 
-        if (importResult.HasError(e => e.Message == ManagersOperationsErrors.ManagerNotExist))
+        WebApiError? apiError = importResult.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return Forbid();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.VehicleNotExist))
-        {
-            return NotFound("Vehicle not found");
-        }
-        else if (importResult.HasError(e => e.Message == ExportImportHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-        else
-        {
-            return BadRequest();
-        }
+
+        return BadRequest();
     }
 
     // Request models

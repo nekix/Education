@@ -3,7 +3,7 @@ using FluentResults;
 
 namespace CarPark.ManagersOperations.Vehicles.Commands;
 
-public class UpdateVehicleCommand : BaseManagerCommandQuery, ICommand<Result<Guid>>
+public class UpdateVehicleCommand : BaseManagerCommandQuery, ICommand<Result>
 {
     public required Guid VehicleId { get; set; }
 

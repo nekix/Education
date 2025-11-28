@@ -3,6 +3,8 @@ using CarPark.Managers;
 using CarPark.ManagersOperations.Rides;
 using CarPark.Rides;
 using CarPark.Vehicles;
+using CarPark.Vehicles.Errors;
+using CarPark.Vehicles.Services;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite;
@@ -18,12 +20,15 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
     ICommandHandler<CreateRideFromGpxFileCommand, Result<Guid>>
 {
     private readonly GeometryFactory _geometryFactory;
+    private readonly IVehicleGeoTimePointsService _vehicleGeoTimePointsService;
 
     public ManagersTrackCommandHandler(
-        ApplicationDbContext dbContext, 
-        NtsGeometryServices services) : base(dbContext)
+        ApplicationDbContext dbContext,
+        NtsGeometryServices services,
+        IVehicleGeoTimePointsService vehicleGeoTimePointsService) : base(dbContext)
     {
         _geometryFactory = services.CreateGeometryFactory(new PrecisionModel(), 4326);
+        _vehicleGeoTimePointsService = vehicleGeoTimePointsService;
     }
 
     public async Task<Result<Guid>> Handle(CreateRideFromGpxFileCommand command)
@@ -116,14 +121,21 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
                 return Result.Fail<List<VehicleGeoTimePoint>>(TrackHandlersErrors.GpxPointsDateTimeNotDefined);
             }
 
-            Result<VehicleGeoTimePoint> createGeoTimePoint = VehicleGeoTimePoint.Create(
-                Guid.NewGuid(),
-                getVehicle.Value,
-                point,
-                new UtcDateTimeOffset(dtTime.Value));
+            CreateVehicleGeoTimePointRequest createRequest = new CreateVehicleGeoTimePointRequest
+            {
+                Id = Guid.NewGuid(),
+                Vehicle = getVehicle.Value,
+                Location = point,
+                Time = new UtcDateTimeOffset(dtTime.Value)
+            };
+
+            Result<VehicleGeoTimePoint> createGeoTimePoint = _vehicleGeoTimePointsService.CreateVehicleGeoTimePoint(createRequest);
             if (createGeoTimePoint.IsFailed)
             {
-                return Result.Fail<List<VehicleGeoTimePoint>>(createGeoTimePoint.Errors);
+                IEnumerable<IError> errors = createGeoTimePoint.Errors
+                    .Select(e => e is VehicleGeoTimePointDomainError domainError ? TrackErrors.VehicleGeoTimePoint.MapDomainError(domainError) : e);
+
+                return Result.Fail<List<VehicleGeoTimePoint>>(errors);
             }
 
             geoTimePoints.Add(createGeoTimePoint.Value);

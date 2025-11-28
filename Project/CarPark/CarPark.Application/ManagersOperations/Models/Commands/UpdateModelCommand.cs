@@ -63,11 +63,10 @@ public class UpdateModelCommand : ICommand<Result<Guid>>
             Result updateModel = _modelsService.UpdateModel(model, request);
             if (updateModel.IsFailed)
             {
-                IEnumerable<WebApiError> apiErrors = updateModel.Errors
-                    .OfType<ModelDomainError>()
-                    .Select(ModelsErrors.MapDomainError);
+                IEnumerable<IError> errors = updateModel.Errors
+                    .Select(e => e is ModelDomainError domainError ? ModelsErrors.MapDomainError(domainError) : e);
 
-                return Result.Fail(apiErrors);
+                return Result.Fail(errors);
             }
 
             await _context.SaveChangesAsync();

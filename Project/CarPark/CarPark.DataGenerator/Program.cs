@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using System.Security.Cryptography;
 using CarPark.TimeZones.Providers;
+using CarPark.Vehicles.Services;
 
 namespace CarPark.DataGenerator;
 
@@ -153,6 +154,9 @@ public sealed class Program
         var configurator = new InfrastractureModuleConfigurator();
         configurator.ConfigureModule(services, configuration, null);
 
+        // Register domain services
+        services.AddScoped<IVehiclesService, VehiclesService>();
+
         return services.BuildServiceProvider();
     }
 
@@ -223,7 +227,7 @@ public sealed class Program
             return;
         }
 
-        DataGenerator generator = new DataGenerator(seed);
+        DataGenerator generator = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>());
         
         // Генерируем автомобили и водителей для каждого предприятия
         List<Vehicle> allVehicles = new List<Vehicle>();
@@ -386,7 +390,7 @@ public sealed class Program
             }
 
             // 3. Vehicles and Drivers
-            DataGenerator dataGen = new DataGenerator(seed);
+            DataGenerator dataGen = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>());
             List<Model> models = context.Models.ToList();
 
             List<Vehicle> allVehicles = new List<Vehicle>();

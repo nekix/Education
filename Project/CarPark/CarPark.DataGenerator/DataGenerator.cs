@@ -262,8 +262,7 @@ public class DataGenerator
                         };
 
                         _vehiclesService.UpdateVehicle(vehicle, updateRequest);
-
-                        availableDriver.ActiveAssignedVehicle = vehicle;
+                        
                         usedDriverIds.Add(availableDriver.Id);
                     }
                 }

@@ -1,7 +1,9 @@
 using Bogus;
 using CarPark.Managers;
+using CarPark.Managers.Services;
 using CarPark.Enterprises;
 using Microsoft.AspNetCore.Identity;
+using FluentResults;
 
 namespace CarPark.DataGenerator;
 
@@ -9,11 +11,13 @@ public class ManagersGenerator
 {
     private readonly int _seed;
     private readonly Random _random;
+    private readonly IManagersService _managersService;
 
-    public ManagersGenerator(int seed = 42)
+    public ManagersGenerator(IManagersService managersService, int seed)
     {
         _seed = seed;
         _random = new Random(seed);
+        _managersService = managersService;
     }
 
     public (List<IdentityUser> identityUsers, List<Manager> managers) GenerateManagers(
@@ -72,12 +76,21 @@ public class ManagersGenerator
     {
         Guid managerId = GenerateDeterministicGuid();
 
-        return new Manager
+        CreateManagerRequest request = new CreateManagerRequest
         {
             Id = managerId,
             IdentityUserId = identityUserId,
             Enterprises = new List<Enterprise> { enterprise }
         };
+
+        Result<Manager> result = _managersService.CreateManager(request);
+        
+        if (result.IsFailed)
+        {
+            throw new InvalidOperationException($"Failed to create manager: {string.Join(", ", result.Errors.Select(e => e.Message))}");
+        }
+
+        return result.Value;
     }
 
     private Guid GenerateDeterministicGuid()

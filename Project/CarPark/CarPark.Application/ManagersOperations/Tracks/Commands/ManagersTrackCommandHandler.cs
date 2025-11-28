@@ -2,6 +2,8 @@
 using CarPark.Managers;
 using CarPark.ManagersOperations.Rides;
 using CarPark.Rides;
+using CarPark.Rides.Errors;
+using CarPark.Rides.Services;
 using CarPark.Vehicles;
 using CarPark.Vehicles.Errors;
 using CarPark.Vehicles.Services;
@@ -21,14 +23,17 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
 {
     private readonly GeometryFactory _geometryFactory;
     private readonly IVehicleGeoTimePointsService _vehicleGeoTimePointsService;
+    private readonly IRidesService _ridesService;
 
     public ManagersTrackCommandHandler(
         ApplicationDbContext dbContext,
         NtsGeometryServices services,
-        IVehicleGeoTimePointsService vehicleGeoTimePointsService) : base(dbContext)
+        IVehicleGeoTimePointsService vehicleGeoTimePointsService,
+        IRidesService ridesService) : base(dbContext)
     {
         _geometryFactory = services.CreateGeometryFactory(new PrecisionModel(), 4326);
         _vehicleGeoTimePointsService = vehicleGeoTimePointsService;
+        _ridesService = ridesService;
     }
 
     public async Task<Result<Guid>> Handle(CreateRideFromGpxFileCommand command)
@@ -80,7 +85,29 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
 
         await DbContext.VehicleGeoTimePoints.AddRangeAsync(geoTimePoints);
 
-        Ride ride = CreateRide(geoTimePoints, getVehicle);
+        VehicleGeoTimePoint startPoint = geoTimePoints.First();
+        VehicleGeoTimePoint endPoint = geoTimePoints.Last();
+
+        CreateRideRequest createRideRequest = new CreateRideRequest
+        {
+            Id = Guid.NewGuid(),
+            Vehicle = getVehicle.Value,
+            StartTime = startPoint.Time.Value,
+            EndTime = endPoint.Time.Value,
+            StartPoint = startPoint,
+            EndPoint = endPoint
+        };
+
+        Result<Ride> createRideResult = _ridesService.CreateRide(createRideRequest);
+        if (createRideResult.IsFailed)
+        {
+            IEnumerable<IError> errors = createRideResult.Errors
+                .Select(e => e is RideDomainError domainError ? RidesErrors.MapDomainError(domainError) : e);
+
+            return Result.Fail<Guid>(errors);
+        }
+
+        Ride ride = createRideResult.Value;
 
         await DbContext.Rides.AddAsync(ride);
 
@@ -89,22 +116,7 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
         return Result.Ok(ride.Id);
     }
 
-    private static Ride CreateRide(List<VehicleGeoTimePoint> geoTimePoints, Result<Vehicle> getVehicle)
-    {
-        VehicleGeoTimePoint startPoint = geoTimePoints.First();
-        VehicleGeoTimePoint endPoint = geoTimePoints.Last();
 
-        Ride ride = new Ride
-        {
-            Id = Guid.NewGuid(),
-            Vehicle = getVehicle.Value,
-            StartTime = startPoint.Time,
-            EndTime = endPoint.Time,
-            StartPoint = startPoint,
-            EndPoint = endPoint
-        };
-        return ride;
-    }
 
     private Result<List<VehicleGeoTimePoint>> ConvertToGeoTimePoints(GpxFile gpxFile, Result<Vehicle> getVehicle)
     {
@@ -186,6 +198,6 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
 
         return vehicle != null
             ? Result.Ok(vehicle)
-            : Result.Fail<Vehicle>(TrackHandlersErrors.VehicleNotFound);
+            : Result.Fail<Vehicle>(RidesHandlerErrors.VehicleNotFound);
     }
 }

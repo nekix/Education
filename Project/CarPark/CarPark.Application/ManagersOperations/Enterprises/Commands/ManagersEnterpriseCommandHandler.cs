@@ -1,7 +1,11 @@
 ﻿using CarPark.CQ;
 using CarPark.Data;
+using CarPark.Drivers;
 using CarPark.Enterprises;
+using CarPark.Enterprises.Errors;
+using CarPark.Enterprises.Services;
 using CarPark.Managers;
+using CarPark.Vehicles;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,8 +14,11 @@ namespace CarPark.ManagersOperations.Enterprises.Commands;
 public class ManagersEnterpriseCommandHandler : BaseManagersHandler,
     ICommandHandler<DeleteEnterpriseCommand, Result>
 {
-    public ManagersEnterpriseCommandHandler(ApplicationDbContext dbContext) : base(dbContext)
+    private readonly IEnterprisesService _enterprisesService;
+
+    public ManagersEnterpriseCommandHandler(ApplicationDbContext dbContext, IEnterprisesService enterprisesService) : base(dbContext)
     {
+        _enterprisesService = enterprisesService;
     }
 
     public async Task<Result> Handle(DeleteEnterpriseCommand command)
@@ -33,22 +40,27 @@ public class ManagersEnterpriseCommandHandler : BaseManagersHandler,
         if (manager.Enterprises.All(e => e.Id != enterprise.Id))
             return Result.Fail(EnterprisesHandlersErrors.ManagerNotAllowedToEnterprise);
 
-        if (enterprise.Managers.Any(m => m.Id != manager.Id))
-            return Result.Fail(EnterprisesHandlersErrors.ForbidDeleteEnterpriseWithOtherManagers);
+        // Remove current manager from enterprise before domain validation
+        // This is necessary because enterprise can only be deleted if it has no managers
+        enterprise.Managers.Remove(manager);
 
-        bool hasAnyVehicles = await DbContext.Vehicles.AnyAsync(v => v.Enterprise.Id == enterprise.Id);
-        if (hasAnyVehicles)
-            return Result.Fail(EnterprisesHandlersErrors.ForbidDeleteWithAnyVehicles);
+        List<Vehicle> enterpriseVehicles = await DbContext.Vehicles
+            .Where(v => v.Enterprise.Id == enterprise.Id)
+            .ToListAsync();
 
-        bool hasAnyDrivers = await DbContext.Drivers.AnyAsync(d => d.EnterpriseId == enterprise.Id);
-        if (hasAnyDrivers)
-            return Result.Fail(EnterprisesHandlersErrors.ForbidDeleteWithAnyDrivers);
+        List<Driver> enterpriseDrivers = await DbContext.Drivers
+            .Where(d => d.EnterpriseId == enterprise.Id)
+            .ToListAsync();
 
-        return await RemoveEnterpriseAsync(enterprise);
-    }
+        // Use domain service to check business invariants
+        Result checkCanDeleteResult = _enterprisesService.CheckCanDeleteEnterprise(enterprise, enterpriseVehicles, enterpriseDrivers);
+        if (checkCanDeleteResult.IsFailed)
+        {
+            IEnumerable<IError> errors = checkCanDeleteResult.Errors
+                .Select(e => e is EnterpriseDomainError domainError ? EnterprisesErrors.MapDomainError(domainError) : e);
+            return Result.Fail(errors);
+        }
 
-    private async Task<Result> RemoveEnterpriseAsync(Enterprise enterprise)
-    {
         DbContext.Enterprises.Remove(enterprise);
         await DbContext.SaveChangesAsync();
 

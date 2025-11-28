@@ -5,7 +5,7 @@ using static CarPark.Models.Errors.ModelDomainErrorCodes;
 
 namespace CarPark.Models.Services;
 
-public class ModelsService : IModelsService
+public sealed class ModelsService : IModelsService
 {
     public Result<Model> CreateModel(CreateModelRequest request)
     {

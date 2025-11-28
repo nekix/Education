@@ -4,7 +4,7 @@ using CarPark.Vehicles.Errors;
 
 namespace CarPark.Vehicles.Services;
 
-public class VehiclesService : IVehiclesService
+public sealed class VehiclesService : IVehiclesService
 {
     public Result<Vehicle> CreateVehicle(CreateVehicleRequest request)
     {

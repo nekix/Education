@@ -1,8 +1,10 @@
 using CarPark.Data;
 using CarPark.DateTimes;
 using CarPark.Rides;
+using CarPark.Rides.Services;
 using CarPark.TrackGenerator.Models;
 using CarPark.Vehicles;
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarPark.TrackGenerator.Services;
@@ -10,11 +12,13 @@ namespace CarPark.TrackGenerator.Services;
 public class BulkRideGenerationService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IRidesService _ridesService;
     private readonly Random _random = new();
 
-    public BulkRideGenerationService(ApplicationDbContext dbContext)
+    public BulkRideGenerationService(ApplicationDbContext dbContext, IRidesService ridesService)
     {
         _dbContext = dbContext;
+        _ridesService = ridesService;
     }
 
     public async Task GenerateRidesForAllVehiclesAsync(
@@ -185,8 +189,8 @@ public class BulkRideGenerationService
                 continue; // Пересечение с другой поездкой
             }
 
-            // Создаем поездку
-            var ride = new Ride
+            // Создаем поездку через доменный сервис
+            var createRequest = new CreateRideRequest
             {
                 Id = Guid.NewGuid(),
                 Vehicle = startPoint.Vehicle,
@@ -196,7 +200,17 @@ public class BulkRideGenerationService
                 EndPoint = endPoint
             };
 
-            return ride;
+            Result<Ride> result = _ridesService.CreateRide(createRequest);
+            
+            if (result.IsFailed)
+            {
+                // Если доменный сервис не может создать поездку, значит есть реальная проблема
+                // Логируем ошибку и прекращаем попытки для данного vehicle/time range
+                Console.WriteLine($"Failed to create ride: {string.Join(", ", result.Errors.Select(e => e.ToString()))}");
+                return null;
+            }
+
+            return result.Value;
         }
 
         return null; // Не удалось сгенерировать поездку после нескольких попыток

@@ -5,7 +5,7 @@ using static CarPark.Drivers.Errors.DriverDomainErrorCodes;
 
 namespace CarPark.Drivers.Services;
 
-public class DriversService : IDriversService
+public sealed class DriversService : IDriversService
 {
     public Result<Driver> CreateDriver(CreateDriverRequest request)
     {

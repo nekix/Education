@@ -1,12 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 using CarPark.Attributes;
 using CarPark.Data;
-using CarPark.Identity;
-using CarPark.Managers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace CarPark.Controllers.Api.Controllers;

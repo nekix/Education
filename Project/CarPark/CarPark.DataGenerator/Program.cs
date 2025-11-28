@@ -14,6 +14,7 @@ using System.Text;
 using System.Security.Cryptography;
 using CarPark.TimeZones.Providers;
 using CarPark.Vehicles.Services;
+using CarPark.Managers.Services;
 
 namespace CarPark.DataGenerator;
 
@@ -156,6 +157,7 @@ public sealed class Program
 
         // Register domain services
         services.AddScoped<IVehiclesService, VehiclesService>();
+        services.AddScoped<IManagersService, ManagersService>();
 
         return services.BuildServiceProvider();
     }
@@ -371,7 +373,7 @@ public sealed class Program
             Console.WriteLine($"Создано {enterprises.Count} предприятий");
 
             // 2. Managers
-            var managersGen = new ManagersGenerator(seed);
+            var managersGen = new ManagersGenerator(serviceProvider.GetRequiredService<IManagersService>(), seed);
             var (identityUsers, managers) = managersGen.GenerateManagers(enterprises);
             context.Users.AddRange(identityUsers);
             await context.SaveChangesAsync();

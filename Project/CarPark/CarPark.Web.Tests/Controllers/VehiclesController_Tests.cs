@@ -8,7 +8,6 @@ using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.ManagersOperations.Vehicles.Queries;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
 using FluentResults;
-using FluentResults;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Features;
@@ -322,9 +321,9 @@ public class VehiclesController_Tests
         IActionResult result = await _controller.PutVehicle(vehicleId, request);
 
         // Assert
-        NotFoundResult? notFoundResult = result as NotFoundResult;
-        Assert.NotNull(notFoundResult);
-        Assert.Equal(404, notFoundResult.StatusCode);
+        ObjectResult? objectResult = result as ObjectResult;
+        Assert.NotNull(objectResult);
+        Assert.Equal(404, objectResult.StatusCode);
     }
 
     [Fact]
@@ -339,9 +338,9 @@ public class VehiclesController_Tests
         IActionResult result = await _controller.DeleteVehicle(vehicleId);
 
         // Assert
-        NotFoundResult? notFoundResult = result as NotFoundResult;
-        Assert.NotNull(notFoundResult);
-        Assert.Equal(404, notFoundResult.StatusCode);
+        ObjectResult? objectResult = result as ObjectResult;
+        Assert.NotNull(objectResult);
+        Assert.Equal(404, objectResult.StatusCode);
     }
 
     [Fact]
@@ -356,9 +355,9 @@ public class VehiclesController_Tests
         IActionResult result = await _controller.DeleteVehicle(vehicleId);
 
         // Assert
-        ConflictResult? conflictResult = result as ConflictResult;
-        Assert.NotNull(conflictResult);
-        Assert.Equal(409, conflictResult.StatusCode);
+        ObjectResult? objectResult = result as ObjectResult;
+        Assert.NotNull(objectResult);
+        Assert.Equal(409, objectResult.StatusCode);
     }
 
     [Fact]

@@ -1,8 +1,6 @@
 ﻿using CarPark.Controllers.Api.Abstract;
 using CarPark.Errors;
 using CarPark.Identity;
-using CarPark.ManagersOperations;
-using CarPark.ManagersOperations.Drivers;
 using CarPark.ManagersOperations.Drivers.Queries;
 using CarPark.ManagersOperations.Drivers.Queries.Models;
 using FluentResults;

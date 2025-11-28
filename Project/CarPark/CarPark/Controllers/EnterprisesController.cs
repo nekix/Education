@@ -1,9 +1,11 @@
 ﻿using CarPark.Data;
 using CarPark.Enterprises;
+using CarPark.Enterprises.Services;
 using CarPark.Identity;
 using CarPark.Managers;
 using CarPark.TimeZones;
 using CarPark.TimeZones.Providers;
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -16,13 +18,16 @@ namespace CarPark.Controllers;
 public class EnterprisesController : BaseController
 {
     private readonly ApplicationDbContext _context;
-    private readonly LocalIcuTimezoneService _timezoneService; 
+    private readonly LocalIcuTimezoneService _timezoneService;
+    private readonly IEnterprisesService _enterprisesService;
 
     public EnterprisesController(ApplicationDbContext context,
-        LocalIcuTimezoneService timezoneService)
+        LocalIcuTimezoneService timezoneService,
+        IEnterprisesService enterprisesService)
     {
         _context = context;
         _timezoneService = timezoneService;
+        _enterprisesService = enterprisesService;
     }
 
     [HttpGet]
@@ -67,7 +72,6 @@ public class EnterprisesController : BaseController
             })
             .FirstOrDefaultAsync();
 
-
         if (enterprise == null)
         {
             return NotFound();
@@ -82,8 +86,7 @@ public class EnterprisesController : BaseController
                 ? new EnterpriseDetailsViewModel.TimeZoneViewModel
                 {
                     Id = enterprise.TimeZone.Id,
-                    Name = GetUserFriendlyTimeZoneName(enterprise.TimeZone.IanaTzId, enterprise.TimeZone.WindowsTzId,
-                        "ru-RU")
+                    Name = GetUserFriendlyTimeZoneName(enterprise.TimeZone.IanaTzId, enterprise.TimeZone.WindowsTzId, "ru-RU")
                 }
                 : null
         };
@@ -125,14 +128,26 @@ public class EnterprisesController : BaseController
                 timeZone = await _context.TzInfos.FindAsync(viewModel.TimeZoneId.Value);
             }
 
-            Enterprise enterprise = new Enterprise
+            CreateEnterpriseRequest request = new CreateEnterpriseRequest
             {
-                Id = default,
+                Id = Guid.NewGuid(),
                 Name = viewModel.Name,
                 LegalAddress = viewModel.LegalAddress,
-                TimeZone = timeZone,
-                Managers = new List<Manager> { manager }
+                TimeZone = timeZone
             };
+
+            Result<Enterprise> createResult = _enterprisesService.CreateEnterprise(request);
+            if (createResult.IsFailed)
+            {
+                // Handle errors if needed
+                ModelState.AddModelError("", "Failed to create enterprise");
+                viewModel.AvailableTimeZones = await GetAvailableTimeZonesSelectList();
+                return View(viewModel);
+            }
+
+            Enterprise enterprise = createResult.Value;
+            // Add the manager to the enterprise (application-specific logic)
+            enterprise.Managers.Add(manager);
 
             _context.Enterprises.Add(enterprise);
             await _context.SaveChangesAsync();
@@ -206,13 +221,23 @@ public class EnterprisesController : BaseController
                 timeZone = await _context.TzInfos.FindAsync(viewModel.TimeZoneId.Value);
             }
 
-            enterprise.Name = viewModel.Name;
-            enterprise.LegalAddress = viewModel.LegalAddress;
-            enterprise.TimeZone = timeZone;
+            UpdateEnterpriseRequest request = new UpdateEnterpriseRequest
+            {
+                Name = viewModel.Name,
+                LegalAddress = viewModel.LegalAddress,
+                TimeZone = timeZone
+            };
+
+            Result updateResult = _enterprisesService.UpdateEnterprise(enterprise, request);
+            if (updateResult.IsFailed)
+            {
+                ModelState.AddModelError("", "Failed to update enterprise");
+                viewModel.AvailableTimeZones = await GetAvailableTimeZonesSelectList();
+                return View(viewModel);
+            }
 
             try
             {
-                _context.Update(enterprise);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)

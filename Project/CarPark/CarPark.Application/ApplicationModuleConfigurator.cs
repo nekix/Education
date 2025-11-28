@@ -1,5 +1,8 @@
 ﻿using CarPark.CQ;
+using CarPark.Drivers.Services;
+using CarPark.Enterprises.Services;
 using CarPark.Geo.GeoCoding;
+using CarPark.Managers.Services;
 using CarPark.ManagersOperations.Drivers.Queries;
 using CarPark.ManagersOperations.Drivers.Queries.Models;
 using CarPark.ManagersOperations.Enterprises.Commands;
@@ -16,9 +19,12 @@ using CarPark.ManagersOperations.Tracks.Queries.Models;
 using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.ManagersOperations.Vehicles.Queries;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
+using CarPark.Models.Services;
 using CarPark.Reports;
+using CarPark.Rides.Services;
 using CarPark.TimeZones.Conversion;
 using CarPark.TimeZones.Providers;
+using CarPark.Vehicles.Services;
 using FluentResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,9 +39,22 @@ public class ApplicationModuleConfigurator
     {
         services.AddSingleton(NtsGeometryServices.Instance);
 
+        ConfigureDomainServices(services);
         ConfigureGeoCodingServies(services, configuration);
         ConfigureTimezoneServices(services);
         ConfigureCommandQueriesHandlers(services);
+    }
+
+    private static void ConfigureDomainServices(IServiceCollection services)
+    {
+        // Register all domain services
+        services.AddScoped<IVehiclesService, VehiclesService>();
+        services.AddScoped<IVehicleGeoTimePointsService, VehicleGeoTimePointsService>();
+        services.AddScoped<IRidesService, RidesService>();
+        services.AddScoped<IModelsService, ModelsService>();
+        services.AddScoped<IManagersService, ManagersService>();
+        services.AddScoped<IEnterprisesService, EnterprisesService>();
+        services.AddScoped<IDriversService, DriversService>();
     }
 
     private static void ConfigureCommandQueriesHandlers(IServiceCollection services)

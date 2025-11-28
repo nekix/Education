@@ -1,6 +1,8 @@
 ﻿using CarPark.Errors;
+using CarPark.Enterprises.Errors;
 using CarPark.Models;
 using CarPark.Models.Errors;
+using CarPark.Rides.Errors;
 using CarPark.Vehicles.Errors;
 using FluentResults;
 
@@ -22,6 +24,20 @@ internal static class ImportErrors
                 ModelDomainErrorCodes.TransmissionTypeRequired => new WebApiError(400, "Transmission type is required.").CausedBy(domainError),
                 ModelDomainErrorCodes.FuelSystemTypeRequired => new WebApiError(400, "Fuel system type is required.").CausedBy(domainError),
                 ModelDomainErrorCodes.FuelTankVolumeLitersRequired => new WebApiError(400, "Fuel tank volume is required.").CausedBy(domainError),
+                _ => new WebApiError(500, "An unexpected error occurred.").CausedBy(domainError)
+            };
+        }
+    }
+
+    internal static class Enterprise
+    {
+        internal static Error MapDomainError(EnterpriseDomainError domainError)
+        {
+            return domainError.Code switch
+            {
+                EnterpriseDomainErrorCodes.EnterpriseHasOtherManagersError => new WebApiError(409, "Cannot delete enterprise because it has assigned managers.").CausedBy(domainError),
+                EnterpriseDomainErrorCodes.EnterpriseHasVehiclesError => new WebApiError(409, "Cannot delete enterprise because it has assigned vehicles.").CausedBy(domainError),
+                EnterpriseDomainErrorCodes.EnterpriseHasDriversError => new WebApiError(409, "Cannot delete enterprise because it has assigned drivers.").CausedBy(domainError),
                 _ => new WebApiError(500, "An unexpected error occurred.").CausedBy(domainError)
             };
         }
@@ -60,6 +76,22 @@ internal static class ImportErrors
             {
                 VehicleGeoTimePointDomainErrorCodes.VehicleMustBeDefined => new WebApiError(400, "Vehicle must be defined.").CausedBy(domainError),
                 VehicleGeoTimePointDomainErrorCodes.LocationMustBeDefined => new WebApiError(400, "Location must be defined.").CausedBy(domainError),
+                _ => new WebApiError(500, "An unexpected error occurred.").CausedBy(domainError)
+            };
+        }
+    }
+
+    internal static class Ride
+    {
+        internal static Error MapDomainError(RideDomainError domainError)
+        {
+            return domainError.Code switch
+            {
+                RideDomainErrorCodes.StartTimeMustBeLessThanOrEqualToEndTime => new WebApiError(400, "Start time must be less than or equal to end time.").CausedBy(domainError),
+                RideDomainErrorCodes.StartTimeMustBeGreaterThanOrEqualToStartPointTime => new WebApiError(400, "Start time must be greater than or equal to start point time.").CausedBy(domainError),
+                RideDomainErrorCodes.EndTimeMustBeGreaterThanOrEqualToEndPointTime => new WebApiError(400, "End time must be greater than or equal to end point time.").CausedBy(domainError),
+                RideDomainErrorCodes.StartPointVehicleMustMatchRideVehicle => new WebApiError(400, "Start point vehicle must match ride vehicle.").CausedBy(domainError),
+                RideDomainErrorCodes.EndPointVehicleMustMatchRideVehicle => new WebApiError(400, "End point vehicle must match ride vehicle.").CausedBy(domainError),
                 _ => new WebApiError(500, "An unexpected error occurred.").CausedBy(domainError)
             };
         }

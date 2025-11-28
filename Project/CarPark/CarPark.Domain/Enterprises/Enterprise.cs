@@ -1,17 +1,59 @@
 ﻿using CarPark.Managers;
 using CarPark.TimeZones;
+using FluentResults;
 
 namespace CarPark.Enterprises;
 
 public sealed class Enterprise
 {
-    public required Guid Id { get; set; }
+    public Guid Id { get; private set; }
 
-    public required string Name { get; set; }
+    public string Name { get; private set; }
 
-    public required string LegalAddress { get; set; }
+    public string LegalAddress { get; private set; }
 
-    public required List<Manager> Managers { get; set; }
+    public List<Manager> Managers { get; private set; }
 
-    public required TzInfo? TimeZone { get; set; }
+    public TzInfo? TimeZone { get; private set; }
+
+    #pragma warning disable CS8618
+    [Obsolete("Only for ORM and deserialization! Do not use!")]
+    private Enterprise()
+    {
+        // Only for ORM and deserialization! Do not use!
+    }
+    #pragma warning restore CS8618
+
+    private Enterprise(
+        Guid id,
+        string name,
+        string legalAddress,
+        TzInfo? timeZone)
+    {
+        Id = id;
+        Name = name;
+        LegalAddress = legalAddress;
+        TimeZone = timeZone;
+        Managers = new List<Manager>();
+    }
+
+    internal static Result<Enterprise> Create(EnterpriseCreateData data)
+    {
+        Enterprise enterprise = new Enterprise(
+            data.Id,
+            data.Name,
+            data.LegalAddress,
+            data.TimeZone);
+
+        return Result.Ok(enterprise);
+    }
+
+    internal static Result Update(Enterprise enterprise, EnterpriseUpdateData data)
+    {
+        enterprise.Name = data.Name;
+        enterprise.LegalAddress = data.LegalAddress;
+        enterprise.TimeZone = data.TimeZone;
+
+        return Result.Ok();
+    }
 }

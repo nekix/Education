@@ -3,14 +3,17 @@ using CarPark.Data;
 using CarPark.DateTimes;
 using CarPark.Drivers;
 using CarPark.Enterprises;
+using CarPark.Enterprises.Errors;
+using CarPark.Enterprises.Services;
 using CarPark.Managers;
 using CarPark.ManagersOperations.ExportImport.Commands;
 using CarPark.ManagersOperations.ExportImport.Queries;
-using CarPark.ManagersOperations.Vehicles;
 using CarPark.Models;
 using CarPark.Models.Errors;
 using CarPark.Models.Services;
 using CarPark.Rides;
+using CarPark.Rides.Errors;
+using CarPark.Rides.Services;
 using CarPark.TimeZones;
 using CarPark.Vehicles;
 using CarPark.Vehicles.Errors;
@@ -32,12 +35,16 @@ public class ManagersExportImportHandler : BaseManagersHandler,
     private readonly IModelsService _modelsService;
     private readonly IVehiclesService _vehiclesService;
     private readonly IVehicleGeoTimePointsService _vehicleGeoTimePointsService;
+    private readonly IEnterprisesService _enterprisesService;
+    private readonly IRidesService _ridesService;
 
-    public ManagersExportImportHandler(ApplicationDbContext dbContext, IModelsService modelsService, IVehiclesService vehiclesService, IVehicleGeoTimePointsService vehicleGeoTimePointsService) : base(dbContext)
+    public ManagersExportImportHandler(ApplicationDbContext dbContext, IModelsService modelsService, IVehiclesService vehiclesService, IVehicleGeoTimePointsService vehicleGeoTimePointsService, IEnterprisesService enterprisesService, IRidesService ridesService) : base(dbContext)
     {
         _modelsService = modelsService;
         _vehiclesService = vehiclesService;
         _vehicleGeoTimePointsService = vehicleGeoTimePointsService;
+        _enterprisesService = enterprisesService;
+        _ridesService = ridesService;
     }
 
     public async Task<Result<EnterpriseExportImportDto>> Handle(ExportEnterpriseQuery query)
@@ -261,16 +268,28 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                     tzInfo = null;
                 }
 
-                Enterprise enterprise = new Enterprise
+                CreateEnterpriseRequest request = new CreateEnterpriseRequest
                 {
                     Id = enterpriseDto.Id,
                     Name = enterpriseDto.Name,
                     LegalAddress = enterpriseDto.LegalAddress,
-                    TimeZone = tzInfo,
-                    Managers = new List<Manager> { manager }
+                    TimeZone = tzInfo
                 };
 
+                Result<Enterprise> createEnterprise = _enterprisesService.CreateEnterprise(request);
+                if (createEnterprise.IsFailed)
+                {
+                    IEnumerable<IError> errors = createEnterprise.Errors
+                        .Select(e => e is EnterpriseDomainError domainError ? ImportErrors.Enterprise.MapDomainError(domainError) : e);
+
+                    return Result.Fail(errors);
+                }
+
+                Enterprise enterprise = createEnterprise.Value;
                 newEnterprises.Add(enterprise);
+
+                // Add the manager to the enterprise (this is application-specific logic)
+                enterprise.Managers.Add(manager);
 
                 DbContext.Enterprises.Add(enterprise);
             }
@@ -324,8 +343,7 @@ public class ManagersExportImportHandler : BaseManagersHandler,
 
                 DbContext.Vehicles.Add(vehicle);
             }
-        }
-        
+        }    
 
         List<VehicleGeoTimePoint> track = new List<VehicleGeoTimePoint>();
 
@@ -397,7 +415,7 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                 if (endPoint == null)
                     return Result.Fail(ExportImportHandlerErrors.RidePointNotFound);
 
-                Ride ride = new Ride
+                CreateRideRequest createRequest = new CreateRideRequest
                 {
                     Id = rideDto.Id,
                     Vehicle = vehicle,
@@ -406,6 +424,18 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                     StartPoint = startPoint,
                     EndPoint = endPoint
                 };
+
+                Result<Ride> createRide = _ridesService.CreateRide(createRequest);
+
+                if (createRide.IsFailed)
+                {
+                    IEnumerable<IError> errors = createRide.Errors
+                        .Select(e => e is RideDomainError domainError ? ImportErrors.Ride.MapDomainError(domainError) : e);
+
+                    return Result.Fail(errors);
+                }
+
+                Ride ride = createRide.Value;
 
                 rides.Add(ride);
 

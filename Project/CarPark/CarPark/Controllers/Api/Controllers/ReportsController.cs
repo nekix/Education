@@ -1,5 +1,6 @@
 ﻿using CarPark.CQ;
 using CarPark.DateTimes;
+using CarPark.Errors;
 using CarPark.Identity;
 using CarPark.ManagersOperations.Reports;
 using CarPark.ManagersOperations.Reports.Queries;
@@ -65,22 +66,13 @@ public class ReportsController : ApiBaseController
             return Ok(result.Value);
         }
 
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.VehicleNotFound))
+        WebApiError? apiError = result.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return NotFound();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
 
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.ManagerNotAllowedToVehicle))
-        {
-            return Forbid();
-        }
-
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.UnknownPeriodType))
-        {
-            return BadRequest("CreateModelRequest period type");
-        }
-
-        return StatusCode(500);
+        return BadRequest();
     }
 
     [HttpGet("enterprise-rides")]
@@ -117,22 +109,13 @@ public class ReportsController : ApiBaseController
             return Ok(result.Value);
         }
 
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.EnterpriseNotFound))
+        WebApiError? apiError = result.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return NotFound();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
 
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.UnknownPeriodType))
-        {
-            return BadRequest("CreateModelRequest period type");
-        }
-
-        return StatusCode(500);
+        return BadRequest();
     }
 
     [HttpGet("enterprise-models")]
@@ -166,17 +149,13 @@ public class ReportsController : ApiBaseController
             return Ok(result.Value);
         }
 
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.EnterpriseNotFound))
+        WebApiError? apiError = result.Errors.OfType<WebApiError>().FirstOrDefault();
+        if (apiError != null)
         {
-            return NotFound();
+            return StatusCode(apiError.StatusCode, new { message = apiError.UserMessage });
         }
 
-        if (result.HasError(e => e.Message == ReportsHandlerErrors.ManagerNotAllowedToEnterprise))
-        {
-            return Forbid();
-        }
-
-        return StatusCode(500);
+        return BadRequest();
     }
 
     private bool IsXlsxRequested()

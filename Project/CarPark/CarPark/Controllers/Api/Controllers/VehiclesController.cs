@@ -2,17 +2,12 @@
 using CarPark.Controllers.Api.Abstract;
 using CarPark.Errors;
 using CarPark.Identity;
-using CarPark.ManagersOperations;
-using CarPark.ManagersOperations.Rides;
 using CarPark.ManagersOperations.Rides.Queries;
-using CarPark.ManagersOperations.Tracks;
 using CarPark.ManagersOperations.Tracks.Queries;
 using CarPark.ManagersOperations.Tracks.Queries.Models;
-using CarPark.ManagersOperations.Vehicles;
 using CarPark.ManagersOperations.Vehicles.Commands;
 using CarPark.ManagersOperations.Vehicles.Queries;
 using CarPark.ManagersOperations.Vehicles.Queries.Models;
-using CarPark.Vehicles;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

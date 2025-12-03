@@ -92,8 +92,8 @@ internal class ManagersTrackCommandHandler : BaseManagersHandler,
         {
             Id = Guid.NewGuid(),
             Vehicle = getVehicle.Value,
-            StartTime = startPoint.Time.Value,
-            EndTime = endPoint.Time.Value,
+            StartTime = new UtcDateTimeOffset(startPoint.Time.Value),
+            EndTime = new UtcDateTimeOffset(endPoint.Time.Value),
             StartPoint = startPoint,
             EndPoint = endPoint
         };

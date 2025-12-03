@@ -194,8 +194,8 @@ public class BulkRideGenerationService
             {
                 Id = Guid.NewGuid(),
                 Vehicle = startPoint.Vehicle,
-                StartTime = rideStartTime,
-                EndTime = rideEndTime,
+                StartTime = new UtcDateTimeOffset(rideStartTime),
+                EndTime = new UtcDateTimeOffset(rideEndTime),
                 StartPoint = startPoint,
                 EndPoint = endPoint
             };

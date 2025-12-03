@@ -369,7 +369,8 @@ public sealed class Program
         try
         {
             // 1. Enterprises
-            EnterprisesGenerator enterprisesGen = new EnterprisesGenerator(serviceProvider.GetRequiredService<CarPark.Enterprises.Services.IEnterprisesService>(), seed);
+            EnterprisesGenerator enterprisesGen = new EnterprisesGenerator(
+                serviceProvider.GetRequiredService<CarPark.Enterprises.Services.IEnterprisesService>(), seed);
             List<Enterprise> enterprises = enterprisesGen.GenerateEnterprises(enterprisesCount);
             context.Enterprises.AddRange(enterprises);
             await context.SaveChangesAsync();
@@ -387,7 +388,9 @@ public sealed class Program
             // 2.5. Models (if not exist)
             if (!context.Models.Any())
             {
-                var modelsGen = new ModelsGenerator(serviceProvider.GetRequiredService<CarPark.Models.Services.IModelsService>(), seed);
+                var modelsGen =
+                    new ModelsGenerator(serviceProvider.GetRequiredService<CarPark.Models.Services.IModelsService>(),
+                        seed);
                 var modelsList = modelsGen.GenerateModels();
                 context.Models.AddRange(modelsList);
                 await context.SaveChangesAsync();
@@ -395,13 +398,14 @@ public sealed class Program
             }
 
             // 3. Vehicles and Drivers
-            DataGenerator dataGen = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>(), serviceProvider.GetRequiredService<CarPark.Drivers.Services.IDriversService>());
+            DataGenerator dataGen = new DataGenerator(seed, serviceProvider.GetRequiredService<IVehiclesService>(),
+                serviceProvider.GetRequiredService<CarPark.Drivers.Services.IDriversService>());
             List<Model> models = context.Models.ToList();
 
             List<Vehicle> allVehicles = new List<Vehicle>();
             List<Driver> allDrivers = new List<Driver>();
 
-            foreach (var enterprise in enterprises)
+            foreach (Enterprise enterprise in enterprises)
             {
                 List<Vehicle> vehicles = dataGen.GenerateVehicles(enterprise, models)
                     .Take(vehiclesPerEnterprise)
@@ -439,7 +443,8 @@ public sealed class Program
                     .ToList();
 
                 await File.WriteAllLinesAsync(exportVehicleIdsFile, activeVehicles);
-                Console.WriteLine($"Экспортировано {activeVehicles.Count} активных vehicle IDs в {exportVehicleIdsFile}");
+                Console.WriteLine(
+                    $"Экспортировано {activeVehicles.Count} активных vehicle IDs в {exportVehicleIdsFile}");
             }
 
             await transaction.CommitAsync();
@@ -448,7 +453,7 @@ public sealed class Program
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            Console.WriteLine($"Ошибка: {ex.Message}");
+            Console.WriteLine($"Ошибка: {ex.ToString()}");
             throw;
         }
     }

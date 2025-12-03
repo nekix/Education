@@ -5,7 +5,6 @@ using CarPark.Models;
 using CarPark.Vehicles;
 using CarPark.Vehicles.Services;
 using CarPark.Drivers.Services;
-using FluentResults;
 
 namespace CarPark.DataGenerator;
 
@@ -94,25 +93,27 @@ public class DataGenerator
             .RuleFor(v => v.Model, f => f.PickRandom(models))
             .RuleFor(v => v.Id, f => GenerateDeterministicGuid())
             .GenerateForever()
-            .Select(v =>
-            {
-                CreateVehicleRequest request = new CreateVehicleRequest
-                {
-                    Id = v.Id,
-                    Model = v.Model,
-                    Enterprise = v.Enterprise,
-                    VinNumber = v.VinNumber,
-                    Price = v.Price,
-                    ManufactureYear = v.ManufactureYear,
-                    Mileage = v.Mileage,
-                    Color = v.Color,
-                    AssignedDrivers = v.AssignedDrivers,
-                    ActiveAssignedDriver = v.ActiveAssignedDriver,
-                    AddedToEnterpriseAt = v.AddedToEnterpriseAt
-                };
+            .Select(CreateVehicle);
+    }
 
-                return _vehiclesService.CreateVehicle(request).Value;
-            });
+    private Vehicle CreateVehicle(VehicleDto v)
+    {
+        CreateVehicleRequest request = new CreateVehicleRequest
+        {
+            Id = v.Id,
+            Model = v.Model,
+            Enterprise = v.Enterprise,
+            VinNumber = v.VinNumber,
+            Price = v.Price,
+            ManufactureYear = v.ManufactureYear,
+            Mileage = v.Mileage,
+            Color = v.Color,
+            AssignedDrivers = v.AssignedDrivers,
+            ActiveAssignedDriver = v.ActiveAssignedDriver,
+            AddedToEnterpriseAt = v.AddedToEnterpriseAt
+        };
+
+        return _vehiclesService.CreateVehicle(request).Value; ;
     }
 
     /// <summary>

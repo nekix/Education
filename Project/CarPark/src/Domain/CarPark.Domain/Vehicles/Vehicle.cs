@@ -4,6 +4,7 @@ using CarPark.Models;
 using FluentResults;
 using static CarPark.Vehicles.Errors.VehicleDomainErrorCodes;
 using CarPark.Vehicles.Errors;
+using CarPark.DateTimes;
 
 namespace CarPark.Vehicles;
 
@@ -30,7 +31,7 @@ public sealed class Vehicle
 
     public Driver? ActiveAssignedDriver { get; private set; }
 
-    public DateTimeOffset AddedToEnterpriseAt { get; private set; }
+    public UtcDateTimeOffset AddedToEnterpriseAt { get; private set; }
 
     #pragma warning disable CS8618
     [Obsolete("Only for ORM, fabric method and deserialization! Do not use!")]
@@ -62,14 +63,15 @@ public sealed class Vehicle
             Color = data.Color,
             _assignedDrivers = new List<Driver>(),
             ActiveAssignedDriver = null,
-            AddedToEnterpriseAt = data.AddedToEnterpriseAt
+            AddedToEnterpriseAt = new UtcDateTimeOffset(data.AddedToEnterpriseAt)
         };
         #pragma warning restore CS0618
 
         return vehicle.SetModel(data.Model)
             .Bind(() => vehicle.SetEnterprise(data.Enterprise))
             .Bind(() => vehicle.SetAssignedDrivers(data.AssignedDrivers))
-            .Bind(() => vehicle.SetActiveAssignedDriver(data.ActiveAssignedDriver));
+            .Bind(() => vehicle.SetActiveAssignedDriver(data.ActiveAssignedDriver))
+            .Bind(() => Result.Ok(vehicle));
     }
 
     internal static Result Update(Vehicle vehicle, VehicleUpdateData data)

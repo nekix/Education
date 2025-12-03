@@ -1,8 +1,8 @@
 ﻿using CarPark.CQ;
 using CarPark.Data;
+using CarPark.DateTimes;
 using CarPark.Drivers;
 using CarPark.Enterprises;
-using CarPark.Errors;
 using CarPark.Managers;
 using CarPark.Models;
 using CarPark.Vehicles;
@@ -99,7 +99,7 @@ internal class ManagersVehiclesCommandHandler : BaseManagersHandler,
             Color = command.Color,
             AssignedDrivers = getAssignedDrivers.Value,
             ActiveAssignedDriver = getActiveDriver.Value,
-            AddedToEnterpriseAt = command.AddedToEnterpriseAt
+            AddedToEnterpriseAt = new UtcDateTimeOffset(command.AddedToEnterpriseAt)
         };
 
         Result updateResult = _vehiclesService.UpdateVehicle(vehicle, request);

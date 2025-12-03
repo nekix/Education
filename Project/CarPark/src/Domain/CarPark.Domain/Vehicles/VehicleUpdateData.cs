@@ -1,3 +1,4 @@
+using CarPark.DateTimes;
 using CarPark.Models;
 using CarPark.Enterprises;
 using CarPark.Drivers;
@@ -15,5 +16,5 @@ internal sealed record VehicleUpdateData
     public required string Color { get; init; }
     public required List<Driver> AssignedDrivers { get; init; }
     public required Driver? ActiveAssignedDriver { get; init; }
-    public required DateTimeOffset AddedToEnterpriseAt { get; init; }
+    public required UtcDateTimeOffset AddedToEnterpriseAt { get; init; }
 }

@@ -419,8 +419,8 @@ public class ManagersExportImportHandler : BaseManagersHandler,
                 {
                     Id = rideDto.Id,
                     Vehicle = vehicle,
-                    StartTime = rideDto.StartTime,
-                    EndTime = rideDto.EndTime,
+                    StartTime = new UtcDateTimeOffset(rideDto.StartTime),
+                    EndTime = new UtcDateTimeOffset(rideDto.EndTime),
                     StartPoint = startPoint,
                     EndPoint = endPoint
                 };

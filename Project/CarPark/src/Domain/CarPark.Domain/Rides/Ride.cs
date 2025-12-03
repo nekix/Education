@@ -1,4 +1,5 @@
-﻿using CarPark.Vehicles;
+﻿using CarPark.DateTimes;
+using CarPark.Vehicles;
 using CarPark.Rides.Errors;
 using FluentResults;
 using static CarPark.Rides.Errors.RideDomainErrorCodes;
@@ -11,9 +12,9 @@ public sealed class Ride
 
     public Vehicle Vehicle { get; private set; }
 
-    public DateTimeOffset StartTime { get; private set; }
+    public UtcDateTimeOffset StartTime { get; private set; }
 
-    public DateTimeOffset EndTime { get; private set; }
+    public UtcDateTimeOffset EndTime { get; private set; }
 
     public VehicleGeoTimePoint StartPoint { get; private set; }
 
@@ -30,8 +31,8 @@ public sealed class Ride
     private Ride(
         Guid id,
         Vehicle vehicle,
-        DateTimeOffset startTime,
-        DateTimeOffset endTime,
+        UtcDateTimeOffset startTime,
+        UtcDateTimeOffset endTime,
         VehicleGeoTimePoint startPoint,
         VehicleGeoTimePoint endPoint)
     {

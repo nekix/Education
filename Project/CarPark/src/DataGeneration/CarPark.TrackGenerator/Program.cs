@@ -13,6 +13,7 @@ using NetTopologySuite.IO.Converters;
 using System.CommandLine;
 using System.Text.Json;
 using CarPark.DateTimes;
+using CarPark.Rides.Services;
 using CarPark.Vehicles.Services;
 
 //using CarPark.TimeZones.Providers;
@@ -641,6 +642,7 @@ public sealed class Program
         services.AddScoped<BulkRideGenerationService>();
 
         // Register domain services
+        services.AddTransient<IRidesService, RidesService>();
         services.AddScoped<IVehiclesService, VehiclesService>();
         services.AddScoped<IVehicleGeoTimePointsService, VehicleGeoTimePointsService>();
     }
@@ -673,6 +675,7 @@ public sealed class Program
         services.AddScoped<TrackForceTimeWriterService>();
 
         // Register domain services
+        services.AddTransient<IRidesService, RidesService>();
         services.AddTransient<IVehiclesService, VehiclesService>();
         services.AddTransient<IVehicleGeoTimePointsService, VehicleGeoTimePointsService>();
     }

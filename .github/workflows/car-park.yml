@@ -24,6 +24,7 @@ jobs:
         username: ${{ secrets.CAR_PARK_SERVER_USER }}
         password: ${{ secrets.CAR_PARK_SERVER_PASSWORD }}
         port: ${{ secrets.CAR_PARK_SERVER_PORT }}
+        command_timeout: 60m
         script: |
           set -e
           export POSTGRES_DB="${{ secrets.CAR_PARK_POSTGRES_DB }}"

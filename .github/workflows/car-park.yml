@@ -48,6 +48,7 @@ jobs:
           DEMO_START_DATE=$DEMO_START_DATE
           DEMO_END_DATE=$DEMO_END_DATE
           WEB_PORT=$WEB_PORT
+          TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
           EOF
           wget -q https://raw.githubusercontent.com/nekix/Education/main/Project/CarPark/deploy/deploy.sh -O deploy.sh
           chmod +x deploy.sh

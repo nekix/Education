@@ -50,6 +50,7 @@ services:
       - DEMO_START_DATE=${DEMO_START_DATE}
       - DEMO_END_DATE=${DEMO_END_DATE}
       - DEMO_SEED=${DEMO_SEED}
+      - BotConfiguration__BotToken=${TELEGRAM_BOT_TOKEN}
     networks:
       - carpark-network
 

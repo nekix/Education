@@ -36,6 +36,7 @@ jobs:
           export DEMO_START_DATE="${{ secrets.CAR_PARK_DEMO_START_DATE }}"
           export DEMO_END_DATE="${{ secrets.CAR_PARK_DEMO_END_DATE }}"
           export WEB_PORT="${{ secrets.CAR_PARK_WEB_PORT }}"
+          export TELEGRAM_BOT_TOKEN="${{ secrets.CAR_PARK_TELEGRAM_BOT_TOKEN }}"
           # Create .env file
           cat > ~/.env << EOF
           POSTGRES_DB=$POSTGRES_DB

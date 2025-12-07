@@ -26,8 +26,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8F6F6504
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{16E35CD8-FDC3-4B55-A37E-49C44B1BD8BA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{92F18771-75CE-44E1-960F-7B6C925534C3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarPark.Web", "src\Web\CarPark.Web\CarPark.Web.csproj", "{9189A3B3-13E9-2D62-2B3D-3CEB554E967E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarPark.Domain.TimeZones", "src\Domain\CarPark.Domain.TimeZones\CarPark.Domain.TimeZones.csproj", "{737A3D0A-0642-1952-75BB-5D18F85FE2C7}"

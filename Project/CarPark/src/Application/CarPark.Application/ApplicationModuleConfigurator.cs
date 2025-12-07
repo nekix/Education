@@ -94,6 +94,7 @@ public class ApplicationModuleConfigurator
         services.AddScoped<IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>>, ReportsQueryHandler>();
         services.AddScoped<IQueryHandler<GetEnterpriseRidesReportQuery, Result<EnterpriseRidesPeriodReport>>, ReportsQueryHandler>();
         services.AddScoped<IQueryHandler<GetEnterpriseModelsReportQuery, Result<EnterpriseVehiclesModelsReport>>, ReportsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetEnterpriseMileageReportQuery, Result<EnterpriseMileagePeriodReport>>, ReportsQueryHandler>();
     }
 
     private static void ConfigureGeoCodingServies(IServiceCollection services, IConfiguration configuration)
@@ -101,7 +102,7 @@ public class ApplicationModuleConfigurator
         services.AddOptions<DadataSettings>()
             .Bind(configuration.GetSection(DadataSettings.ConfigurationSectionName))
             .ValidateDataAnnotations()
-            .ValidateOnStart();;
+            .ValidateOnStart();
 
         services.AddHttpClient<IGeoCodingService, DadataGeoCodingService>();
 

@@ -65,6 +65,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__Default=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Timezone=UTC
       - Dadata__Token=${DADATA_TOKEN}
+      - BotConfiguration__BotToken=${TELEGRAM_BOT_TOKEN}
     ports:
       - "${WEB_PORT:-8080}:8080"
     networks:

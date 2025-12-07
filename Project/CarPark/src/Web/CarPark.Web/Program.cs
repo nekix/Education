@@ -1,12 +1,17 @@
 using CarPark.Attributes;
 using CarPark.Data;
 using CarPark.Identity;
+using CarPark.Telegram;
+using CarPark.Telegram.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using NetTopologySuite.IO.Converters;
+using Telegram.Bot;
+using Telegram.Bot.Polling;
 
 namespace CarPark;
 
@@ -88,6 +93,7 @@ public class Program
 
         builder.AddDataProvidersServices();
         builder.AddApplicationServices();
+        builder.AddTelegramServices();
 
         WebApplication app = builder.Build();
 
@@ -138,6 +144,28 @@ public class Program
 
 public static class ServiceCollectionExtensions
 {
+    public static void AddTelegramServices(this WebApplicationBuilder builder)
+    {
+        // Telegram Bot Configuration
+        builder.Services.Configure<BotConfiguration>(builder.Configuration.GetSection(BotConfiguration.Key));
+
+        builder.Services.AddHttpClient("Telegram", client =>
+        {
+            client.BaseAddress = new Uri("https://api.telegram.org/bot");
+        });
+
+        builder.Services.AddSingleton<ITelegramBotClient>(sp =>
+        {
+            var config = sp.GetRequiredService<IOptions<BotConfiguration>>().Value;
+            return new TelegramBotClient(config.BotToken);
+        });
+
+        builder.Services.AddSingleton<ITelegramAuthenticationService, TelegramAuthenticationService>();
+        builder.Services.AddSingleton<ITelegramReportService, TelegramReportService>();
+        builder.Services.AddSingleton<IUpdateHandler, TelegramUpdateHandler>();
+        builder.Services.AddHostedService<TelegramBotService>();
+    }
+
     public static void AddDataProvidersServices(this WebApplicationBuilder builder)
     {
         InfrastractureModuleConfigurator infrastractureModule = new InfrastractureModuleConfigurator();

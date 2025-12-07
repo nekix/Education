@@ -34,9 +34,9 @@ public sealed class Manager
     internal static Result<Manager> Create(ManagerCreateData data)
     {
         // Check for duplicate enterprises
-        bool hasEnterpriseDuplicates =  data.Enterprises.GroupBy(e => e.Id)
-            .Where(group => group.Count() > 1)
-            .Any();
+        bool hasEnterpriseDuplicates =  data.Enterprises
+            .GroupBy(e => e.Id)
+            .Any(group => group.Count() > 1);
 
         if (hasEnterpriseDuplicates)
         {

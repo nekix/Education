@@ -15,6 +15,7 @@ namespace CarPark.ManagersOperations.Reports.Queries;
 public class ReportsQueryHandler : BaseManagersHandler,
     IQueryHandler<GetVehicleMileageReportQuery, Result<VehicleMileagePeriodReport>>,
     IQueryHandler<GetEnterpriseRidesReportQuery, Result<EnterpriseRidesPeriodReport>>,
+    IQueryHandler<GetEnterpriseMileageReportQuery, Result<EnterpriseMileagePeriodReport>>,
     IQueryHandler<GetEnterpriseModelsReportQuery, Result<EnterpriseVehiclesModelsReport>>
 {
     private const string GetVehicleMileagePeriodSql =
@@ -163,6 +164,40 @@ public class ReportsQueryHandler : BaseManagersHandler,
         ORDER BY date;
         ";
 
+   private const string GetEnterpriseMileagePeriodSql =
+       @"
+       WITH distances AS (
+           SELECT
+               v.id AS vehicle_id,
+               p.time,
+               ST_Distance(
+                   p.location::geography,
+                   LAG(p.location) OVER (PARTITION BY v.id ORDER BY p.time)::geography
+               ) AS segment_distance,
+               EXTRACT(EPOCH FROM (p.time - LAG(p.time) OVER (PARTITION BY v.id ORDER BY p.time))) / 60 AS diff_minutes
+           FROM car_park.vehicle_geo_time_point p
+           JOIN car_park.vehicle v ON v.id = p.vehicle_id
+           WHERE v.enterprise_id = @enterpriseId
+             AND p.time BETWEEN @startTime AND @endTime
+       ),
+       vehicle_periods AS (
+           SELECT
+               vehicle_id,
+               DATE_TRUNC(@period, time)::timestamptz AS date,
+               SUM(segment_distance)/1000.0 AS mileage_in_km
+           FROM distances
+           WHERE diff_minutes <= 10
+           GROUP BY vehicle_id, date
+       )
+       SELECT
+           date,
+           SUM(mileage_in_km) AS total_mileage_km,
+           AVG(mileage_in_km) AS avg_mileage_km
+       FROM vehicle_periods
+       GROUP BY date
+       ORDER BY date;
+       ";
+
     public ReportsQueryHandler(ApplicationDbContext dbContext) : base(dbContext)
     {
     }
@@ -282,6 +317,65 @@ public class ReportsQueryHandler : BaseManagersHandler,
         public TimeSpan TotalTime { get; private init; }
 
         public TimeSpan AvgTime { get; private init; }
+
+        public double TotalMileageKm { get; private init; }
+
+        public double AvgMileageKm { get; private init; }
+    }
+
+    public async Task<Result<EnterpriseMileagePeriodReport>> Handle(GetEnterpriseMileageReportQuery query)
+    {
+        Result<Manager> getManager = await GetManagerAsync(query.RequestingManagerId, false);
+        if (getManager.IsFailed)
+            return getManager.ToResult<EnterpriseMileagePeriodReport>();
+
+        Manager manager = getManager.Value;
+
+        Enterprise? enterprise = await DbContext.Enterprises
+            .FindAsync(query.EnterpriseId);
+
+        if (enterprise == null)
+            return Result.Fail<EnterpriseMileagePeriodReport>(ReportsHandlerErrors.EnterpriseNotFound);
+
+        if (manager.Enterprises.All(e => e.Id != enterprise.Id))
+            return Result.Fail<EnterpriseMileagePeriodReport>(ReportsHandlerErrors.ManagerNotAllowedToEnterprise);
+
+        Result<string> getSqlPeriodName = MapPeriodTypeToSqlPeriodName(query.Period);
+        if (getSqlPeriodName.IsFailed)
+            return getSqlPeriodName.ToResult<EnterpriseMileagePeriodReport>();
+
+        object[] parameters = {
+            new NpgsqlParameter("@enterpriseId", enterprise.Id),
+            new NpgsqlParameter("@startTime", query.StartDate.Value),
+            new NpgsqlParameter("@endTime", query.EndDate.Value),
+            new NpgsqlParameter("@period", getSqlPeriodName.Value)
+        };
+
+        List<EnterpriseMileageReportDataDto> dataDto = await DbContext.Database
+            .SqlQueryRaw<EnterpriseMileageReportDataDto>(GetEnterpriseMileagePeriodSql, parameters)
+            .ToListAsync();
+
+        List<DataPeriodItem<EnterpriseMileageReportDataItem>> data = dataDto
+            .Select(dto => new DataPeriodItem<EnterpriseMileageReportDataItem>(
+                new UtcDateTimeOffset(dto.Date),
+                new EnterpriseMileageReportDataItem(
+                    dto.TotalMileageKm, dto.AvgMileageKm)))
+            .ToList();
+
+        EnterpriseMileagePeriodReport report = new EnterpriseMileagePeriodReport(
+            enterprise.Id,
+            enterprise.Name,
+            query.Period,
+            query.StartDate,
+            query.EndDate,
+            data);
+
+        return Result.Ok<EnterpriseMileagePeriodReport>(report);
+    }
+
+    private class EnterpriseMileageReportDataDto
+    {
+        public DateTimeOffset Date { get; set; }
 
         public double TotalMileageKm { get; private init; }
 

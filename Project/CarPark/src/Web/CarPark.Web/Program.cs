@@ -1,7 +1,9 @@
 using CarPark.Attributes;
 using CarPark.Data;
 using CarPark.Identity;
+using CarPark.Rides.Events;
 using CarPark.Telegram;
+using CarPark.Telegram.Events;
 using CarPark.Telegram.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -164,6 +166,8 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton<ITelegramReportService, TelegramReportService>();
         builder.Services.AddSingleton<IUpdateHandler, TelegramUpdateHandler>();
         builder.Services.AddHostedService<TelegramBotService>();
+
+        builder.Services.AddTransient< ICreateRideEventHandler, TelegramCreateRideEventHandler>();
     }
 
     public static void AddDataProvidersServices(this WebApplicationBuilder builder)

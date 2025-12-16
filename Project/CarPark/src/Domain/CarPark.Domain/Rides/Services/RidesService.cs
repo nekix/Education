@@ -1,4 +1,5 @@
 using CarPark.Rides.Errors;
+using CarPark.Rides.Events;
 using FluentResults;
 using static CarPark.Rides.Errors.RideDomainErrorCodes;
 
@@ -6,6 +7,13 @@ namespace CarPark.Rides.Services;
 
 public sealed class RidesService : IRidesService
 {
+    private readonly ICreateRideEventHandler _createRideEventHandler;
+
+    public RidesService(ICreateRideEventHandler createRideEventHandler)
+    {
+        _createRideEventHandler = createRideEventHandler;
+    }
+
     public Result<Ride> CreateRide(CreateRideRequest request)
     {
         // Validate that ride times are consistent with point times
@@ -40,6 +48,16 @@ public sealed class RidesService : IRidesService
             EndPoint = request.EndPoint
         };
 
-        return Ride.Create(data);
+        Result<Ride> createRide = Ride.Create(data);
+
+        Ride ride = createRide.Value;
+
+        if (createRide.IsSuccess)
+        {
+            var @event = new CreateRideEvent(ride.Id, ride.Vehicle.Enterprise.Id, ride.Vehicle.Id, ride.StartTime, ride.EndTime);
+            _createRideEventHandler.Handle(@event);
+        }
+
+        return createRide;
     }
 }

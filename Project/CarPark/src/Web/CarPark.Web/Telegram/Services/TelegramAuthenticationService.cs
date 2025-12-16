@@ -10,8 +10,8 @@ internal interface ITelegramAuthenticationService
 {
     Task<bool> AuthenticateAsync(long telegramUserId, string username, string password);
     bool IsAuthenticated(long telegramUserId);
+    long? FindManagersTelegramId(Guid managerId);
     Task<Manager?> GetAuthenticatedManagerAsync(long telegramUserId);
-    void Logout(long telegramUserId);
 }
 
 internal sealed class TelegramAuthenticationService : ITelegramAuthenticationService
@@ -102,11 +102,11 @@ internal sealed class TelegramAuthenticationService : ITelegramAuthenticationSer
         return null;
     }
 
-    public void Logout(long telegramUserId)
+    public long? FindManagersTelegramId(Guid managerId)
     {
-        if (_authenticatedUsers.TryRemove(telegramUserId, out Manager manager))
-        {
-            _logger.LogInformation("User {TelegramUserId} logged out (was manager {ManagerId})", telegramUserId, manager.Id);
-        }
+        KeyValuePair<long, Manager>? manager = _authenticatedUsers
+            .FirstOrDefault(u => u.Value.Id == managerId);
+
+        return manager?.Key;
     }
 }

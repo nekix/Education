@@ -125,7 +125,7 @@ public class ManagersExportImportHandler : BaseManagersHandler,
         // Получаем только поездки
         List<VehicleRideExportImportDto> rides = await DbContext.Rides
             .Where(r => r.Vehicle.Id == vehicle.Id)
-            .Where(r => r.StartTime >= query.RidesStartTime && r.EndTime <= query.RidesEndTime)
+            .Where(r => r.StartTime >= new UtcDateTimeOffset(query.RidesStartTime) && r.EndTime <= new UtcDateTimeOffset(query.RidesEndTime))
             .OrderBy(r => r.StartTime)
             .Select(ride => new VehicleRideExportImportDto
             {
@@ -162,7 +162,7 @@ public class ManagersExportImportHandler : BaseManagersHandler,
         // Получаем треки в заданном временном диапазоне
         List<VehicleGeoTimePointExportImportDto> tracks = await DbContext.VehicleGeoTimePoints
             .Where(p => p.Vehicle.Id == vehicle.Id)
-            .Where(p => p.Time >= query.TrackStartTime && p.Time <= query.TrackEndTime)
+            .Where(p => p.Time >= new UtcDateTimeOffset(query.TrackStartTime) && p.Time <= new UtcDateTimeOffset(query.TrackEndTime))
             .OrderBy(p => p.Time)
             .Select(p => new VehicleGeoTimePointExportImportDto
             {
